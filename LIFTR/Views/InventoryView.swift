@@ -1,54 +1,6 @@
 import SwiftUI
 import SwiftData
 
-// New separate models for better type safety
-@Model
-class PlateItem {
-    @Attribute(.unique) var id: UUID
-    var weight: Double
-    var quantity: Int
-    var order: Int
-    
-    init(id: UUID = UUID(), weight: Double, quantity: Int, order: Int = 0) {
-        self.id = id
-        self.weight = weight
-        self.quantity = quantity
-        self.order = order
-    }
-}
-
-@Model
-class BarItem {
-    @Attribute(.unique) var id: UUID
-    var weight: Double
-    var barType: String
-    var quantity: Int
-    var order: Int
-    
-    init(id: UUID = UUID(), weight: Double, barType: String, quantity: Int, order: Int = 0) {
-        self.id = id
-        self.weight = weight
-        self.barType = barType
-        self.quantity = quantity
-        self.order = order
-    }
-}
-
-@Model
-class CollarItem {
-    @Attribute(.unique) var id: UUID
-    var weight: Double
-    var quantity: Int
-    var order: Int
-    
-    init(id: UUID = UUID(), weight: Double, quantity: Int, order: Int = 0) {
-        self.id = id
-        self.weight = weight
-        self.quantity = quantity
-        self.order = order
-    }
-}
-
 enum InventoryCategory: String, CaseIterable {
     case plates = "Plates"
     case bars = "Bars"
@@ -73,12 +25,13 @@ enum InventoryCategory: String, CaseIterable {
 
 struct InventoryView: View {
     @Environment(\.modelContext) private var context
-    @Query(sort: \PlateItem.order) private var plates: [PlateItem]
-    @Query(sort: \BarItem.order) private var bars: [BarItem]
-    @Query(sort: \CollarItem.order) private var collars: [CollarItem]
+    @Query(sort: [SortDescriptor(\PlateItem.weight, order: .reverse)]) private var plates: [PlateItem]
+    @Query(sort: [SortDescriptor(\BarItem.weight, order: .reverse)]) private var bars: [BarItem]
+    @Query(sort: [SortDescriptor(\CollarItem.weight, order: .reverse)]) private var collars: [CollarItem]
     
     @State private var expandedCategory: InventoryCategory?
     @State private var selectedCategory: InventoryCategory = .plates
+    @State private var newName: String = ""
     @State private var newWeight: String = ""
     @State private var newQuantity: String = ""
     @State private var selectedBarType: String = "Olympic"
@@ -114,6 +67,9 @@ struct InventoryView: View {
                             .font(.headline)
                         Spacer()
                     }
+                    
+                    TextField("Name (optional)", text: $newName)
+                        .textFieldStyle(.roundedBorder)
                     
                     HStack(spacing: 12) {
                         TextField(selectedCategory.weightHint, text: $newWeight)
@@ -152,32 +108,31 @@ struct InventoryView: View {
             ForEach(plates, id: \.id) { plate in
                 InventoryRow(
                     title: String(format: "%.1f lbs", plate.weight),
+                    subtitle: plate.name.isEmpty ? nil : plate.name,
                     quantity: plate.quantity,
                     onDelete: { deletePlate(plate) }
                 )
             }
-            .onMove(perform: movePlates)
             
         case .bars:
             ForEach(bars, id: \.id) { bar in
                 InventoryRow(
                     title: String(format: "%.1f lbs", bar.weight),
-                    subtitle: bar.barType,
+                    subtitle: bar.name.isEmpty ? "\(bar.barType)" : "\(bar.name) - \(bar.barType)",
                     quantity: bar.quantity,
                     onDelete: { deleteBar(bar) }
                 )
             }
-            .onMove(perform: moveBars)
             
         case .collars:
             ForEach(collars, id: \.id) { collar in
                 InventoryRow(
                     title: String(format: "%.1f lbs", collar.weight),
+                    subtitle: collar.name.isEmpty ? nil : collar.name,
                     quantity: collar.quantity,
                     onDelete: { deleteCollar(collar) }
                 )
             }
-            .onMove(perform: moveCollars)
         }
     }
     
@@ -196,33 +151,24 @@ struct InventoryView: View {
         guard let weight = Double(newWeight),
               let quantity = Int(newQuantity), quantity > 0 else { return }
         
-        let nextOrder = getNextOrder(for: selectedCategory)
-        
         switch selectedCategory {
         case .plates:
-            let plate = PlateItem(weight: weight, quantity: quantity, order: nextOrder)
+            let plate = PlateItem(name: newName, weight: weight, quantity: quantity)
             context.insert(plate)
             
         case .bars:
-            let bar = BarItem(weight: weight, barType: selectedBarType, quantity: quantity, order: nextOrder)
+            let bar = BarItem(name: newName, weight: weight, barType: selectedBarType, quantity: quantity)
             context.insert(bar)
             
         case .collars:
-            let collar = CollarItem(weight: weight, quantity: quantity, order: nextOrder)
+            let collar = CollarItem(name: newName, weight: weight, quantity: quantity)
             context.insert(collar)
         }
         
         try? context.save()
+        newName = ""
         newWeight = ""
         newQuantity = ""
-    }
-    
-    private func getNextOrder(for category: InventoryCategory) -> Int {
-        switch category {
-        case .plates: return (plates.map(\.order).max() ?? 0) + 1
-        case .bars: return (bars.map(\.order).max() ?? 0) + 1
-        case .collars: return (collars.map(\.order).max() ?? 0) + 1
-        }
     }
     
     private func deletePlate(_ plate: PlateItem) {
@@ -237,33 +183,6 @@ struct InventoryView: View {
     
     private func deleteCollar(_ collar: CollarItem) {
         context.delete(collar)
-        try? context.save()
-    }
-    
-    private func movePlates(from source: IndexSet, to destination: Int) {
-        var reorderedPlates = plates
-        reorderedPlates.move(fromOffsets: source, toOffset: destination)
-        updateOrder(items: reorderedPlates)
-    }
-    
-    private func moveBars(from source: IndexSet, to destination: Int) {
-        var reorderedBars = bars
-        reorderedBars.move(fromOffsets: source, toOffset: destination)
-        updateOrder(items: reorderedBars)
-    }
-    
-    private func moveCollars(from source: IndexSet, to destination: Int) {
-        var reorderedCollars = collars
-        reorderedCollars.move(fromOffsets: source, toOffset: destination)
-        updateOrder(items: reorderedCollars)
-    }
-    
-    private func updateOrder<T: AnyObject>(items: [T]) {
-        for (index, item) in items.enumerated() {
-            if let plate = item as? PlateItem { plate.order = index }
-            else if let bar = item as? BarItem { bar.order = index }
-            else if let collar = item as? CollarItem { collar.order = index }
-        }
         try? context.save()
     }
 }

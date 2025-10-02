@@ -15,16 +15,48 @@ class User {
 }
 
 @Model
-class PlateInventoryItem {
+class PlateItem {
     @Attribute(.unique) var id: UUID
-    var plateWeight: Double
+    var name: String
+    var weight: Double
     var quantity: Int
-    var isCollar: Bool
     
-    init(id: UUID = UUID(), plateWeight: Double, quantity: Int, isCollar: Bool = false) {
+    init(id: UUID = UUID(), name: String = "", weight: Double, quantity: Int) {
         self.id = id
-        self.plateWeight = plateWeight
+        self.name = name
+        self.weight = weight
         self.quantity = quantity
-        self.isCollar = isCollar
+    }
+}
+
+@Model
+class BarItem {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    var weight: Double
+    var barType: String
+    var quantity: Int
+    
+    init(id: UUID = UUID(), name: String = "", weight: Double, barType: String, quantity: Int) {
+        self.id = id
+        self.name = name
+        self.weight = weight
+        self.barType = barType
+        self.quantity = quantity
+    }
+}
+
+@Model
+class CollarItem {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    var weight: Double
+    var quantity: Int
+    
+    init(id: UUID = UUID(), name: String = "", weight: Double, quantity: Int) {
+        self.id = id
+        self.name = name
+        self.weight = weight
+        self.quantity = quantity
     }
 }
