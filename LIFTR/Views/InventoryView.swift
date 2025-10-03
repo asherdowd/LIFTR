@@ -35,6 +35,8 @@ struct InventoryView: View {
     @State private var newWeight: String = ""
     @State private var newQuantity: String = ""
     @State private var selectedBarType: String = "Olympic"
+    @State private var showError: Bool = false
+    @State private var errorMessage: String = ""
     
     private let barTypes = ["Deadlift", "Squat", "Bench", "Olympic", "Curl"]
     
@@ -72,11 +74,23 @@ struct InventoryView: View {
                         .textFieldStyle(.roundedBorder)
                     
                     HStack(spacing: 12) {
-                        TextField(selectedCategory.weightHint, text: $newWeight)
-                            .textFieldStyle(.roundedBorder)
+                        VStack(alignment: .leading) {
+                            Text(selectedCategory.weightHint)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            TextField("0", text: $newWeight)
+                                .textFieldStyle(.roundedBorder)
+                                .keyboardType(.decimalPad)
+                        }
                         
-                        TextField("Quantity", text: $newQuantity)
-                            .textFieldStyle(.roundedBorder)
+                        VStack(alignment: .leading) {
+                            Text("Quantity")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            TextField("0", text: $newQuantity)
+                                .textFieldStyle(.roundedBorder)
+                                .keyboardType(.numberPad)
+                        }
                     }
                     
                     if selectedCategory == .bars {
@@ -88,50 +102,92 @@ struct InventoryView: View {
                         .pickerStyle(.menu)
                     }
                     
-                    Button(selectedCategory.addButtonTitle) {
-                        addNewItem()
+                    Button(action: addNewItem) {
+                        Text(selectedCategory.addButtonTitle)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(isButtonEnabled ? Color.blue : Color.gray)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(newWeight.isEmpty || newQuantity.isEmpty)
+                    .disabled(!isButtonEnabled)
+                    
+                    // Debug info - remove this later
+                    Text("Weight: '\(newWeight)' Qty: '\(newQuantity)'")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    Text("Enabled: \(isButtonEnabled ? "Yes" : "No")")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                 }
                 .padding()
                 .background(Color(.systemGroupedBackground))
             }
             .navigationTitle("Inventory")
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
         }
+    }
+    
+    private var isButtonEnabled: Bool {
+        let hasWeight = !newWeight.isEmpty && Double(newWeight) != nil
+        let hasQuantity = !newQuantity.isEmpty && Int(newQuantity) != nil
+        return hasWeight && hasQuantity
     }
     
     @ViewBuilder
     private func categoryContent(for category: InventoryCategory) -> some View {
         switch category {
         case .plates:
-            ForEach(plates, id: \.id) { plate in
-                InventoryRow(
-                    title: String(format: "%.1f lbs", plate.weight),
-                    subtitle: plate.name.isEmpty ? nil : plate.name,
-                    quantity: plate.quantity,
-                    onDelete: { deletePlate(plate) }
-                )
+            if plates.isEmpty {
+                Text("No plates added yet")
+                    .foregroundColor(.secondary)
+                    .padding()
+            } else {
+                ForEach(plates, id: \.id) { plate in
+                    InventoryRow(
+                        title: String(format: "%.1f lbs", plate.weight),
+                        subtitle: plate.name.isEmpty ? nil : plate.name,
+                        quantity: plate.quantity,
+                        onDelete: { deletePlate(plate) }
+                    )
+                }
             }
             
         case .bars:
-            ForEach(bars, id: \.id) { bar in
-                InventoryRow(
-                    title: String(format: "%.1f lbs", bar.weight),
-                    subtitle: bar.name.isEmpty ? "\(bar.barType)" : "\(bar.name) - \(bar.barType)",
-                    quantity: bar.quantity,
-                    onDelete: { deleteBar(bar) }
-                )
+            if bars.isEmpty {
+                Text("No bars added yet")
+                    .foregroundColor(.secondary)
+                    .padding()
+            } else {
+                ForEach(bars, id: \.id) { bar in
+                    InventoryRow(
+                        title: String(format: "%.1f lbs", bar.weight),
+                        subtitle: bar.name.isEmpty ? "\(bar.barType)" : "\(bar.name) - \(bar.barType)",
+                        quantity: bar.quantity,
+                        onDelete: { deleteBar(bar) }
+                    )
+                }
             }
             
         case .collars:
-            ForEach(collars, id: \.id) { collar in
-                InventoryRow(
-                    title: String(format: "%.1f lbs", collar.weight),
-                    subtitle: collar.name.isEmpty ? nil : collar.name,
-                    quantity: collar.quantity,
-                    onDelete: { deleteCollar(collar) }
-                )
+            if collars.isEmpty {
+                Text("No collars added yet")
+                    .foregroundColor(.secondary)
+                    .padding()
+            } else {
+                ForEach(collars, id: \.id) { collar in
+                    InventoryRow(
+                        title: String(format: "%.1f lbs", collar.weight),
+                        subtitle: collar.name.isEmpty ? nil : collar.name,
+                        quantity: collar.quantity,
+                        onDelete: { deleteCollar(collar) }
+                    )
+                }
             }
         }
     }
@@ -149,26 +205,39 @@ struct InventoryView: View {
     
     private func addNewItem() {
         guard let weight = Double(newWeight),
-              let quantity = Int(newQuantity), quantity > 0 else { return }
-        
-        switch selectedCategory {
-        case .plates:
-            let plate = PlateItem(name: newName, weight: weight, quantity: quantity)
-            context.insert(plate)
-            
-        case .bars:
-            let bar = BarItem(name: newName, weight: weight, barType: selectedBarType, quantity: quantity)
-            context.insert(bar)
-            
-        case .collars:
-            let collar = CollarItem(name: newName, weight: weight, quantity: quantity)
-            context.insert(collar)
+              let quantity = Int(newQuantity), quantity > 0 else {
+            showErrorAlert(message: "Please enter valid weight and quantity")
+            return
         }
         
-        try? context.save()
-        newName = ""
-        newWeight = ""
-        newQuantity = ""
+        do {
+            switch selectedCategory {
+            case .plates:
+                let plate = PlateItem(name: newName, weight: weight, quantity: quantity)
+                context.insert(plate)
+                
+            case .bars:
+                let bar = BarItem(name: newName, weight: weight, barType: selectedBarType, quantity: quantity)
+                context.insert(bar)
+                
+            case .collars:
+                let collar = CollarItem(name: newName, weight: weight, quantity: quantity)
+                context.insert(collar)
+            }
+            
+            try context.save()
+            
+            // Clear fields after successful save
+            newName = ""
+            newWeight = ""
+            newQuantity = ""
+            
+            // Expand the category to show the new item
+            expandedCategory = selectedCategory
+            
+        } catch {
+            showErrorAlert(message: "Failed to add item: \(error.localizedDescription)")
+        }
     }
     
     private func deletePlate(_ plate: PlateItem) {
@@ -184,6 +253,11 @@ struct InventoryView: View {
     private func deleteCollar(_ collar: CollarItem) {
         context.delete(collar)
         try? context.save()
+    }
+    
+    private func showErrorAlert(message: String) {
+        errorMessage = message
+        showError = true
     }
 }
 

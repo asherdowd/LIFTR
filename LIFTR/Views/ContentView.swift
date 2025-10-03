@@ -3,8 +3,8 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         TabView {
-            MainView()
-                .tabItem { Label("Home", systemImage: "house") }
+            MainViewWithSettings()
+                .tabItem { Label("Main", systemImage: "house") }
             
             InventoryView()
                 .tabItem { Label("Inventory", systemImage: "cube.box") }
@@ -17,6 +17,28 @@ struct ContentView: View {
             
             AnalyticsView()
                 .tabItem { Label("Analytics", systemImage: "chart.bar") }
+        }
+    }
+}
+
+// MARK: - Main View with Settings Button
+
+struct MainViewWithSettings: View {
+    @State private var showSettings = false
+    
+    var body: some View {
+        NavigationView {
+            MainView()
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: { showSettings = true }) {
+                            Image(systemName: "gear")
+                        }
+                    }
+                }
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
         }
     }
 }

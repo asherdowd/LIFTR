@@ -18,6 +18,13 @@ struct CalculatorView: View {
     
     private let calculator = PlateCalculatorService()
     
+    // Optional initializer for pre-filling weight
+    var initialWeight: Double?
+    
+    init(initialWeight: Double? = nil) {
+        self.initialWeight = initialWeight
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -154,6 +161,12 @@ struct CalculatorView: View {
                 .padding()
             }
             .navigationTitle("Calculator")
+        }
+        .onAppear {
+            // Pre-fill target weight if provided
+            if let weight = initialWeight {
+                targetWeight = String(format: "%.0f", weight)
+            }
         }
     }
     

@@ -16,7 +16,6 @@
 		ECC8E9B02E6B56F100E76F7D /* LIFTRUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9AF2E6B56F100E76F7D /* LIFTRUITests.swift */; };
 		ECC8E9B22E6B56F100E76F7D /* LIFTRUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9B12E6B56F100E76F7D /* LIFTRUITestsLaunchTests.swift */; };
 		ECC8E9C42E6B5DB600E76F7D /* InventoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9C32E6B5DB600E76F7D /* InventoryView.swift */; };
-		ECC8E9C62E6B5DE000E76F7D /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9C52E6B5DE000E76F7D /* Models.swift */; };
 		ECC8E9C82E6B5EE000E76F7D /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9C72E6B5EE000E76F7D /* MainView.swift */; };
 		ECC8E9CA2E6B5F0600E76F7D /* CalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9C92E6B5F0600E76F7D /* CalculatorView.swift */; };
 		ECC8E9CC2E6B5F1A00E76F7D /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9CB2E6B5F1A00E76F7D /* AnalyticsView.swift */; };
@@ -24,6 +23,18 @@
 		ECC8E9D02E6B64B300E76F7D /* WorkoutsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9CF2E6B64B300E76F7D /* WorkoutsView.swift */; };
 		ECC8E9D22E8E300300E76F7D /* PlateCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D12E8E300300E76F7D /* PlateCalculator.swift */; };
 		ECC8E9D42E8E37C900E76F7D /* BarVisualizerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D32E8E37C900E76F7D /* BarVisualizerView.swift */; };
+		ECC8E9D62E8ED29000E76F7D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D52E8ED29000E76F7D /* SettingsView.swift */; };
+		ECC8E9D82E8F7A8800E76F7D /* CreateProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D72E8F7A8800E76F7D /* CreateProgressionView.swift */; };
+		ECC8E9DA2E8F7ED700E76F7D /* WorkoutSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D92E8F7ED700E76F7D /* WorkoutSessionView.swift */; };
+		ECC8E9DC2E8F84B600E76F7D /* ProgressionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DB2E8F84B600E76F7D /* ProgressionDetailView.swift */; };
+		ECC8E9DE2E8F852E00E76F7D /* EditProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DD2E8F852D00E76F7D /* EditProgressionView.swift */; };
+		ECC8E9E02E8F8BB000E76F7D /* CreateCardioProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DF2E8F8BB000E76F7D /* CreateCardioProgressionView.swift */; };
+		ECC8E9E22E8F8CB200E76F7D /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E12E8F8CB200E76F7D /* User.swift */; };
+		ECC8E9E42E8F8CD500E76F7D /* InventoryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E32E8F8CD500E76F7D /* InventoryModels.swift */; };
+		ECC8E9E62E8F8CE500E76F7D /* SettingsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E52E8F8CE500E76F7D /* SettingsModels.swift */; };
+		ECC8E9E82E8F8CF500E76F7D /* StrengthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E72E8F8CF500E76F7D /* StrengthModels.swift */; };
+		ECC8E9EA2E8F8D0300E76F7D /* CardioModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */; };
+		ECC8E9EC2E8F8D1100E76F7D /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,7 +69,6 @@
 		ECC8E9AF2E6B56F100E76F7D /* LIFTRUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFTRUITests.swift; sourceTree = "<group>"; };
 		ECC8E9B12E6B56F100E76F7D /* LIFTRUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFTRUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		ECC8E9C32E6B5DB600E76F7D /* InventoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryView.swift; sourceTree = "<group>"; };
-		ECC8E9C52E6B5DE000E76F7D /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		ECC8E9C72E6B5EE000E76F7D /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		ECC8E9C92E6B5F0600E76F7D /* CalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorView.swift; sourceTree = "<group>"; };
 		ECC8E9CB2E6B5F1A00E76F7D /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
@@ -66,6 +76,18 @@
 		ECC8E9CF2E6B64B300E76F7D /* WorkoutsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutsView.swift; sourceTree = "<group>"; };
 		ECC8E9D12E8E300300E76F7D /* PlateCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateCalculator.swift; sourceTree = "<group>"; };
 		ECC8E9D32E8E37C900E76F7D /* BarVisualizerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarVisualizerView.swift; sourceTree = "<group>"; };
+		ECC8E9D52E8ED29000E76F7D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		ECC8E9D72E8F7A8800E76F7D /* CreateProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateProgressionView.swift; sourceTree = "<group>"; };
+		ECC8E9D92E8F7ED700E76F7D /* WorkoutSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSessionView.swift; sourceTree = "<group>"; };
+		ECC8E9DB2E8F84B600E76F7D /* ProgressionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionDetailView.swift; sourceTree = "<group>"; };
+		ECC8E9DD2E8F852D00E76F7D /* EditProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProgressionView.swift; sourceTree = "<group>"; };
+		ECC8E9DF2E8F8BB000E76F7D /* CreateCardioProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCardioProgressionView.swift; sourceTree = "<group>"; };
+		ECC8E9E12E8F8CB200E76F7D /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		ECC8E9E32E8F8CD500E76F7D /* InventoryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryModels.swift; sourceTree = "<group>"; };
+		ECC8E9E52E8F8CE500E76F7D /* SettingsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModels.swift; sourceTree = "<group>"; };
+		ECC8E9E72E8F8CF500E76F7D /* StrengthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthModels.swift; sourceTree = "<group>"; };
+		ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioModels.swift; sourceTree = "<group>"; };
+		ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,7 +181,12 @@
 		ECC8E9BE2E6B5A0200E76F7D /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				ECC8E9C52E6B5DE000E76F7D /* Models.swift */,
+				ECC8E9E12E8F8CB200E76F7D /* User.swift */,
+				ECC8E9E32E8F8CD500E76F7D /* InventoryModels.swift */,
+				ECC8E9E52E8F8CE500E76F7D /* SettingsModels.swift */,
+				ECC8E9E72E8F8CF500E76F7D /* StrengthModels.swift */,
+				ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */,
+				ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -175,6 +202,12 @@
 				ECC8E9CD2E6B5F3400E76F7D /* TestView.swift */,
 				ECC8E9CF2E6B64B300E76F7D /* WorkoutsView.swift */,
 				ECC8E9D32E8E37C900E76F7D /* BarVisualizerView.swift */,
+				ECC8E9D52E8ED29000E76F7D /* SettingsView.swift */,
+				ECC8E9D72E8F7A8800E76F7D /* CreateProgressionView.swift */,
+				ECC8E9D92E8F7ED700E76F7D /* WorkoutSessionView.swift */,
+				ECC8E9DB2E8F84B600E76F7D /* ProgressionDetailView.swift */,
+				ECC8E9DD2E8F852D00E76F7D /* EditProgressionView.swift */,
+				ECC8E9DF2E8F8BB000E76F7D /* CreateCardioProgressionView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -331,18 +364,29 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ECC8E9E02E8F8BB000E76F7D /* CreateCardioProgressionView.swift in Sources */,
+				ECC8E9E62E8F8CE500E76F7D /* SettingsModels.swift in Sources */,
 				ECC8E9D42E8E37C900E76F7D /* BarVisualizerView.swift in Sources */,
+				ECC8E9E42E8F8CD500E76F7D /* InventoryModels.swift in Sources */,
 				ECC8E9932E6B56F000E76F7D /* ContentView.swift in Sources */,
+				ECC8E9D82E8F7A8800E76F7D /* CreateProgressionView.swift in Sources */,
+				ECC8E9DA2E8F7ED700E76F7D /* WorkoutSessionView.swift in Sources */,
+				ECC8E9EA2E8F8D0300E76F7D /* CardioModels.swift in Sources */,
 				ECC8E9CC2E6B5F1A00E76F7D /* AnalyticsView.swift in Sources */,
 				ECC8E9CA2E6B5F0600E76F7D /* CalculatorView.swift in Sources */,
 				ECC8E9C82E6B5EE000E76F7D /* MainView.swift in Sources */,
+				ECC8E9E82E8F8CF500E76F7D /* StrengthModels.swift in Sources */,
 				ECC8E9952E6B56F000E76F7D /* Item.swift in Sources */,
 				ECC8E9912E6B56F000E76F7D /* LIFTRApp.swift in Sources */,
+				ECC8E9DE2E8F852E00E76F7D /* EditProgressionView.swift in Sources */,
 				ECC8E9D02E6B64B300E76F7D /* WorkoutsView.swift in Sources */,
 				ECC8E9CE2E6B5F3400E76F7D /* TestView.swift in Sources */,
 				ECC8E9D22E8E300300E76F7D /* PlateCalculator.swift in Sources */,
 				ECC8E9C42E6B5DB600E76F7D /* InventoryView.swift in Sources */,
-				ECC8E9C62E6B5DE000E76F7D /* Models.swift in Sources */,
+				ECC8E9EC2E8F8D1100E76F7D /* Extensions.swift in Sources */,
+				ECC8E9D62E8ED29000E76F7D /* SettingsView.swift in Sources */,
+				ECC8E9DC2E8F84B600E76F7D /* ProgressionDetailView.swift in Sources */,
+				ECC8E9E22E8F8CB200E76F7D /* User.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
