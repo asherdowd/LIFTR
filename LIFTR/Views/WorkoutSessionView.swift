@@ -503,10 +503,23 @@ struct PerformanceSummaryView: View {
 // MARK: - Calculator Wrapper
 
 struct CalculatorViewWrapper: View {
+    @Environment(\.dismiss) var dismiss
     let targetWeight: Double
     
     var body: some View {
-        CalculatorView(initialWeight: targetWeight)
+        NavigationView {
+            CalculatorView(initialWeight: targetWeight)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Done") {
+                            dismiss()
+                        }
+                    }
+                }
+                .navigationTitle("Load Calculator")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+        .presentationDragIndicator(.visible)
     }
 }
 

@@ -121,74 +121,6 @@ struct MainView: View {
                 .cornerRadius(12)
                 .padding(.horizontal)
                 
-                // Recent Workouts Section
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Image(systemName: "clock.fill")
-                            .foregroundColor(.blue)
-                        Text("Recent Workouts")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                    }
-                    .padding(.horizontal)
-                    
-                    // Strength subsection
-                    if !recentStrengthSessions.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "dumbbell.fill")
-                                    .font(.caption)
-                                    .foregroundColor(.orange)
-                                Text("Strength")
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.horizontal)
-                            
-                            ForEach(recentStrengthSessions, id: \.id) { session in
-                                RecentStrengthSessionRow(session: session)
-                            }
-                        }
-                    }
-                    
-                    // Cardio subsection
-                    if !recentCardioSessions.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "figure.run")
-                                    .font(.caption)
-                                    .foregroundColor(.green)
-                                Text("Cardio")
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-                            
-                            ForEach(recentCardioSessions, id: \.id) { session in
-                                RecentCardioSessionRow(session: session)
-                            }
-                        }
-                    }
-                    
-                    // Empty state
-                    if recentStrengthSessions.isEmpty && recentCardioSessions.isEmpty {
-                        VStack(spacing: 12) {
-                            Image(systemName: "calendar.badge.clock")
-                                .font(.system(size: 40))
-                                .foregroundColor(.secondary)
-                            Text("No recent workouts")
-                                .foregroundColor(.secondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 30)
-                    }
-                }
-                .padding(.vertical)
-                
-                Divider()
-                    .padding(.horizontal)
-                
                 // Upcoming Workouts Section
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
@@ -258,6 +190,74 @@ struct MainView: View {
                                     .foregroundColor(.white)
                                     .cornerRadius(8)
                             }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 30)
+                    }
+                }
+                .padding(.vertical)
+                
+                Divider()
+                    .padding(.horizontal)
+                
+                // Recent Workouts Section
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Image(systemName: "clock.fill")
+                            .foregroundColor(.blue)
+                        Text("Recent Workouts")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                    }
+                    .padding(.horizontal)
+                    
+                    // Strength subsection
+                    if !recentStrengthSessions.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "dumbbell.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                                Text("Strength")
+                                    .font(.headline)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal)
+                            
+                            ForEach(recentStrengthSessions, id: \.id) { session in
+                                RecentStrengthSessionRow(session: session)
+                            }
+                        }
+                    }
+                    
+                    // Cardio subsection
+                    if !recentCardioSessions.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "figure.run")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                                Text("Cardio")
+                                    .font(.headline)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                            
+                            ForEach(recentCardioSessions, id: \.id) { session in
+                                RecentCardioSessionRow(session: session)
+                            }
+                        }
+                    }
+                    
+                    // Empty state
+                    if recentStrengthSessions.isEmpty && recentCardioSessions.isEmpty {
+                        VStack(spacing: 12) {
+                            Image(systemName: "calendar.badge.clock")
+                                .font(.system(size: 40))
+                                .foregroundColor(.secondary)
+                            Text("No recent workouts")
+                                .foregroundColor(.secondary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 30)
@@ -512,8 +512,9 @@ struct UpcomingCardioSessionRow: View {
         }
         .buttonStyle(.plain)
         .sheet(isPresented: $showCardioSession) {
-            // TODO: Create CardioSessionView similar to WorkoutSessionView
-            Text("Cardio Session View Coming Soon")
+            if let progression = session.progression {
+                CardioSessionView(session: session, progression: progression)
+            }
         }
     }
 }

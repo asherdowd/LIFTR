@@ -10,7 +10,7 @@ enum InventoryCategory: String, CaseIterable {
         switch self {
         case .plates: return "Plate Weight"
         case .bars: return "Bar Weight"
-        case .collars: return "Collar Weight"
+        case .collars: return "Weight per Pair"
         }
     }
     
@@ -19,6 +19,17 @@ enum InventoryCategory: String, CaseIterable {
         case .plates: return "Add Plate"
         case .bars: return "Add Bar"
         case .collars: return "Add Collar"
+        }
+    }
+    
+    var types: [String] {
+        switch self {
+        case .bars:
+            return ["Bench Bar", "Deadlift Bar", "Squat Bar", "Power Lifting Bar", "Olympic Bar", "Curl Bar", "Womens Bar"]
+        case .plates:
+            return ["Bumpers", "Calibrated", "Iron", "Fractional"]
+        case .collars:
+            return ["Competition", "Plastic", "Spring", "Custom"]
         }
     }
 }
@@ -31,14 +42,13 @@ struct InventoryView: View {
     
     @State private var expandedCategory: InventoryCategory?
     @State private var selectedCategory: InventoryCategory = .plates
+    @State private var showAddSheet: Bool = false
     @State private var newName: String = ""
     @State private var newWeight: String = ""
     @State private var newQuantity: String = ""
-    @State private var selectedBarType: String = "Olympic"
+    @State private var selectedType: String = "Bumpers"
     @State private var showError: Bool = false
     @State private var errorMessage: String = ""
-    
-    private let barTypes = ["Deadlift", "Squat", "Bench", "Olympic", "Curl"]
     
     var body: some View {
         NavigationView {
@@ -58,85 +68,41 @@ struct InventoryView: View {
                         }
                     }
                     .padding(.horizontal)
+                    .padding(.bottom, 80)
                 }
-                
-                Divider()
-                
-                // Add new item section
-                VStack(spacing: 12) {
-                    HStack {
-                        Text("Add to: \(selectedCategory.rawValue)")
-                            .font(.headline)
-                        Spacer()
-                    }
-                    
-                    TextField("Name (optional)", text: $newName)
-                        .textFieldStyle(.roundedBorder)
-                    
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading) {
-                            Text(selectedCategory.weightHint)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            TextField("0", text: $newWeight)
-                                .textFieldStyle(.roundedBorder)
-                                .keyboardType(.decimalPad)
-                        }
-                        
-                        VStack(alignment: .leading) {
-                            Text("Quantity")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            TextField("0", text: $newQuantity)
-                                .textFieldStyle(.roundedBorder)
-                                .keyboardType(.numberPad)
-                        }
-                    }
-                    
-                    if selectedCategory == .bars {
-                        Picker("Bar Type", selection: $selectedBarType) {
-                            ForEach(barTypes, id: \.self) { type in
-                                Text(type).tag(type)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                    }
-                    
-                    Button(action: addNewItem) {
-                        Text(selectedCategory.addButtonTitle)
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(isButtonEnabled ? Color.blue : Color.gray)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    }
-                    .disabled(!isButtonEnabled)
-                    
-                    // Debug info - remove this later
-                    Text("Weight: '\(newWeight)' Qty: '\(newQuantity)'")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    Text("Enabled: \(isButtonEnabled ? "Yes" : "No")")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-                .padding()
-                .background(Color(.systemGroupedBackground))
             }
             .navigationTitle("Inventory")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showAddSheet = true }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                    }
+                }
+            }
+            .sheet(isPresented: $showAddSheet) {
+                AddInventorySheet(
+                    selectedCategory: $selectedCategory,
+                    newName: $newName,
+                    newWeight: $newWeight,
+                    newQuantity: $newQuantity,
+                    selectedType: $selectedType,
+                    onAdd: addNewItem,
+                    onCancel: {
+                        showAddSheet = false
+                        clearFields()
+                    },
+                    onCategoryChange: { category in
+                        selectedType = category.types.first ?? ""
+                    }
+                )
+            }
             .alert("Error", isPresented: $showError) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(errorMessage)
             }
         }
-    }
-    
-    private var isButtonEnabled: Bool {
-        let hasWeight = !newWeight.isEmpty && Double(newWeight) != nil
-        let hasQuantity = !newQuantity.isEmpty && Int(newQuantity) != nil
-        return hasWeight && hasQuantity
     }
     
     @ViewBuilder
@@ -204,10 +170,24 @@ struct InventoryView: View {
     }
     
     private func addNewItem() {
-        guard let weight = Double(newWeight),
-              let quantity = Int(newQuantity), quantity > 0 else {
-            showErrorAlert(message: "Please enter valid weight and quantity")
+        guard let weight = Double(newWeight) else {
+            showErrorAlert(message: "Please enter valid weight")
             return
+        }
+        
+        // Set quantity based on category
+        let quantity: Int
+        if selectedCategory == .bars {
+            quantity = 1  // Bars always quantity 1
+        } else if selectedCategory == .collars {
+            quantity = 2  // Collars always come in pairs
+        } else {
+            // Plates require manual quantity entry
+            guard let qty = Int(newQuantity), qty > 0 else {
+                showErrorAlert(message: "Please enter valid quantity")
+                return
+            }
+            quantity = qty
         }
         
         do {
@@ -217,7 +197,7 @@ struct InventoryView: View {
                 context.insert(plate)
                 
             case .bars:
-                let bar = BarItem(name: newName, weight: weight, barType: selectedBarType, quantity: quantity)
+                let bar = BarItem(name: newName, weight: weight, barType: selectedType, quantity: quantity)
                 context.insert(bar)
                 
             case .collars:
@@ -227,10 +207,9 @@ struct InventoryView: View {
             
             try context.save()
             
-            // Clear fields after successful save
-            newName = ""
-            newWeight = ""
-            newQuantity = ""
+            // Clear fields and close sheet
+            clearFields()
+            showAddSheet = false
             
             // Expand the category to show the new item
             expandedCategory = selectedCategory
@@ -238,6 +217,12 @@ struct InventoryView: View {
         } catch {
             showErrorAlert(message: "Failed to add item: \(error.localizedDescription)")
         }
+    }
+    
+    private func clearFields() {
+        newName = ""
+        newWeight = ""
+        newQuantity = ""
     }
     
     private func deletePlate(_ plate: PlateItem) {
@@ -260,6 +245,126 @@ struct InventoryView: View {
         showError = true
     }
 }
+
+// MARK: - Add Inventory Sheet
+
+struct AddInventorySheet: View {
+    @Environment(\.dismiss) var dismiss
+    @Binding var selectedCategory: InventoryCategory
+    @Binding var newName: String
+    @Binding var newWeight: String
+    @Binding var newQuantity: String
+    @Binding var selectedType: String
+    let onAdd: () -> Void
+    let onCancel: () -> Void
+    let onCategoryChange: (InventoryCategory) -> Void
+    
+    var isButtonEnabled: Bool {
+        guard !newWeight.isEmpty else {
+            return false
+        }
+        
+        guard Double(newWeight) != nil else {
+            return false
+        }
+        
+        // Only plates require quantity input
+        // Bars = always 1, Collars = always 2 (pair)
+        if selectedCategory == .plates {
+            guard !newQuantity.isEmpty else {
+                return false
+            }
+            
+            guard Int(newQuantity) != nil else {
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section {
+                    Picker("Add to", selection: $selectedCategory) {
+                        ForEach(InventoryCategory.allCases, id: \.self) { category in
+                            Text(category.rawValue).tag(category)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: selectedCategory) { oldValue, newValue in
+                        onCategoryChange(newValue)
+                    }
+                } header: {
+                    Text("Category")
+                }
+                
+                Section {
+                    Picker("Type", selection: $selectedType) {
+                        ForEach(selectedCategory.types, id: \.self) { type in
+                            Text(type).tag(type)
+                        }
+                    }
+                    
+                    TextField("Name (optional)", text: $newName)
+                    
+                    HStack {
+                        Text(selectedCategory.weightHint)
+                        Spacer()
+                        TextField("0", text: $newWeight)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 100)
+                        Text("lbs")
+                    }
+                    
+                    if selectedCategory == .plates {
+                        HStack {
+                            Text("Quantity")
+                            Spacer()
+                            TextField("0", text: $newQuantity)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 100)
+                        }
+                    }
+                } header: {
+                    Text("Item Details")
+                } footer: {
+                    if selectedCategory == .collars {
+                        Text("Collars are automatically set to quantity of 2 (one pair)")
+                    }
+                }
+                
+                Section {
+                    Button(action: {
+                        onAdd()
+                    }) {
+                        HStack {
+                            Spacer()
+                            Text(selectedCategory.addButtonTitle)
+                                .fontWeight(.semibold)
+                            Spacer()
+                        }
+                    }
+                    .disabled(!isButtonEnabled)
+                }
+            }
+            .navigationTitle("Add Item")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        onCancel()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Category Section
 
 struct CategorySection<Content: View>: View {
     let category: InventoryCategory

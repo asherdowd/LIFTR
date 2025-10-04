@@ -82,7 +82,16 @@ struct SettingsView: View {
                         }
                     }
                 }
-                
+                // Support Section
+                Section(header: Text("Support")) {
+                    NavigationLink(destination: SupportView()) {
+                        HStack {
+                            Image(systemName: "lifepreserver.fill")
+                                .foregroundColor(.green)
+                            Text("Report an Issue")
+                        }
+                    }
+                }
                 // About Section
                 Section(header: Text("About")) {
                     HStack {

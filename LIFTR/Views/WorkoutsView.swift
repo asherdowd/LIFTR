@@ -192,9 +192,7 @@ struct CardioProgressionCard: View {
             
             // Action Buttons
             HStack(spacing: 12) {
-                Button(action: {
-                    // TODO: Navigate to cardio progression detail
-                }) {
+                NavigationLink(destination: CardioProgressionDetailView(progression: progression)) {
                     HStack {
                         Image(systemName: "chart.xyaxis.line")
                         Text("View Progress")
@@ -207,9 +205,7 @@ struct CardioProgressionCard: View {
                     .cornerRadius(8)
                 }
                 
-                Button(action: {
-                    // TODO: Navigate to edit cardio progression
-                }) {
+                NavigationLink(destination: EditCardioProgressionView(progression: progression)) {
                     HStack {
                         Image(systemName: "pencil")
                         Text("Edit")
