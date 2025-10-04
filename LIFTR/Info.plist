@@ -6,5 +6,9 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>LIFTR uses HealthKit to sync your workout data and track your fitness progress.</string>
+    <key>NSHealthShareUsageDescription</key>
+    <string>LIFTR would like to read your health data to provide workout insights and tracking.</string>
 </dict>
 </plist>
