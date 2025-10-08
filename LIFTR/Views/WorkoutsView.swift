@@ -263,8 +263,13 @@ struct CardioProgressionCard: View {
     }
     
     private func deleteProgression() {
-        context.delete(progression)
-        try? context.save()
+        withAnimation {
+            context.delete(progression)
+        }
+        // Delay save to allow SwiftUI to update
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            try? context.save()
+        }
     }
 }
 
@@ -300,6 +305,7 @@ struct ProgressionCard: View {
     @Bindable var progression: Progression
     @State private var showWorkoutSession = false
     @State private var showDeleteConfirmation = false
+    @State private var isDeleting = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -367,8 +373,8 @@ struct ProgressionCard: View {
                 }
             }
             
-            // Next Workout Info
-            if let nextSession = getNextSession() {
+            // Next Workout Info - ONLY show if not deleting
+            if !isDeleting, let nextSession = getNextSession() {
                 Divider()
                 
                 HStack {
@@ -435,7 +441,9 @@ struct ProgressionCard: View {
         .padding(.horizontal)
         .sheet(isPresented: $showWorkoutSession) {
             if let session = getNextSession() {
-                WorkoutSessionView(session: session, progression: progression)
+                NavigationView {
+                    WorkoutSessionView(session: session, progression: progression)
+                }
             }
         }
         .confirmationDialog(
@@ -461,6 +469,9 @@ struct ProgressionCard: View {
     }
     
     private func getNextSession() -> WorkoutSession? {
+        // Don't try to access sessions if we're deleting
+        guard !isDeleting else { return nil }
+        
         // Get the first incomplete session for the current week
         return progression.sessions
             .filter { $0.weekNumber == progression.currentWeek && !$0.completed }
@@ -469,7 +480,16 @@ struct ProgressionCard: View {
     }
     
     private func deleteProgression() {
-        context.delete(progression)
-        try? context.save()
+        // Mark as deleting to prevent session access
+        isDeleting = true
+        
+        withAnimation {
+            context.delete(progression)
+        }
+        
+        // Delay save to allow SwiftUI to update
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            try? context.save()
+        }
     }
 }

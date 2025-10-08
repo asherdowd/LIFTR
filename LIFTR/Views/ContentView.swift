@@ -17,6 +17,8 @@ struct ContentView: View {
             
             AnalyticsView()
                 .tabItem { Label("Analytics", systemImage: "chart.bar") }
+            WorkoutSessionTestLauncher()
+                .tabItem { Label("Tests", systemImage: "ladybug") }
         }
     }
 }

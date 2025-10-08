@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -23,13 +23,11 @@
 		ECC8E9C82E6B5EE000E76F7D /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9C72E6B5EE000E76F7D /* MainView.swift */; };
 		ECC8E9CA2E6B5F0600E76F7D /* CalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9C92E6B5F0600E76F7D /* CalculatorView.swift */; };
 		ECC8E9CC2E6B5F1A00E76F7D /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9CB2E6B5F1A00E76F7D /* AnalyticsView.swift */; };
-		ECC8E9CE2E6B5F3400E76F7D /* TestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9CD2E6B5F3400E76F7D /* TestView.swift */; };
 		ECC8E9D02E6B64B300E76F7D /* WorkoutsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9CF2E6B64B300E76F7D /* WorkoutsView.swift */; };
 		ECC8E9D22E8E300300E76F7D /* PlateCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D12E8E300300E76F7D /* PlateCalculator.swift */; };
 		ECC8E9D42E8E37C900E76F7D /* BarVisualizerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D32E8E37C900E76F7D /* BarVisualizerView.swift */; };
 		ECC8E9D62E8ED29000E76F7D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D52E8ED29000E76F7D /* SettingsView.swift */; };
 		ECC8E9D82E8F7A8800E76F7D /* CreateProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D72E8F7A8800E76F7D /* CreateProgressionView.swift */; };
-		ECC8E9DA2E8F7ED700E76F7D /* WorkoutSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D92E8F7ED700E76F7D /* WorkoutSessionView.swift */; };
 		ECC8E9DC2E8F84B600E76F7D /* ProgressionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DB2E8F84B600E76F7D /* ProgressionDetailView.swift */; };
 		ECC8E9DE2E8F852E00E76F7D /* EditProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DD2E8F852D00E76F7D /* EditProgressionView.swift */; };
 		ECC8E9E02E8F8BB000E76F7D /* CreateCardioProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DF2E8F8BB000E76F7D /* CreateCardioProgressionView.swift */; };
@@ -80,13 +78,11 @@
 		ECC8E9C72E6B5EE000E76F7D /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		ECC8E9C92E6B5F0600E76F7D /* CalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorView.swift; sourceTree = "<group>"; };
 		ECC8E9CB2E6B5F1A00E76F7D /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
-		ECC8E9CD2E6B5F3400E76F7D /* TestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestView.swift; sourceTree = "<group>"; };
 		ECC8E9CF2E6B64B300E76F7D /* WorkoutsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutsView.swift; sourceTree = "<group>"; };
 		ECC8E9D12E8E300300E76F7D /* PlateCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateCalculator.swift; sourceTree = "<group>"; };
 		ECC8E9D32E8E37C900E76F7D /* BarVisualizerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarVisualizerView.swift; sourceTree = "<group>"; };
 		ECC8E9D52E8ED29000E76F7D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		ECC8E9D72E8F7A8800E76F7D /* CreateProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateProgressionView.swift; sourceTree = "<group>"; };
-		ECC8E9D92E8F7ED700E76F7D /* WorkoutSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSessionView.swift; sourceTree = "<group>"; };
 		ECC8E9DB2E8F84B600E76F7D /* ProgressionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionDetailView.swift; sourceTree = "<group>"; };
 		ECC8E9DD2E8F852D00E76F7D /* EditProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProgressionView.swift; sourceTree = "<group>"; };
 		ECC8E9DF2E8F8BB000E76F7D /* CreateCardioProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCardioProgressionView.swift; sourceTree = "<group>"; };
@@ -97,6 +93,11 @@
 		ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioModels.swift; sourceTree = "<group>"; };
 		ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		EC387A342E95F9B2008A868B /* WorkoutSession */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = WorkoutSession; sourceTree = "<group>"; };
+		EC387A412E9603E5008A868B /* Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Tests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		ECC8E98A2E6B56F000E76F7D /* Frameworks */ = {
@@ -202,6 +203,8 @@
 		ECC8E9BF2E6B5C6900E76F7D /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				EC387A412E9603E5008A868B /* Tests */,
+				EC387A342E95F9B2008A868B /* WorkoutSession */,
 				ECC8E9CB2E6B5F1A00E76F7D /* AnalyticsView.swift */,
 				ECC8E9D32E8E37C900E76F7D /* BarVisualizerView.swift */,
 				ECC8E9C92E6B5F0600E76F7D /* CalculatorView.swift */,
@@ -217,8 +220,6 @@
 				ECC8E9DB2E8F84B600E76F7D /* ProgressionDetailView.swift */,
 				ECC8E9D52E8ED29000E76F7D /* SettingsView.swift */,
 				EC4DC0D92E91C91100340825 /* SupportView.swift */,
-				ECC8E9CD2E6B5F3400E76F7D /* TestView.swift */,
-				ECC8E9D92E8F7ED700E76F7D /* WorkoutSessionView.swift */,
 				ECC8E9CF2E6B64B300E76F7D /* WorkoutsView.swift */,
 			);
 			path = Views;
@@ -260,6 +261,10 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				EC387A342E95F9B2008A868B /* WorkoutSession */,
+				EC387A412E9603E5008A868B /* Tests */,
 			);
 			name = LIFTR;
 			productName = LIFTR;
@@ -310,7 +315,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					ECC8E98C2E6B56F000E76F7D = {
 						CreatedOnToolsVersion = 15.0.1;
@@ -383,7 +388,6 @@
 				ECC8E9932E6B56F000E76F7D /* ContentView.swift in Sources */,
 				ECC8E9D82E8F7A8800E76F7D /* CreateProgressionView.swift in Sources */,
 				EC4DC0DA2E91C91700340825 /* SupportView.swift in Sources */,
-				ECC8E9DA2E8F7ED700E76F7D /* WorkoutSessionView.swift in Sources */,
 				ECC8E9EA2E8F8D0300E76F7D /* CardioModels.swift in Sources */,
 				ECC8E9CC2E6B5F1A00E76F7D /* AnalyticsView.swift in Sources */,
 				ECC8E9CA2E6B5F0600E76F7D /* CalculatorView.swift in Sources */,
@@ -395,7 +399,6 @@
 				ECC8E9912E6B56F000E76F7D /* LIFTRApp.swift in Sources */,
 				ECC8E9DE2E8F852E00E76F7D /* EditProgressionView.swift in Sources */,
 				ECC8E9D02E6B64B300E76F7D /* WorkoutsView.swift in Sources */,
-				ECC8E9CE2E6B5F3400E76F7D /* TestView.swift in Sources */,
 				ECC8E9D22E8E300300E76F7D /* PlateCalculator.swift in Sources */,
 				ECC8E9C42E6B5DB600E76F7D /* InventoryView.swift in Sources */,
 				EC4DC0D42E91C24600340825 /* CardioSessionView.swift in Sources */,
