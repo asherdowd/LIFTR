@@ -145,6 +145,7 @@ class WorkoutSession {
     
     var completed: Bool
     var completedDate: Date?
+    var paused: Bool
     
     @Relationship(deleteRule: .cascade) var sets: [WorkoutSet]
     
@@ -162,6 +163,7 @@ class WorkoutSession {
         plannedReps: Int,
         completed: Bool = false,
         completedDate: Date? = nil,
+        paused: Bool = false,
         notes: String? = nil
     ) {
         self.id = id
@@ -173,6 +175,7 @@ class WorkoutSession {
         self.plannedReps = plannedReps
         self.completed = completed
         self.completedDate = completedDate
+        self.paused = paused
         self.sets = []
         self.notes = notes
     }

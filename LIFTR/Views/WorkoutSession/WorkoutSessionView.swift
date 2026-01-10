@@ -125,12 +125,20 @@ struct WorkoutSessionView: View {
             }
             
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Complete") {
-                    completeWorkout()
+                HStack(spacing: 12) {
+                    Button("Pause") {
+                        pauseWorkout()
+                    }
+                    .disabled(completedSetsCount == 0)
+                    
+                    Button("Complete") {
+                        completeWorkout()
+                    }
+                    .disabled(completedSetsCount == 0)
                 }
-                .disabled(completedSetsCount == 0)
             }
         }
+        
         .sheet(item: $selectedSet) { set in
             LogSetView(set: set, trackRPE: currentSettings.trackRPE)
         }
@@ -146,6 +154,7 @@ struct WorkoutSessionView: View {
                     // Mark as completed and save
                     session.completed = true
                     session.completedDate = Date()
+                    session.paused = false
                     try? context.save()
                     dismiss()
                 }
@@ -153,6 +162,7 @@ struct WorkoutSessionView: View {
                     // Mark as completed and save
                     session.completed = true
                     session.completedDate = Date()
+                    session.paused = false
                     try? context.save()
                     // TODO: Navigate to edit progression
                     dismiss()
@@ -181,6 +191,7 @@ struct WorkoutSessionView: View {
             // Only NOW mark as completed and save
             session.completed = true
             session.completedDate = Date()
+            session.paused = false
             
             // Auto-adjust if enabled
             if currentSettings.adjustmentMode == .autoAdjust && performance != .continueAsPlanned {
@@ -189,6 +200,12 @@ struct WorkoutSessionView: View {
             try? context.save()
             dismiss()
         }
+    }
+    private func pauseWorkout() {
+        // Simple pause - just mark as paused and save
+        session.paused = true
+        try? context.save()
+        dismiss()
     }
     
     private func analyzePerformance() -> ProgressionAdjustment {
@@ -214,6 +231,7 @@ struct WorkoutSessionView: View {
         // Mark session as completed NOW (after user made their choice)
         session.completed = true
         session.completedDate = Date()
+        session.paused = false
         
         let useMetric = currentSettings.useMetric
         

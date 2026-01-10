@@ -1,70 +1,34 @@
 {
   "images" : [
     {
-      "filename" : "BrainFlattenedIconfile1024x1024.png",
+      "filename" : "LIFTYDEADLIFT-FLAT.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
     },
     {
-      "filename" : "BrainFlattenedIconfile16.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "16x16"
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "LIFTYDEADLIFT-FLAT-DARK.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "size" : "1024x1024"
     },
     {
-      "filename" : "BrainFlattenedIconfile32 1.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "16x16"
-    },
-    {
-      "filename" : "BrainFlattenedIconfile32.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "32x32"
-    },
-    {
-      "filename" : "BrainFlattenedIconfile64.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "32x32"
-    },
-    {
-      "filename" : "BrainFlattenedIconfile128.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "128x128"
-    },
-    {
-      "filename" : "BrainFlattenedIconfile256 1.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "128x128"
-    },
-    {
-      "filename" : "BrainFlattenedIconfile256.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "256x256"
-    },
-    {
-      "filename" : "BrainFlattenedIconfile512.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "256x256"
-    },
-    {
-      "filename" : "BrainFlattenedIconfile512 1.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "512x512"
-    },
-    {
-      "filename" : "BrainFlattenedIconfile1024x1024 1.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "512x512"
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "tinted"
+        }
+      ],
+      "filename" : "LIFTYDEADLIFT-FLAT 1.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "size" : "1024x1024"
     }
   ],
   "info" : {

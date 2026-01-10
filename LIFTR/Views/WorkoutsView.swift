@@ -246,6 +246,7 @@ struct CardioProgressionCard: View {
         }
     }
     
+    
     private var goalText: String {
         switch progression.cardioType {
         case .running:
@@ -374,7 +375,36 @@ struct ProgressionCard: View {
             }
             
             // Next Workout Info - ONLY show if not deleting
-            if !isDeleting, let nextSession = getNextSession() {
+            if !isDeleting, let pausedSession = getPausedSession() {
+                Divider()
+                
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Paused Workout")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                        Text("Week \(pausedSession.weekNumber), Day \(pausedSession.dayNumber) - \(Int(pausedSession.plannedWeight)) lbs × \(pausedSession.plannedSets) sets of \(pausedSession.plannedReps)")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: { showWorkoutSession = true }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "play.fill")
+                            Text("Resume")
+                        }
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.orange)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                    }
+                }
+            } else if !isDeleting, let nextSession = getNextSession() {
                 Divider()
                 
                 HStack {
@@ -382,7 +412,7 @@ struct ProgressionCard: View {
                         Text("Next Workout")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text("\(Int(nextSession.plannedWeight)) lbs × \(nextSession.plannedSets) sets of \(nextSession.plannedReps)")
+                        Text("Week \(nextSession.weekNumber), Day \(nextSession.dayNumber) - \(Int(nextSession.plannedWeight)) lbs × \(nextSession.plannedSets) sets of \(nextSession.plannedReps)")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                     }
@@ -404,7 +434,6 @@ struct ProgressionCard: View {
                     }
                 }
             }
-            
             // Action Buttons
             HStack(spacing: 12) {
                 NavigationLink(destination: ProgressionDetailView(progression: progression)) {
@@ -440,9 +469,13 @@ struct ProgressionCard: View {
         .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         .padding(.horizontal)
         .sheet(isPresented: $showWorkoutSession) {
-            if let session = getNextSession() {
+            if let pausedSession = getPausedSession() {
                 NavigationView {
-                    WorkoutSessionView(session: session, progression: progression)
+                    WorkoutSessionView(session: pausedSession, progression: progression)
+                }
+            } else if let nextSession = getNextSession() {
+                NavigationView {
+                    WorkoutSessionView(session: nextSession, progression: progression)
                 }
             }
         }
@@ -468,14 +501,24 @@ struct ProgressionCard: View {
         }
     }
     
+    private func getPausedSession() -> WorkoutSession? {
+        return progression.sessions
+            .filter { $0.paused && !$0.completed }
+            .first
+    }
     private func getNextSession() -> WorkoutSession? {
         // Don't try to access sessions if we're deleting
         guard !isDeleting else { return nil }
         
         // Get the first incomplete session for the current week
         return progression.sessions
-            .filter { $0.weekNumber == progression.currentWeek && !$0.completed }
-            .sorted { $0.dayNumber < $1.dayNumber }
+            .filter { !$0.completed && !$0.paused }
+            .sorted {
+                if $0.weekNumber != $1.weekNumber {
+                    return $0.weekNumber < $1.weekNumber
+                }
+                return $0.dayNumber < $1.dayNumber
+            }
             .first
     }
     
