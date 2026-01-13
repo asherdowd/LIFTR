@@ -8,15 +8,22 @@ struct LiftrApp: App {
             ContentView()
         }
         .modelContainer(for: [
+            // User & Settings
             User.self,
+            GlobalProgressionSettings.self,
+            ExerciseProgressionSettings.self,
+            
+            // Equipment Inventory
             PlateItem.self,
             BarItem.self,
             CollarItem.self,
-            GlobalProgressionSettings.self,
-            ExerciseProgressionSettings.self,
+            
+            // Strength Training (Legacy Progression System)
             Progression.self,
             WorkoutSession.self,
-            WorkoutSet.self,
+            WorkoutSet.self,  // Shared: used by both Progression and future Program systems
+            
+            // Cardio Training
             CardioProgression.self,
             CardioSession.self
         ])
