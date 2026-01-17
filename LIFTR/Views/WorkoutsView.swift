@@ -122,6 +122,8 @@ struct WorkoutsView: View {
 
 // MARK: - Cardio Progression Card
 
+// MARK: - Cardio Progression Card (UPDATED)
+
 struct CardioProgressionCard: View {
     @Environment(\.modelContext) private var context
     @Bindable var progression: CardioProgression
@@ -190,6 +192,38 @@ struct CardioProgressionCard: View {
                 }
             }
             
+            // Next Workout Info
+            if let nextSession = getNextSession() {
+                Divider()
+                
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Next Workout")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("Week \(nextSession.weekNumber), Day \(nextSession.dayNumber)")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: { showSession = true }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "play.fill")
+                            Text("Start")
+                        }
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                    }
+                }
+            }
+            
             // Action Buttons
             HStack(spacing: 12) {
                 NavigationLink(destination: CardioProgressionDetailView(progression: progression)) {
@@ -224,6 +258,11 @@ struct CardioProgressionCard: View {
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         .padding(.horizontal)
+        .sheet(isPresented: $showSession) {
+            if let nextSession = getNextSession() {
+                CardioSessionView(session: nextSession, progression: progression)
+            }
+        }
         .confirmationDialog(
             "Delete Progression",
             isPresented: $showDeleteConfirmation,
@@ -246,7 +285,6 @@ struct CardioProgressionCard: View {
         }
     }
     
-    
     private var goalText: String {
         switch progression.cardioType {
         case .running:
@@ -261,6 +299,18 @@ struct CardioProgressionCard: View {
             return "\(progression.totalWeeks) weeks"
         }
         return "In Progress"
+    }
+    
+    private func getNextSession() -> CardioSession? {
+        return progression.sessions
+            .filter { !$0.completed }
+            .sorted {
+                if $0.weekNumber != $1.weekNumber {
+                    return $0.weekNumber < $1.weekNumber
+                }
+                return $0.dayNumber < $1.dayNumber
+            }
+            .first
     }
     
     private func deleteProgression() {

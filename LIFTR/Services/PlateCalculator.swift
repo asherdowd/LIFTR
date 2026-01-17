@@ -92,73 +92,77 @@ class PlateCalculatorService {
     }
     
     /// Optimized algorithm: Maximize 45s, then fill with smaller/larger as needed
-    private func findPlateConfiguration(
-        targetWeightPerSide: Double,
-        availablePlates: [PlateItem],
-        useLargePlates: Bool,
-        allowRoundDown: Bool
-    ) -> [PlateConfiguration]? {
-        
-        var remainingWeight = targetWeightPerSide
-        var configurations: [PlateConfiguration] = []
-        
-        // Create a mutable inventory - divide by 2 since inventory is TOTAL plates, we need PER SIDE
-        var inventory = Dictionary(uniqueKeysWithValues: availablePlates.map { ($0.weight, $0.quantity / 2) })
-        
-        // Step 1: Maximize 45 lb plates first
-        if let fortyFivesAvailable = inventory[45.0], fortyFivesAvailable > 0 {
-            let fortyFivesNeeded = Int(remainingWeight / 45.0)
-            let fortyFivesToUse = min(fortyFivesNeeded, fortyFivesAvailable)
+    // REPLACE the findPlateConfiguration function in PlateCalculator.swift with this:
+
+        /// Optimized algorithm: Use heaviest to lightest when large plates enabled, otherwise maximize 45s first
+        private func findPlateConfiguration(
+            targetWeightPerSide: Double,
+            availablePlates: [PlateItem],
+            useLargePlates: Bool,
+            allowRoundDown: Bool
+        ) -> [PlateConfiguration]? {
             
-            if fortyFivesToUse > 0 {
-                configurations.append(PlateConfiguration(plateWeight: 45.0, quantity: fortyFivesToUse))
-                remainingWeight -= 45.0 * Double(fortyFivesToUse)
-                inventory[45.0] = fortyFivesAvailable - fortyFivesToUse
-            }
-        }
-        
-        // Check if we're done
-        if remainingWeight < 0.01 {
-            return configurations.sorted { $0.plateWeight > $1.plateWeight }
-        }
-        
-        // Step 2: Determine which plates are available for use
-        var availablePlatesForFilling: [PlateItem] = []
-        
-        if useLargePlates {
-            // Use all plates (large and small)
-            availablePlatesForFilling = availablePlates.filter { $0.weight != 45.0 }.sorted { $0.weight > $1.weight }
-        } else {
-            // Only use plates 45 lbs and under (excluding 45 since we already used those)
-            availablePlatesForFilling = availablePlates.filter { $0.weight < 45.0 }.sorted { $0.weight > $1.weight }
-        }
-        
-        // Step 3: Fill remaining weight with available plates
-        for plate in availablePlatesForFilling {
-            guard let available = inventory[plate.weight], available > 0 else { continue }
+            var remainingWeight = targetWeightPerSide
+            var configurations: [PlateConfiguration] = []
             
-            let needed = Int(remainingWeight / plate.weight)
-            let toUse = min(needed, available)
+            // Create a mutable inventory - divide by 2 since inventory is TOTAL plates, we need PER SIDE
+            var inventory = Dictionary(uniqueKeysWithValues: availablePlates.map { ($0.weight, $0.quantity / 2) })
             
-            if toUse > 0 {
-                configurations.append(PlateConfiguration(plateWeight: plate.weight, quantity: toUse))
-                remainingWeight -= plate.weight * Double(toUse)
-                inventory[plate.weight] = available - toUse
+            // Determine which plates to use based on useLargePlates setting
+            var platesToUse: [PlateItem] = []
+            
+            if useLargePlates {
+                // Use ALL plates sorted heaviest to lightest (includes 100s, 55s, 45s, 35s, etc.)
+                platesToUse = availablePlates.sorted { $0.weight > $1.weight }
+            } else {
+                // Traditional approach: Maximize 45s first, then use smaller plates
+                // Step 1: Maximize 45 lb plates first
+                if let fortyFivesAvailable = inventory[45.0], fortyFivesAvailable > 0 {
+                    let fortyFivesNeeded = Int(remainingWeight / 45.0)
+                    let fortyFivesToUse = min(fortyFivesNeeded, fortyFivesAvailable)
+                    
+                    if fortyFivesToUse > 0 {
+                        configurations.append(PlateConfiguration(plateWeight: 45.0, quantity: fortyFivesToUse))
+                        remainingWeight -= 45.0 * Double(fortyFivesToUse)
+                        inventory[45.0] = fortyFivesAvailable - fortyFivesToUse
+                    }
+                }
                 
+                // Check if we're done
                 if remainingWeight < 0.01 {
                     return configurations.sorted { $0.plateWeight > $1.plateWeight }
                 }
+                
+                // Only use plates 45 lbs and under (excluding 45 since we already used those)
+                platesToUse = availablePlates.filter { $0.weight < 45.0 }.sorted { $0.weight > $1.weight }
             }
+            
+            // Fill remaining weight with available plates (heaviest to lightest)
+            for plate in platesToUse {
+                guard let available = inventory[plate.weight], available > 0 else { continue }
+                
+                let needed = Int(remainingWeight / plate.weight)
+                let toUse = min(needed, available)
+                
+                if toUse > 0 {
+                    configurations.append(PlateConfiguration(plateWeight: plate.weight, quantity: toUse))
+                    remainingWeight -= plate.weight * Double(toUse)
+                    inventory[plate.weight] = available - toUse
+                    
+                    if remainingWeight < 0.01 {
+                        return configurations.sorted { $0.plateWeight > $1.plateWeight }
+                    }
+                }
+            }
+            
+            // Return result if we have configurations
+            if !configurations.isEmpty && (remainingWeight < 0.01 || allowRoundDown) {
+                // Sort configurations by weight descending (heaviest first)
+                return configurations.sorted { $0.plateWeight > $1.plateWeight }
+            }
+            
+            return nil
         }
-        
-        // Return result if we have configurations
-        if !configurations.isEmpty && (remainingWeight < 0.01 || allowRoundDown) {
-            // Sort configurations by weight descending (heaviest first)
-            return configurations.sorted { $0.plateWeight > $1.plateWeight }
-        }
-        
-        return nil
-    }
     
     /// Helper function to fill remaining weight with given plates
     private func fillWeight(

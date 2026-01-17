@@ -294,6 +294,7 @@ struct AddInventorySheet: View {
                     }
                     .pickerStyle(.segmented)
                     .onChange(of: selectedCategory) { oldValue, newValue in
+                        selectedType = newValue.types.first ?? ""
                         onCategoryChange(newValue)
                     }
                 } header: {
@@ -359,6 +360,9 @@ struct AddInventorySheet: View {
                         onCancel()
                     }
                 }
+            }
+            .onAppear {
+                selectedType = selectedCategory.types.first ?? ""
             }
         }
     }

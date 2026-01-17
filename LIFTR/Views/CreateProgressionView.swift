@@ -329,6 +329,7 @@ struct CreateProgressionView: View {
                 
                 session.progression = progression
                 context.insert(session)
+                progression.sessions.append(session)
                 
                 // Create sets for this session
                 for setNumber in 1...sets {
@@ -338,6 +339,7 @@ struct CreateProgressionView: View {
                         targetWeight: weekWeight
                     )
                     workoutSet.session = session
+                    session.sets.append(workoutSet)
                     context.insert(workoutSet)
                 }
             }

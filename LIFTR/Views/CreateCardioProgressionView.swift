@@ -284,6 +284,7 @@ struct CreateCardioProgressionView: View {
                 }
                 
                 session.progression = progression
+                progression.sessions.append(session)
                 context.insert(session)
             }
         }
