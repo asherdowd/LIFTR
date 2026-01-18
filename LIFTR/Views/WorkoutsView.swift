@@ -616,7 +616,21 @@ struct ProgressionCard: View {
 // MARK: - Program Card
 
 struct ProgramCard: View {
+    @Environment(\.modelContext) private var context
     @Bindable var program: Program
+    @State private var showWorkout = false  // Simple boolean, not optional
+    @State private var showDeleteConfirmation = false
+    
+    var nextTrainingDay: TrainingDay? {
+        // Find the next training day with uncompleted sessions
+        for day in program.trainingDays.sorted(by: { $0.dayNumber < $1.dayNumber }) {
+            let hasIncompleteSessions = day.sessions.contains { !$0.completed }
+            if hasIncompleteSessions {
+                return day
+            }
+        }
+        return nil
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -627,9 +641,11 @@ struct ProgramCard: View {
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    Label(program.templateType.rawValue, systemImage: "book.fill")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    HStack(spacing: 12) {
+                        Label(program.templateType.rawValue, systemImage: "book.fill")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
                 Spacer()
@@ -642,6 +658,15 @@ struct ProgramCard: View {
                     .background(statusColor.opacity(0.2))
                     .foregroundColor(statusColor)
                     .cornerRadius(6)
+                
+                // Delete Button
+                Button(action: { showDeleteConfirmation = true }) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                        .padding(8)
+                        .background(Color.red.opacity(0.1))
+                        .clipShape(Circle())
+                }
             }
             
             Divider()
@@ -660,18 +685,17 @@ struct ProgramCard: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("\(Int(program.progressPercentage))%")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.purple)
-                    Text("Complete")
+                    Text("Progress")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                    Text("\(Int(program.progressPercentage))%")
+                        .font(.headline)
+                        .foregroundColor(.purple)
                 }
             }
             
             // Next Workout Info
-            if let nextDay = getNextTrainingDay() {
+            if let nextDay = nextTrainingDay {
                 Divider()
                 
                 HStack {
@@ -682,13 +706,18 @@ struct ProgramCard: View {
                         Text(nextDay.name)
                             .font(.subheadline)
                             .fontWeight(.semibold)
+                        
+                        // Show exercise preview
+                        if let firstExercise = nextDay.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }).first {
+                            Text("\(nextDay.exercises.count) exercises • starts with \(firstExercise.exerciseName)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     
                     Spacer()
                     
-                    Button(action: {
-                        // TODO: Launch workout in Milestone 5
-                    }) {
+                    Button(action: { showWorkout = true }) {
                         HStack(spacing: 6) {
                             Image(systemName: "play.fill")
                             Text("Start")
@@ -707,7 +736,7 @@ struct ProgramCard: View {
             // Action Buttons
             HStack(spacing: 12) {
                 Button(action: {
-                    // TODO: Navigate to detail view in Milestone 6
+                    // TODO: Navigate to detail view
                 }) {
                     HStack {
                         Image(systemName: "chart.xyaxis.line")
@@ -722,7 +751,7 @@ struct ProgramCard: View {
                 }
                 
                 Button(action: {
-                    // TODO: Edit functionality
+                    // TODO: Navigate to edit view
                 }) {
                     HStack {
                         Image(systemName: "pencil")
@@ -742,19 +771,44 @@ struct ProgramCard: View {
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         .padding(.horizontal)
+        .sheet(isPresented: $showWorkout) {
+            // SIMPLIFIED: Use nextTrainingDay directly
+            if let day = nextTrainingDay {
+                NavigationView {
+                    ProgramWorkoutView(program: program, trainingDay: day)
+                }
+            }
+        }
+        .confirmationDialog(
+            "Delete Program",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                deleteProgram()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to delete '\(program.name)'? This will remove all workout history and cannot be undone.")
+        }
     }
     
     private var statusColor: Color {
         switch program.status {
-        case .active: return .purple
+        case .active: return .green
         case .paused: return .orange
         case .completed: return .blue
         }
     }
     
-    private func getNextTrainingDay() -> TrainingDay? {
-        // Find the training day with uncompleted sessions
-        // For now, just return first training day as placeholder
-        return program.trainingDays.first
+    private func deleteProgram() {
+        withAnimation {
+            context.delete(program)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            try? context.save()
+        }
     }
 }
+
+

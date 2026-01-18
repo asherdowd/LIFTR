@@ -6,6 +6,7 @@ struct TemplateSetupView: View {
     @Environment(\.dismiss) var dismiss
     
     let template: TemplateType
+    @Binding var programWasCreated: Bool
     
     @State private var programName: String = ""
     @State private var squatWeight: String = ""
@@ -190,6 +191,7 @@ struct TemplateSetupView: View {
         // Save context
         do {
             try context.save()
+            programWasCreated = true 
             dismiss()
         } catch {
             showError(message: "Failed to create program: \(error.localizedDescription)")
@@ -203,5 +205,5 @@ struct TemplateSetupView: View {
 }
 
 #Preview {
-    TemplateSetupView(template: .startingStrength)
+    TemplateSetupView(template: .startingStrength, programWasCreated: .constant(false))
 }

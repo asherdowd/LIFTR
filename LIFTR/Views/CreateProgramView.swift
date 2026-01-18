@@ -5,8 +5,10 @@ struct CreateProgramView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) var dismiss
     
+    @State private var programWasCreated = false
     @State private var selectedTemplate: TemplateType?
     @State private var showTemplateSetup = false
+    
     
     var body: some View {
         NavigationView {
@@ -53,7 +55,12 @@ struct CreateProgramView: View {
             }
             .sheet(isPresented: $showTemplateSetup) {
                 if let template = selectedTemplate {
-                    TemplateSetupView(template: template)
+                    TemplateSetupView(template: template, programWasCreated: $programWasCreated)
+                }
+            }
+            .onChange(of: programWasCreated) { oldValue, newValue in
+                if newValue {
+                    dismiss() // Dismiss the entire CreateProgramView sheet
                 }
             }
         }
