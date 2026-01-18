@@ -7,10 +7,12 @@ struct WorkoutsView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \Progression.startDate) private var allProgressions: [Progression]
     @Query(sort: \CardioProgression.startDate) private var allCardioProgressions: [CardioProgression]
+    @Query(sort: \Program.startDate) private var allPrograms: [Program]
     
     @State private var selectedCategory: WorkoutCategory = .strength
     @State private var showNewProgression = false
     @State private var showNewCardioProgression = false
+    @State private var showNewProgram = false
     
     enum WorkoutCategory: String, CaseIterable {
         case strength = "Strength"
@@ -30,6 +32,9 @@ struct WorkoutsView: View {
     
     var activeCardioProgressions: [CardioProgression] {
         allCardioProgressions.filter { $0.status == .active }
+    }
+    var activePrograms: [Program] {
+        allPrograms.filter { $0.status == .active }
     }
     
     var body: some View {
@@ -61,6 +66,9 @@ struct WorkoutsView: View {
                                 }
                             }
                             
+                            ForEach(activePrograms) { program in
+                                ProgramCard(program: program)
+                            }
                             // Create New Strength Progression Button
                             Button(action: { showNewProgression = true }) {
                                 HStack {
@@ -72,6 +80,21 @@ struct WorkoutsView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                            }
+                            .padding(.horizontal)
+                            
+                            Button(action: { showNewProgram = true }) {
+                                HStack {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.title2)
+                                    Text("Create New Strength Program")
+                                        .font(.headline)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.purple)
                                 .foregroundColor(.white)
                                 .cornerRadius(12)
                             }
@@ -115,6 +138,10 @@ struct WorkoutsView: View {
             }
             .sheet(isPresented: $showNewCardioProgression) {
                 CreateCardioProgressionView()
+                
+            }
+            .sheet(isPresented: $showNewProgram) {
+                CreateProgramView()
             }
         }
     }
@@ -584,5 +611,150 @@ struct ProgressionCard: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             try? context.save()
         }
+    }
+}
+// MARK: - Program Card
+
+struct ProgramCard: View {
+    @Bindable var program: Program
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(program.name)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    
+                    Label(program.templateType.rawValue, systemImage: "book.fill")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // Status Badge
+                Text(program.status.rawValue)
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(statusColor.opacity(0.2))
+                    .foregroundColor(statusColor)
+                    .cornerRadius(6)
+            }
+            
+            Divider()
+            
+            // Progress Info
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Week \(program.currentWeek) of \(program.totalWeeks)")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    ProgressView(value: Double(program.currentWeek), total: Double(program.totalWeeks))
+                        .tint(.purple)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("\(Int(program.progressPercentage))%")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.purple)
+                    Text("Complete")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            // Next Workout Info
+            if let nextDay = getNextTrainingDay() {
+                Divider()
+                
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Next Workout")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(nextDay.name)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        // TODO: Launch workout in Milestone 5
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "play.fill")
+                            Text("Start")
+                        }
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.purple)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                    }
+                }
+            }
+            
+            // Action Buttons
+            HStack(spacing: 12) {
+                Button(action: {
+                    // TODO: Navigate to detail view in Milestone 6
+                }) {
+                    HStack {
+                        Image(systemName: "chart.xyaxis.line")
+                        Text("View Progress")
+                    }
+                    .font(.subheadline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(Color(.systemGray6))
+                    .foregroundColor(.primary)
+                    .cornerRadius(8)
+                }
+                
+                Button(action: {
+                    // TODO: Edit functionality
+                }) {
+                    HStack {
+                        Image(systemName: "pencil")
+                        Text("Edit")
+                    }
+                    .font(.subheadline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(Color(.systemGray6))
+                    .foregroundColor(.primary)
+                    .cornerRadius(8)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .padding(.horizontal)
+    }
+    
+    private var statusColor: Color {
+        switch program.status {
+        case .active: return .purple
+        case .paused: return .orange
+        case .completed: return .blue
+        }
+    }
+    
+    private func getNextTrainingDay() -> TrainingDay? {
+        // Find the training day with uncompleted sessions
+        // For now, just return first training day as placeholder
+        return program.trainingDays.first
     }
 }

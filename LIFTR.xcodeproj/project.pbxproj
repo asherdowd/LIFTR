@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EC0D7B162F1C8D1A00596B36 /* ProgramTemplates.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0D7B152F1C8D1300596B36 /* ProgramTemplates.swift */; };
 		EC4DC0D42E91C24600340825 /* CardioSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D32E91C23A00340825 /* CardioSessionView.swift */; };
 		EC4DC0D62E91C26000340825 /* EditCardioProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D52E91C25900340825 /* EditCardioProgressionView.swift */; };
 		EC4DC0D82E91C3FB00340825 /* CardioProgressionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D72E91C3DD00340825 /* CardioProgressionDetailView.swift */; };
@@ -59,6 +60,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		EC0D7B152F1C8D1300596B36 /* ProgramTemplates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramTemplates.swift; sourceTree = "<group>"; };
 		EC4DC0D32E91C23A00340825 /* CardioSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioSessionView.swift; sourceTree = "<group>"; };
 		EC4DC0D52E91C25900340825 /* EditCardioProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCardioProgressionView.swift; sourceTree = "<group>"; };
 		EC4DC0D72E91C3DD00340825 /* CardioProgressionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioProgressionDetailView.swift; sourceTree = "<group>"; };
@@ -234,6 +236,7 @@
 		ECC8E9C02E6B5D4100E76F7D /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				EC0D7B152F1C8D1300596B36 /* ProgramTemplates.swift */,
 				ECC8E9D12E8E300300E76F7D /* PlateCalculator.swift */,
 			);
 			path = Services;
@@ -406,6 +409,7 @@
 				ECC8E9912E6B56F000E76F7D /* LIFTRApp.swift in Sources */,
 				ECC8E9DE2E8F852E00E76F7D /* EditProgressionView.swift in Sources */,
 				ECC8E9D02E6B64B300E76F7D /* WorkoutsView.swift in Sources */,
+				EC0D7B162F1C8D1A00596B36 /* ProgramTemplates.swift in Sources */,
 				ECC8E9D22E8E300300E76F7D /* PlateCalculator.swift in Sources */,
 				ECC8E9C42E6B5DB600E76F7D /* InventoryView.swift in Sources */,
 				EC4DC0D42E91C24600340825 /* CardioSessionView.swift in Sources */,
@@ -572,7 +576,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = LIFTR/LIFTR.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"LIFTR/Preview Content\"";
 				DEVELOPMENT_TEAM = LR4W9AN5JB;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -615,7 +619,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = LIFTR/LIFTR.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"LIFTR/Preview Content\"";
 				DEVELOPMENT_TEAM = LR4W9AN5JB;
 				ENABLE_HARDENED_RUNTIME = YES;
