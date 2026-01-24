@@ -148,23 +148,26 @@ struct WorkoutSessionView: View {
         .alert("Workout Performance", isPresented: $showAdjustmentPrompt) {
             if let adjustment = adjustmentRecommendation {
                 Button("Accept Recommendation") {
-                    applyAdjustment(adjustment)
-                }
-                Button("Keep Original Plan") {
-                    // Mark as completed and save
                     session.completed = true
                     session.completedDate = Date()
                     session.paused = false
+                    checkAndAdvanceWeek()
+                    applyAdjustment(adjustment)
+                }
+                Button("Keep Original Plan") {
+                    session.completed = true
+                    session.completedDate = Date()
+                    session.paused = false
+                    checkAndAdvanceWeek()  // ADDED
                     try? context.save()
                     dismiss()
                 }
                 Button("Manual Adjustment") {
-                    // Mark as completed and save
                     session.completed = true
                     session.completedDate = Date()
                     session.paused = false
+                    checkAndAdvanceWeek()  // ADDED
                     try? context.save()
-                    // TODO: Navigate to edit progression
                     dismiss()
                 }
             }
@@ -193,12 +196,44 @@ struct WorkoutSessionView: View {
             session.completedDate = Date()
             session.paused = false
             
+            // ADDED: Check if we should advance the week
+            checkAndAdvanceWeek()
+            
             // Auto-adjust if enabled
             if currentSettings.adjustmentMode == .autoAdjust && performance != .continueAsPlanned {
                 applyAdjustment(performance)
             }
             try? context.save()
             dismiss()
+        }
+    }
+    
+    private func checkAndAdvanceWeek() {
+        // Count completed sessions in the current week
+        let completedThisWeek = progression.sessions.filter {
+            $0.weekNumber == session.weekNumber && $0.completed
+        }.count
+        
+        // Get total sessions per week from the progression
+        let sessionsThisWeek = progression.sessions.filter {
+            $0.weekNumber == session.weekNumber
+        }.count
+        
+        print("🔍 PROGRESSION Week advancement check:")
+        print("   Progression: \(progression.exerciseName)")
+        print("   progression.currentWeek BEFORE: \(progression.currentWeek)")
+        print("   session.weekNumber: \(session.weekNumber)")
+        print("   Completed this week: \(completedThisWeek)/\(sessionsThisWeek)")
+        
+        // If all sessions in the week are complete, advance to next week
+        if completedThisWeek >= sessionsThisWeek && progression.currentWeek < progression.totalWeeks {
+            print("   ✅ Advancing week: \(progression.currentWeek) → \(progression.currentWeek + 1)")
+            progression.currentWeek += 1
+            print("   progression.currentWeek AFTER: \(progression.currentWeek)")
+        } else {
+            print("   ❌ NOT advancing")
+            print("      All sessions complete? \(completedThisWeek >= sessionsThisWeek)")
+            print("      Can advance? currentWeek (\(progression.currentWeek)) < totalWeeks (\(progression.totalWeeks)): \(progression.currentWeek < progression.totalWeeks)")
         }
     }
     private func pauseWorkout() {
@@ -228,10 +263,7 @@ struct WorkoutSessionView: View {
     }
     
     private func applyAdjustment(_ adjustment: ProgressionAdjustment) {
-        // Mark session as completed NOW (after user made their choice)
-        session.completed = true
-        session.completedDate = Date()
-        session.paused = false
+        // NOTE: Session already marked complete by caller
         
         let useMetric = currentSettings.useMetric
         

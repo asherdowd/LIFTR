@@ -186,7 +186,7 @@ struct CardioSessionView: View {
         case .running, .swimming:
             session.actualDistance = Double(actualDistance)
             if let dur = Double(duration) {
-                session.duration = dur * 60 // Convert minutes to seconds
+                session.duration = dur * 60
             }
             
         case .calisthenics:
@@ -210,6 +210,19 @@ struct CardioSessionView: View {
         session.completedDate = Date()
         session.notes = notes.isEmpty ? nil : notes
         session.rpe = currentSettings.trackRPE ? Int(rpe) : nil
+        
+        // Check if we should advance the week
+        let completedThisWeek = progression.sessions.filter {
+            $0.weekNumber == session.weekNumber && $0.completed
+        }.count
+        
+        let totalThisWeek = progression.sessions.filter {
+            $0.weekNumber == session.weekNumber
+        }.count
+        
+        if completedThisWeek >= totalThisWeek && progression.currentWeek < progression.totalWeeks {
+            progression.currentWeek += 1
+        }
         
         try? context.save()
         dismiss()

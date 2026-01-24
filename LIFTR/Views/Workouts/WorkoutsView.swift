@@ -429,6 +429,8 @@ struct ProgressionCard: View {
             Divider()
             
             // Progress Info
+            
+
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Week \(progression.currentWeek) of \(progression.totalWeeks)")
@@ -622,14 +624,20 @@ struct ProgramCard: View {
     @State private var showDeleteConfirmation = false
     
     var nextTrainingDay: TrainingDay? {
-        // Find the next training day with uncompleted sessions
-        for day in program.trainingDays.sorted(by: { $0.dayNumber < $1.dayNumber }) {
-            let hasIncompleteSessions = day.sessions.contains { !$0.completed }
-            if hasIncompleteSessions {
-                return day
+        // Find the training day containing the session with the lowest sessionNumber
+        var lowestSessionNumber = Int.max
+        var nextDay: TrainingDay? = nil
+        
+        for day in program.trainingDays {
+            if let firstIncomplete = day.sessions.filter({ !$0.completed }).min(by: { $0.sessionNumber < $1.sessionNumber }) {
+                if firstIncomplete.sessionNumber < lowestSessionNumber {
+                    lowestSessionNumber = firstIncomplete.sessionNumber
+                    nextDay = day
+                }
             }
         }
-        return nil
+        
+        return nextDay
     }
     
     var body: some View {
@@ -735,9 +743,7 @@ struct ProgramCard: View {
             
             // Action Buttons
             HStack(spacing: 12) {
-                Button(action: {
-                    // TODO: Navigate to detail view
-                }) {
+                NavigationLink(destination: ProgramDetailView(program: program)) {
                     HStack {
                         Image(systemName: "chart.xyaxis.line")
                         Text("View Progress")
@@ -750,9 +756,7 @@ struct ProgramCard: View {
                     .cornerRadius(8)
                 }
                 
-                Button(action: {
-                    // TODO: Navigate to edit view
-                }) {
+                NavigationLink(destination: EditProgramView(program: program)) {
                     HStack {
                         Image(systemName: "pencil")
                         Text("Edit")

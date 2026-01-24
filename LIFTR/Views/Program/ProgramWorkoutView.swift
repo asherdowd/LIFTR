@@ -28,8 +28,8 @@ struct ProgramWorkoutView: View {
                 .filter({ session in
                     session.exercise?.id == exercise.id && !session.completed
                 })
-                .sorted(by: { $0.sessionNumber < $1.sessionNumber })
-                .first {
+                    .sorted(by: { $0.sessionNumber < $1.sessionNumber })
+                    .first {
                 results.append((exercise, session))
             }
         }
@@ -152,102 +152,150 @@ struct ProgramWorkoutView: View {
     }
     
     private func completeWorkout() {
+        // print("\n🏋️ ===== PROGRAM WORKOUT COMPLETION =====")
+        // print("Program: \(program.name)")
+        // print("Training Day: \(trainingDay.name)")
+        // print("program.currentWeek BEFORE: \(program.currentWeek)")
+        
+        // Get the week number from the first session BEFORE marking complete
+        guard let completedWeekNumber = exerciseSessions.first?.session.weekNumber else {
+            // print("❌ No sessions to complete")
+            dismiss()
+            return
+        }
+        
+        // print("Completing week: \(completedWeekNumber)")
+        
         // Mark all sessions as completed
         for (_, session) in exerciseSessions {
             session.completed = true
             session.completedDate = Date()
+            // print("Marked complete: \(exercise.exerciseName) Week \(session.weekNumber)")
         }
         
         // Check if we should advance the week
-        // Get all sessions for the current week across all training days
+        // A week is complete when ALL training days for that week have ALL their sessions done
         let allSessionsThisWeek = program.trainingDays
-            .flatMap { $0.sessions }
-            .filter { $0.weekNumber == weekNumber }
-        
-        let allCompleteThisWeek = allSessionsThisWeek.allSatisfy { $0.completed }
-        
-        if allCompleteThisWeek && program.currentWeek < program.totalWeeks {
-            program.currentWeek += 1
-        }
-        
-        try? context.save()
-        dismiss()
-    }
-}
-
-// MARK: - Exercise Card
-
-struct ExerciseCard: View {
-    @Bindable var exercise: ProgramExercise
-    @Bindable var session: ExerciseSession
-    let trackRPE: Bool
-    let onTapSet: (WorkoutSet) -> Void
-    let onLoadWeight: (Double) -> Void
-    
-    var completedSetsCount: Int {
-        session.sets.filter { $0.completed }.count
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Exercise Header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(exercise.exerciseName)
-                        .font(.title3)
-                        .fontWeight(.bold)
-                    
-                    Text("\(session.plannedSets) sets × \(session.plannedReps) reps @ \(Int(session.plannedWeight)) lbs")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
+                    .flatMap { $0.sessions }
+                    .filter { $0.weekNumber == completedWeekNumber }
                 
-                Spacer()
+                // Group by sessionNumber (actual workout instance) not by training day
+                let sessionsByWorkout = Dictionary(grouping: allSessionsThisWeek, by: { $0.sessionNumber })
                 
-                Button(action: { onLoadWeight(session.plannedWeight) }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "function")
-                        Text("Load")
+                // print("\n📊 Week \(completedWeekNumber) Status:")
+                // print("Total workouts this week: \(sessionsByWorkout.count)")
+                
+                var completedWorkouts = 0
+        for (_, exerciseSessions) in sessionsByWorkout.sorted(by: { $0.key < $1.key }) {
+                    let allExercisesComplete = exerciseSessions.allSatisfy { $0.completed }
+                    if allExercisesComplete {
+                        completedWorkouts += 1
                     }
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.orange.opacity(0.2))
-                    .foregroundColor(.orange)
-                    .cornerRadius(6)
-                }
-            }
-            
-            Divider()
-            
-            // Sets
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Sets")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    Spacer()
-                    Text("\(completedSetsCount)/\(session.sets.count) completed")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    // print("  Workout #\(sessionNum): \(exerciseSessions.filter { $0.completed }.count)/\(exerciseSessions.count) exercises complete - \(allExercisesComplete ? "✅" : "❌")")
                 }
                 
-                ForEach(session.sets.sorted(by: { $0.setNumber < $1.setNumber })) { set in
-                    SetRowView(
-                        set: set,
-                        trackRPE: trackRPE,
-                        onEdit: { onTapSet(set) }
-                    )
+                let allCompleteThisWeek = completedWorkouts == sessionsByWorkout.count && !sessionsByWorkout.isEmpty
+                
+                // print("\nCompleted workouts: \(completedWorkouts)/\(sessionsByWorkout.count)")
+                // print("All workouts complete this week? \(allCompleteThisWeek)")
+                // print("Can advance? currentWeek (\(program.currentWeek)) < totalWeeks (\(program.totalWeeks)): \(program.currentWeek < program.totalWeeks)")
+                
+                if allCompleteThisWeek && program.currentWeek < program.totalWeeks {
+                    // print("✅ ADVANCING: \(program.currentWeek) → \(program.currentWeek + 1)")
+                    program.currentWeek += 1
+                } else {
+                    // print("❌ NOT ADVANCING")
+                }
+        
+        // print("program.currentWeek AFTER: \(program.currentWeek)")
+        // print("===== END PROGRAM WORKOUT =====\n")
+
+        // Save before dismiss
+        do {
+            try context.save()
+            // print("✅ Context saved successfully")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                dismiss()
+            }
+        } catch {
+            // print("❌ Failed to save: \(error)")
+            dismiss()
+        }
+    }
+    // MARK: - Exercise Card
+    
+    struct ExerciseCard: View {
+        @Bindable var exercise: ProgramExercise
+        @Bindable var session: ExerciseSession
+        let trackRPE: Bool
+        let onTapSet: (WorkoutSet) -> Void
+        let onLoadWeight: (Double) -> Void
+        
+        var completedSetsCount: Int {
+            session.sets.filter { $0.completed }.count
+        }
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: 12) {
+                // Exercise Header
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(exercise.exerciseName)
+                            .font(.title3)
+                            .fontWeight(.bold)
+                        
+                        Text("\(session.plannedSets) sets × \(session.plannedReps) reps @ \(Int(session.plannedWeight)) lbs")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: { onLoadWeight(session.plannedWeight) }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "function")
+                            Text("Load")
+                        }
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.orange.opacity(0.2))
+                        .foregroundColor(.orange)
+                        .cornerRadius(6)
+                    }
+                }
+                
+                Divider()
+                
+                // Sets
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Sets")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Spacer()
+                        Text("\(completedSetsCount)/\(session.sets.count) completed")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    ForEach(session.sets.sorted(by: { $0.setNumber < $1.setNumber })) { set in
+                        SetRowView(
+                            set: set,
+                            trackRPE: trackRPE,
+                            onEdit: { onTapSet(set) }
+                        )
+                    }
                 }
             }
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+            .padding(.horizontal)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-        .padding(.horizontal)
     }
-}
-
-#Preview {
-    Text("ProgramWorkoutView Preview")
+    
+    #Preview {
+        Text("ProgramWorkoutView Preview")
+    }
 }
