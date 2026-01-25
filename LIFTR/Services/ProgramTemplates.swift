@@ -228,4 +228,295 @@ class ProgramTemplates {
         
         return weight
     }
+    static func createTexasMethod(
+            name: String,
+            squatWeight: Double,
+            benchWeight: Double,
+            pressWeight: Double,
+            deadliftWeight: Double,
+            totalWeeks: Int = 12,
+            context: ModelContext
+        ) -> Program {
+            
+            let program = Program(
+                name: name,
+                templateType: .texasMethod,
+                totalWeeks: totalWeeks
+            )
+            context.insert(program)
+            
+            // Create Volume Day (Monday): 5x5 at 90% of 5RM
+            let volumeDay = TrainingDay(name: "Volume Day", dayNumber: 1)
+            volumeDay.program = program
+            context.insert(volumeDay)
+            
+            // Create Recovery Day (Wednesday): Light squats, alternating press
+            let recoveryDay = TrainingDay(name: "Recovery Day", dayNumber: 2)
+            recoveryDay.program = program
+            context.insert(recoveryDay)
+            
+            // Create Intensity Day (Friday): 1x5 PR attempts
+            let intensityDay = TrainingDay(name: "Intensity Day", dayNumber: 3)
+            intensityDay.program = program
+            context.insert(intensityDay)
+            
+            // VOLUME DAY EXERCISES
+            let volumeSquat = ProgramExercise(
+                exerciseName: "Squat",
+                orderIndex: 0,
+                startingWeight: squatWeight * 0.90,
+                targetSets: 5,
+                targetReps: 5,
+                increment: 5.0,
+                notes: "5x5 @ 90% of Friday's weight"
+            )
+            volumeSquat.trainingDay = volumeDay
+            volumeDay.exercises.append(volumeSquat)
+            context.insert(volumeSquat)
+            
+            let volumeBench = ProgramExercise(
+                exerciseName: "Bench Press",
+                orderIndex: 1,
+                startingWeight: benchWeight * 0.90,
+                targetSets: 5,
+                targetReps: 5,
+                increment: 2.5,
+                notes: "5x5 @ 90% of 5RM"
+            )
+            volumeBench.trainingDay = volumeDay
+            volumeDay.exercises.append(volumeBench)
+            context.insert(volumeBench)
+            
+            let volumeDeadlift = ProgramExercise(
+                exerciseName: "Deadlift",
+                orderIndex: 2,
+                startingWeight: deadliftWeight * 0.90,
+                targetSets: 1,
+                targetReps: 5,
+                increment: 5.0,
+                notes: "1x5 @ 90% of 5RM"
+            )
+            volumeDeadlift.trainingDay = volumeDay
+            volumeDay.exercises.append(volumeDeadlift)
+            context.insert(volumeDeadlift)
+            
+            // RECOVERY DAY EXERCISES
+            let recoverySquat = ProgramExercise(
+                exerciseName: "Squat",
+                orderIndex: 0,
+                startingWeight: squatWeight * 0.90 * 0.80,
+                targetSets: 2,
+                targetReps: 5,
+                increment: 5.0,
+                notes: "2x5 @ 80% of Monday's weight"
+            )
+            recoverySquat.trainingDay = recoveryDay
+            recoveryDay.exercises.append(recoverySquat)
+            context.insert(recoverySquat)
+            
+            let recoveryPress = ProgramExercise(
+                exerciseName: "Overhead Press",
+                orderIndex: 1,
+                startingWeight: pressWeight * 0.90,
+                targetSets: 3,
+                targetReps: 5,
+                increment: 2.5,
+                notes: "3x5 @ 90% of 5RM"
+            )
+            recoveryPress.trainingDay = recoveryDay
+            recoveryDay.exercises.append(recoveryPress)
+            context.insert(recoveryPress)
+            
+            // INTENSITY DAY EXERCISES
+            let intensitySquat = ProgramExercise(
+                exerciseName: "Squat",
+                orderIndex: 0,
+                startingWeight: squatWeight,
+                targetSets: 1,
+                targetReps: 5,
+                increment: 5.0,
+                notes: "1x5 PR attempt"
+            )
+            intensitySquat.trainingDay = intensityDay
+            intensityDay.exercises.append(intensitySquat)
+            context.insert(intensitySquat)
+            
+            let intensityBench = ProgramExercise(
+                exerciseName: "Bench Press",
+                orderIndex: 1,
+                startingWeight: benchWeight,
+                targetSets: 1,
+                targetReps: 5,
+                increment: 2.5,
+                notes: "1x5 PR attempt"
+            )
+            intensityBench.trainingDay = intensityDay
+            intensityDay.exercises.append(intensityBench)
+            context.insert(intensityBench)
+            
+            let intensityDeadlift = ProgramExercise(
+                exerciseName: "Deadlift",
+                orderIndex: 2,
+                startingWeight: deadliftWeight,
+                targetSets: 1,
+                targetReps: 5,
+                increment: 5.0,
+                notes: "1x5 PR attempt"
+            )
+            intensityDeadlift.trainingDay = intensityDay
+            intensityDay.exercises.append(intensityDeadlift)
+            context.insert(intensityDeadlift)
+            
+            // Generate workout sessions for the entire program
+            generateTexasMethodSessions(
+                program: program,
+                volumeDay: volumeDay,
+                recoveryDay: recoveryDay,
+                intensityDay: intensityDay,
+                totalWeeks: totalWeeks,
+                context: context
+            )
+            
+            return program
+        }
+        
+        /// Generates Texas Method sessions with Volume/Recovery/Intensity structure
+        private static func generateTexasMethodSessions(
+            program: Program,
+            volumeDay: TrainingDay,
+            recoveryDay: TrainingDay,
+            intensityDay: TrainingDay,
+            totalWeeks: Int,
+            context: ModelContext
+        ) {
+            let calendar = Calendar.current
+            let startDate = program.startDate
+            
+            // Texas Method: 3 sessions per week
+            // Monday: Volume Day
+            // Wednesday: Recovery Day
+            // Friday: Intensity Day
+            
+            var sessionNumber = 0
+            
+            for week in 1...totalWeeks {
+                // Monday - Volume Day (Session 1)
+                sessionNumber += 1
+                let mondayDate = calendar.date(byAdding: .day, value: (week - 1) * 7, to: startDate) ?? startDate
+                createTexasMethodSessionsForDay(
+                    trainingDay: volumeDay,
+                    week: week,
+                    sessionNumber: sessionNumber,
+                    date: mondayDate,
+                    context: context
+                )
+                
+                // Wednesday - Recovery Day (Session 2)
+                sessionNumber += 1
+                let wednesdayDate = calendar.date(byAdding: .day, value: (week - 1) * 7 + 2, to: startDate) ?? startDate
+                createTexasMethodSessionsForDay(
+                    trainingDay: recoveryDay,
+                    week: week,
+                    sessionNumber: sessionNumber,
+                    date: wednesdayDate,
+                    context: context
+                )
+                
+                // Friday - Intensity Day (Session 3)
+                sessionNumber += 1
+                let fridayDate = calendar.date(byAdding: .day, value: (week - 1) * 7 + 4, to: startDate) ?? startDate
+                createTexasMethodSessionsForDay(
+                    trainingDay: intensityDay,
+                    week: week,
+                    sessionNumber: sessionNumber,
+                    date: fridayDate,
+                    context: context
+                )
+            }
+        }
+        
+        /// Creates exercise sessions for a specific Texas Method training day
+        private static func createTexasMethodSessionsForDay(
+            trainingDay: TrainingDay,
+            week: Int,
+            sessionNumber: Int,
+            date: Date,
+            context: ModelContext
+        ) {
+            for exercise in trainingDay.exercises {
+                let exerciseSession = ExerciseSession(
+                    date: date,
+                    weekNumber: week,
+                    sessionNumber: sessionNumber,
+                    plannedWeight: calculateTexasMethodWeight(
+                        exercise: exercise,
+                        week: week,
+                        dayName: trainingDay.name
+                    ),
+                    plannedSets: exercise.targetSets,
+                    plannedReps: exercise.targetReps
+                )
+                
+                exerciseSession.exercise = exercise
+                exerciseSession.trainingDay = trainingDay
+                trainingDay.sessions.append(exerciseSession)
+                context.insert(exerciseSession)
+                
+                // Create sets for this exercise session
+                for setNumber in 1...exercise.targetSets {
+                    let workoutSet = WorkoutSet(
+                        setNumber: setNumber,
+                        targetReps: exercise.targetReps,
+                        targetWeight: exerciseSession.plannedWeight
+                    )
+                    workoutSet.session = nil
+                    exerciseSession.sets.append(workoutSet)
+                    context.insert(workoutSet)
+                }
+            }
+        }
+        
+        /// Calculates progressive weight for Texas Method exercises
+        private static func calculateTexasMethodWeight(
+            exercise: ProgramExercise,
+            week: Int,
+            dayName: String
+        ) -> Double {
+            // Texas Method progression:
+            // - Intensity Day (Friday): Add 5 lbs lower body, 2.5 lbs upper body each week
+            // - Volume Day (Monday): 90% of current Intensity Day weight
+            // - Recovery Day (Wednesday): 80% of current Volume Day weight (squats only)
+            
+            let weeksProgressed = week - 1
+            var weight = exercise.startingWeight
+            
+            switch dayName {
+            case "Intensity Day":
+                // Intensity day progresses weekly
+                weight = exercise.startingWeight + (exercise.increment * Double(weeksProgressed))
+                
+            case "Volume Day":
+                // Volume day is 90% of intensity day weight
+                let intensityWeight = exercise.startingWeight + (exercise.increment * Double(weeksProgressed))
+                weight = intensityWeight * 0.90
+                
+            case "Recovery Day":
+                // Recovery day depends on exercise
+                if exercise.exerciseName == "Squat" {
+                    // Recovery squat is 80% of volume day weight
+                    let intensityWeight = exercise.startingWeight / 0.90 // Back-calculate intensity weight
+                    let progressedIntensity = intensityWeight + (exercise.increment * Double(weeksProgressed))
+                    let volumeWeight = progressedIntensity * 0.90
+                    weight = volumeWeight * 0.80
+                } else {
+                    // Press on recovery day progresses normally
+                    weight = exercise.startingWeight + (exercise.increment * Double(weeksProgressed))
+                }
+                
+            default:
+                weight = exercise.startingWeight
+            }
+            
+            return weight
+        }
 }

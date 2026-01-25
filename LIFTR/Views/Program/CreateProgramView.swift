@@ -36,10 +36,19 @@ struct CreateProgramView: View {
                             }
                         )
                         
+                        // Texas Method Template
+                        TemplateCard(
+                            template: .texasMethod,
+                            isSelected: selectedTemplate == .texasMethod,
+                            onSelect: {
+                                selectedTemplate = .texasMethod
+                                showTemplateSetup = true
+                            }
+                        )
+                        
                         // Coming Soon Templates
                         ComingSoonTemplateCard(template: .smolov)
                         ComingSoonTemplateCard(template: .fiveThreeOne)
-                        ComingSoonTemplateCard(template: .texasMethod)
                     }
                     .padding()
                 }
@@ -109,7 +118,7 @@ struct TemplateCard: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Label("Linear", systemImage: "chart.line.uptrend.xyaxis")
+                        Label(template == .startingStrength ? "Linear" : "Weekly", systemImage: "chart.line.uptrend.xyaxis")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

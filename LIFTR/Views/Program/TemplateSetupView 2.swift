@@ -1,3 +1,11 @@
+//
+//  TemplateSetupView 2.swift
+//  LIFTR
+//
+//  Created by Seth Dowd on 1/24/26.
+//
+
+
 import SwiftUI
 import SwiftData
 
@@ -232,7 +240,7 @@ struct TemplateSetupView: View {
     private func saveAndDismiss() {
         do {
             try context.save()
-            programWasCreated = true
+            programWasCreated = true 
             dismiss()
         } catch {
             showError(message: "Failed to create program: \(error.localizedDescription)")
