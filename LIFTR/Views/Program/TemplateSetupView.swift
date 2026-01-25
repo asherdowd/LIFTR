@@ -13,6 +13,7 @@ struct TemplateSetupView: View {
     @State private var benchWeight: String = ""
     @State private var pressWeight: String = ""
     @State private var deadliftWeight: String = ""
+    @State private var rowWeight: String = ""
     
     @State private var showError = false
     @State private var errorMessage = ""
@@ -30,7 +31,7 @@ struct TemplateSetupView: View {
                     
                     HStack {
                         Text("Squat")
-                            .frame(width: 100, alignment: .leading)
+                            .frame(width: 120, alignment: .leading)
                         Spacer()
                         TextField("0", text: $squatWeight)
                             .keyboardType(.decimalPad)
@@ -41,7 +42,7 @@ struct TemplateSetupView: View {
                     
                     HStack {
                         Text("Bench Press")
-                            .frame(width: 100, alignment: .leading)
+                            .frame(width: 120, alignment: .leading)
                         Spacer()
                         TextField("0", text: $benchWeight)
                             .keyboardType(.decimalPad)
@@ -52,7 +53,7 @@ struct TemplateSetupView: View {
                     
                     HStack {
                         Text("Overhead Press")
-                            .frame(width: 100, alignment: .leading)
+                            .frame(width: 120, alignment: .leading)
                         Spacer()
                         TextField("0", text: $pressWeight)
                             .keyboardType(.decimalPad)
@@ -63,13 +64,27 @@ struct TemplateSetupView: View {
                     
                     HStack {
                         Text("Deadlift")
-                            .frame(width: 100, alignment: .leading)
+                            .frame(width: 120, alignment: .leading)
                         Spacer()
                         TextField("0", text: $deadliftWeight)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 80)
                         Text("lbs")
+                    }
+                    
+                    // Barbell Row - only for Madcow
+                    if template == .madcow {
+                        HStack {
+                            Text("Barbell Row")
+                                .frame(width: 120, alignment: .leading)
+                            Spacer()
+                            TextField("0", text: $rowWeight)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 80)
+                            Text("lbs")
+                        }
                     }
                 }
                 
@@ -110,6 +125,8 @@ struct TemplateSetupView: View {
             return "e.g., My Starting Strength"
         case .texasMethod:
             return "e.g., My Texas Method"
+        case .madcow:
+            return "e.g., My Madcow 5x5"
         default:
             return "e.g., My Program"
         }
@@ -120,6 +137,8 @@ struct TemplateSetupView: View {
         case .startingStrength:
             return "Starting Weights"
         case .texasMethod:
+            return "Current 5 Rep Max"
+        case .madcow:
             return "Current 5 Rep Max"
         default:
             return "Weights"
@@ -132,6 +151,8 @@ struct TemplateSetupView: View {
             return "Enter your current working weights for each exercise. The program will start at 85% of these weights and progress from there."
         case .texasMethod:
             return "Enter your current 5 rep max for each exercise. These will be used as your Intensity Day targets."
+        case .madcow:
+            return "Enter your current 5 rep max for each exercise. These will be your top set targets."
         default:
             return "Enter weights for each exercise."
         }
@@ -146,6 +167,11 @@ struct TemplateSetupView: View {
               let _ = Double(pressWeight),
               let _ = Double(deadliftWeight)
         else { return false }
+        
+        // Madcow requires row weight too
+        if template == .madcow {
+            guard let _ = Double(rowWeight) else { return false }
+        }
         
         return true
     }
@@ -186,6 +212,25 @@ struct TemplateSetupView: View {
                 deadlift: deadlift
             )
             
+        case .madcow:
+            guard let row = Double(rowWeight) else {
+                showError(message: "Please enter valid weight for Barbell Row")
+                return
+            }
+            
+            if row < 45 {
+                showError(message: "Barbell Row weight should be at least 45 lbs (empty bar)")
+                return
+            }
+            
+            createMadcowProgram(
+                squat: squat,
+                bench: bench,
+                row: row,
+                press: press,
+                deadlift: deadlift
+            )
+            
         default:
             showError(message: "This template is not yet implemented")
         }
@@ -220,6 +265,27 @@ struct TemplateSetupView: View {
             name: programName.trimmingCharacters(in: .whitespaces),
             squatWeight: squat,  // Use actual 5RM for Texas Method
             benchWeight: bench,
+            pressWeight: press,
+            deadliftWeight: deadlift,
+            totalWeeks: 12,
+            context: context
+        )
+        
+        saveAndDismiss()
+    }
+    
+    private func createMadcowProgram(
+        squat: Double,
+        bench: Double,
+        row: Double,
+        press: Double,
+        deadlift: Double
+    ) {
+        _ = ProgramTemplates.createMadcow(
+            name: programName.trimmingCharacters(in: .whitespaces),
+            squatWeight: squat,  // Use actual 5RM for Madcow
+            benchWeight: bench,
+            rowWeight: row,
             pressWeight: press,
             deadliftWeight: deadlift,
             totalWeeks: 12,

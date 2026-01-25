@@ -8,6 +8,7 @@ enum TemplateType: String, Codable, CaseIterable {
     case smolov = "Smolov"
     case fiveThreeOne = "5/3/1"
     case texasMethod = "Texas Method"
+    case madcow = "Madcow 5x5"
     case custom = "Custom"
     
     var description: String {
@@ -20,6 +21,8 @@ enum TemplateType: String, Codable, CaseIterable {
             return "Wave periodization with deloads"
         case .texasMethod:
             return "Intermediate weekly progression"
+        case .madcow:
+            return "Ramping sets with weekly progression"
         case .custom:
             return "Create your own progression"
         }

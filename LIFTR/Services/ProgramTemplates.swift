@@ -519,4 +519,424 @@ class ProgramTemplates {
             
             return weight
         }
+    static func createMadcow(
+            name: String,
+            squatWeight: Double,
+            benchWeight: Double,
+            rowWeight: Double,
+            pressWeight: Double,
+            deadliftWeight: Double,
+            totalWeeks: Int = 12,
+            context: ModelContext
+        ) -> Program {
+            
+            let program = Program(
+                name: name,
+                templateType: .madcow,
+                totalWeeks: totalWeeks
+            )
+            context.insert(program)
+            
+            // Create Volume Day (Monday): Ramping 5x5
+            let volumeDay = TrainingDay(name: "Volume Day", dayNumber: 1)
+            volumeDay.program = program
+            context.insert(volumeDay)
+            
+            // Create Light Day (Wednesday): 4x5 light squats, ramping press/deadlift
+            let lightDay = TrainingDay(name: "Light Day", dayNumber: 2)
+            lightDay.program = program
+            context.insert(lightDay)
+            
+            // Create Intensity Day (Friday): Ramping 4x5, 1x3, 1x8
+            let intensityDay = TrainingDay(name: "Intensity Day", dayNumber: 3)
+            intensityDay.program = program
+            context.insert(intensityDay)
+            
+            // VOLUME DAY EXERCISES
+            let volumeSquat = ProgramExercise(
+                exerciseName: "Squat",
+                orderIndex: 0,
+                startingWeight: squatWeight,
+                targetSets: 5,
+                targetReps: 5,
+                increment: 5.0,
+                notes: "5x5 ramping to top set"
+            )
+            volumeSquat.trainingDay = volumeDay
+            volumeDay.exercises.append(volumeSquat)
+            context.insert(volumeSquat)
+            
+            let volumeBench = ProgramExercise(
+                exerciseName: "Bench Press",
+                orderIndex: 1,
+                startingWeight: benchWeight,
+                targetSets: 5,
+                targetReps: 5,
+                increment: 2.5,
+                notes: "5x5 ramping to top set"
+            )
+            volumeBench.trainingDay = volumeDay
+            volumeDay.exercises.append(volumeBench)
+            context.insert(volumeBench)
+            
+            let volumeRow = ProgramExercise(
+                exerciseName: "Barbell Row",
+                orderIndex: 2,
+                startingWeight: rowWeight,
+                targetSets: 5,
+                targetReps: 5,
+                increment: 5.0,
+                notes: "5x5 ramping to top set"
+            )
+            volumeRow.trainingDay = volumeDay
+            volumeDay.exercises.append(volumeRow)
+            context.insert(volumeRow)
+            
+            // LIGHT DAY EXERCISES
+            let lightSquat = ProgramExercise(
+                exerciseName: "Squat",
+                orderIndex: 0,
+                startingWeight: squatWeight * 0.75,
+                targetSets: 4,
+                targetReps: 5,
+                increment: 5.0,
+                notes: "4x5 @ 75% of Monday's top set"
+            )
+            lightSquat.trainingDay = lightDay
+            lightDay.exercises.append(lightSquat)
+            context.insert(lightSquat)
+            
+            let lightPress = ProgramExercise(
+                exerciseName: "Overhead Press",
+                orderIndex: 1,
+                startingWeight: pressWeight,
+                targetSets: 4,
+                targetReps: 5,
+                increment: 2.5,
+                notes: "4x5 ramping to top set"
+            )
+            lightPress.trainingDay = lightDay
+            lightDay.exercises.append(lightPress)
+            context.insert(lightPress)
+            
+            let lightDeadlift = ProgramExercise(
+                exerciseName: "Deadlift",
+                orderIndex: 2,
+                startingWeight: deadliftWeight,
+                targetSets: 4,
+                targetReps: 5,
+                increment: 5.0,
+                notes: "4x5 ramping to top set"
+            )
+            lightDeadlift.trainingDay = lightDay
+            lightDay.exercises.append(lightDeadlift)
+            context.insert(lightDeadlift)
+            
+            // INTENSITY DAY EXERCISES
+            // Note: Intensity day exercises will have 6 total sets per exercise
+            // 4x5 ramping + 1x3 @ 105% + 1x8 @ 80%
+            
+            let intensitySquat = ProgramExercise(
+                exerciseName: "Squat",
+                orderIndex: 0,
+                startingWeight: squatWeight,
+                targetSets: 6,  // 4 ramping + 1 triple + 1 backoff
+                targetReps: 5,  // Primary reps (will vary by set)
+                increment: 5.0,
+                notes: "4x5 ramping, 1x3 @ 105%, 1x8 @ 80%"
+            )
+            intensitySquat.trainingDay = intensityDay
+            intensityDay.exercises.append(intensitySquat)
+            context.insert(intensitySquat)
+            
+            let intensityBench = ProgramExercise(
+                exerciseName: "Bench Press",
+                orderIndex: 1,
+                startingWeight: benchWeight,
+                targetSets: 6,
+                targetReps: 5,
+                increment: 2.5,
+                notes: "4x5 ramping, 1x3 @ 105%, 1x8 @ 80%"
+            )
+            intensityBench.trainingDay = intensityDay
+            intensityDay.exercises.append(intensityBench)
+            context.insert(intensityBench)
+            
+            let intensityRow = ProgramExercise(
+                exerciseName: "Barbell Row",
+                orderIndex: 2,
+                startingWeight: rowWeight,
+                targetSets: 6,
+                targetReps: 5,
+                increment: 5.0,
+                notes: "4x5 ramping, 1x3 @ 105%, 1x8 @ 80%"
+            )
+            intensityRow.trainingDay = intensityDay
+            intensityDay.exercises.append(intensityRow)
+            context.insert(intensityRow)
+            
+            // Generate workout sessions for the entire program
+            generateMadcowSessions(
+                program: program,
+                volumeDay: volumeDay,
+                lightDay: lightDay,
+                intensityDay: intensityDay,
+                totalWeeks: totalWeeks,
+                context: context
+            )
+            
+            return program
+        }
+        
+        /// Generates Madcow sessions with Volume/Light/Intensity structure
+        private static func generateMadcowSessions(
+            program: Program,
+            volumeDay: TrainingDay,
+            lightDay: TrainingDay,
+            intensityDay: TrainingDay,
+            totalWeeks: Int,
+            context: ModelContext
+        ) {
+            let calendar = Calendar.current
+            let startDate = program.startDate
+            
+            // Madcow 5x5: 3 sessions per week
+            // Monday: Volume Day
+            // Wednesday: Light Day
+            // Friday: Intensity Day
+            
+            var sessionNumber = 0
+            
+            for week in 1...totalWeeks {
+                // Monday - Volume Day (Session 1)
+                sessionNumber += 1
+                let mondayDate = calendar.date(byAdding: .day, value: (week - 1) * 7, to: startDate) ?? startDate
+                createMadcowSessionsForDay(
+                    trainingDay: volumeDay,
+                    week: week,
+                    sessionNumber: sessionNumber,
+                    date: mondayDate,
+                    dayType: .volume,
+                    context: context
+                )
+                
+                // Wednesday - Light Day (Session 2)
+                sessionNumber += 1
+                let wednesdayDate = calendar.date(byAdding: .day, value: (week - 1) * 7 + 2, to: startDate) ?? startDate
+                createMadcowSessionsForDay(
+                    trainingDay: lightDay,
+                    week: week,
+                    sessionNumber: sessionNumber,
+                    date: wednesdayDate,
+                    dayType: .light,
+                    context: context
+                )
+                
+                // Friday - Intensity Day (Session 3)
+                sessionNumber += 1
+                let fridayDate = calendar.date(byAdding: .day, value: (week - 1) * 7 + 4, to: startDate) ?? startDate
+                createMadcowSessionsForDay(
+                    trainingDay: intensityDay,
+                    week: week,
+                    sessionNumber: sessionNumber,
+                    date: fridayDate,
+                    dayType: .intensity,
+                    context: context
+                )
+            }
+        }
+        
+        /// Day type for Madcow programming
+        private enum MadcowDayType {
+            case volume
+            case light
+            case intensity
+        }
+        
+        /// Creates exercise sessions for a specific Madcow training day
+        private static func createMadcowSessionsForDay(
+            trainingDay: TrainingDay,
+            week: Int,
+            sessionNumber: Int,
+            date: Date,
+            dayType: MadcowDayType,
+            context: ModelContext
+        ) {
+            for exercise in trainingDay.exercises {
+                // Calculate top set weight for this week
+                let topSetWeight = calculateMadcowWeight(
+                    exercise: exercise,
+                    week: week,
+                    dayType: dayType
+                )
+                
+                // Create ONE ExerciseSession per exercise
+                let exerciseSession = ExerciseSession(
+                    date: date,
+                    weekNumber: week,
+                    sessionNumber: sessionNumber,
+                    plannedWeight: topSetWeight,  // Use top set weight as reference
+                    plannedSets: exercise.targetSets,
+                    plannedReps: exercise.targetReps
+                )
+                
+                exerciseSession.exercise = exercise
+                exerciseSession.trainingDay = trainingDay
+                trainingDay.sessions.append(exerciseSession)
+                context.insert(exerciseSession)
+                
+                // Create WorkoutSets based on day type
+                if dayType == .intensity {
+                    // Intensity day: 4 ramping sets + 1 triple + 1 backoff
+                    createIntensityDaySets(
+                        exerciseSession: exerciseSession,
+                        topSetWeight: topSetWeight,
+                        context: context
+                    )
+                } else if dayType == .light && exercise.exerciseName == "Squat" {
+                    // Light squats are straight sets (all same weight)
+                    createStraightSets(
+                        exerciseSession: exerciseSession,
+                        weight: topSetWeight,
+                        sets: exercise.targetSets,
+                        reps: exercise.targetReps,
+                        context: context
+                    )
+                } else {
+                    // Volume day and light day (non-squat) use ramping sets
+                    createRampingSets(
+                        exerciseSession: exerciseSession,
+                        topSetWeight: topSetWeight,
+                        sets: exercise.targetSets,
+                        reps: exercise.targetReps,
+                        context: context
+                    )
+                }
+            }
+        }
+        
+        /// Creates ramping workout sets for an exercise session
+        private static func createRampingSets(
+            exerciseSession: ExerciseSession,
+            topSetWeight: Double,
+            sets: Int,
+            reps: Int,
+            context: ModelContext
+        ) {
+            // Ramping percentages
+            let rampingPercentages: [Double] = [0.60, 0.69, 0.82, 0.91, 1.00]
+            let percentages = Array(rampingPercentages.suffix(sets))
+            
+            for (index, percentage) in percentages.enumerated() {
+                let setWeight = topSetWeight * percentage
+                
+                let workoutSet = WorkoutSet(
+                    setNumber: index + 1,
+                    targetReps: reps,
+                    targetWeight: setWeight
+                )
+                workoutSet.session = nil
+                exerciseSession.sets.append(workoutSet)
+                context.insert(workoutSet)
+            }
+        }
+        
+        /// Creates straight (same weight) workout sets for an exercise session
+        private static func createStraightSets(
+            exerciseSession: ExerciseSession,
+            weight: Double,
+            sets: Int,
+            reps: Int,
+            context: ModelContext
+        ) {
+            for setNumber in 1...sets {
+                let workoutSet = WorkoutSet(
+                    setNumber: setNumber,
+                    targetReps: reps,
+                    targetWeight: weight
+                )
+                workoutSet.session = nil
+                exerciseSession.sets.append(workoutSet)
+                context.insert(workoutSet)
+            }
+        }
+        
+        /// Creates intensity day workout sets (ramping + triple + backoff)
+        private static func createIntensityDaySets(
+            exerciseSession: ExerciseSession,
+            topSetWeight: Double,
+            context: ModelContext
+        ) {
+            // 4 ramping sets
+            let rampingPercentages: [Double] = [0.69, 0.82, 0.91, 1.00]
+            
+            for (index, percentage) in rampingPercentages.enumerated() {
+                let setWeight = topSetWeight * percentage
+                
+                let workoutSet = WorkoutSet(
+                    setNumber: index + 1,
+                    targetReps: 5,
+                    targetWeight: setWeight
+                )
+                workoutSet.session = nil
+                exerciseSession.sets.append(workoutSet)
+                context.insert(workoutSet)
+            }
+            
+            // Heavy triple (1x3 @ 105%)
+            let tripleWeight = topSetWeight * 1.05
+            let tripleSet = WorkoutSet(
+                setNumber: 5,
+                targetReps: 3,
+                targetWeight: tripleWeight
+            )
+            tripleSet.session = nil
+            exerciseSession.sets.append(tripleSet)
+            context.insert(tripleSet)
+            
+            // Back-off set (1x8 @ 80%)
+            let backoffWeight = topSetWeight * 0.80
+            let backoffSet = WorkoutSet(
+                setNumber: 6,
+                targetReps: 8,
+                targetWeight: backoffWeight
+            )
+            backoffSet.session = nil
+            exerciseSession.sets.append(backoffSet)
+            context.insert(backoffSet)
+        }
+        
+        /// Calculates progressive weight for Madcow exercises
+        private static func calculateMadcowWeight(
+            exercise: ProgramExercise,
+            week: Int,
+            dayType: MadcowDayType
+        ) -> Double {
+            // Madcow progression:
+            // - Increase all lifts weekly by increment
+            // - Light day squats are 75% of volume day
+            // - Intensity day exercises progress same as volume day
+            
+            let weeksProgressed = week - 1
+            var weight = exercise.startingWeight
+            
+            switch dayType {
+            case .volume, .intensity:
+                // Both volume and intensity progress weekly
+                weight = exercise.startingWeight + (exercise.increment * Double(weeksProgressed))
+                
+            case .light:
+                if exercise.exerciseName == "Squat" {
+                    // Light squats are 75% of volume day weight
+                    let volumeWeight = exercise.startingWeight + (exercise.increment * Double(weeksProgressed))
+                    weight = volumeWeight * 0.75
+                } else {
+                    // Other exercises on light day progress normally
+                    weight = exercise.startingWeight + (exercise.increment * Double(weeksProgressed))
+                }
+            }
+            
+            return weight
+        }
+    
 }

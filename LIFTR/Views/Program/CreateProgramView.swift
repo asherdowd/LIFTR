@@ -46,6 +46,16 @@ struct CreateProgramView: View {
                             }
                         )
                         
+                        // Madcow 5x5 Template
+                        TemplateCard(
+                            template: .madcow,
+                            isSelected: selectedTemplate == .madcow,
+                            onSelect: {
+                                selectedTemplate = .madcow
+                                showTemplateSetup = true
+                            }
+                        )
+                        
                         // Coming Soon Templates
                         ComingSoonTemplateCard(template: .smolov)
                         ComingSoonTemplateCard(template: .fiveThreeOne)
@@ -118,12 +128,12 @@ struct TemplateCard: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Label(template == .startingStrength ? "Linear" : "Weekly", systemImage: "chart.line.uptrend.xyaxis")
+                        Label(progressionLabel, systemImage: "chart.line.uptrend.xyaxis")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                     
-                    Text("Exercises: Squat, Bench, Press, Deadlift")
+                    Text(exercisesLabel)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -137,6 +147,28 @@ struct TemplateCard: View {
             )
         }
         .buttonStyle(.plain)
+    }
+    
+    private var progressionLabel: String {
+        switch template {
+        case .startingStrength:
+            return "Linear"
+        case .texasMethod:
+            return "Weekly"
+        case .madcow:
+            return "Ramping"
+        default:
+            return "Progressive"
+        }
+    }
+    
+    private var exercisesLabel: String {
+        switch template {
+        case .madcow:
+            return "Exercises: Squat, Bench, Row, Press, Deadlift"
+        default:
+            return "Exercises: Squat, Bench, Press, Deadlift"
+        }
     }
 }
 
