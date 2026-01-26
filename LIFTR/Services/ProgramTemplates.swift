@@ -939,4 +939,255 @@ class ProgramTemplates {
             return weight
         }
     
+
+
+        static func createFiveThreeOne(
+            name: String,
+            squatMax: Double,
+            benchMax: Double,
+            pressMax: Double,
+            deadliftMax: Double,
+            totalWeeks: Int = 12,
+            context: ModelContext
+        ) -> Program {
+            
+            let program = Program(
+                name: name,
+                templateType: .fiveThreeOne,
+                totalWeeks: totalWeeks
+            )
+            context.insert(program)
+            
+            // Calculate Training Maxes (90% of 1RM)
+            let squatTM = squatMax * 0.90
+            let benchTM = benchMax * 0.90
+            let pressTM = pressMax * 0.90
+            let deadliftTM = deadliftMax * 0.90
+            
+            // Create training days for each lift
+            // Each lift gets its own day in the week
+            let squatDay = TrainingDay(name: "Squat Day", dayNumber: 1)
+            squatDay.program = program
+            context.insert(squatDay)
+            
+            let benchDay = TrainingDay(name: "Bench Day", dayNumber: 2)
+            benchDay.program = program
+            context.insert(benchDay)
+            
+            let deadliftDay = TrainingDay(name: "Deadlift Day", dayNumber: 3)
+            deadliftDay.program = program
+            context.insert(deadliftDay)
+            
+            let pressDay = TrainingDay(name: "Press Day", dayNumber: 4)
+            pressDay.program = program
+            context.insert(pressDay)
+            
+            // Create exercises for each day
+            let squat = ProgramExercise(
+                exerciseName: "Squat",
+                orderIndex: 0,
+                startingWeight: squatTM,
+                targetSets: 3,
+                targetReps: 5,  // Base reps (will vary by week)
+                increment: 10.0,  // Increase TM by 10 lbs after each cycle
+                notes: "Training Max based program"
+            )
+            squat.trainingDay = squatDay
+            squatDay.exercises.append(squat)
+            context.insert(squat)
+            
+            let bench = ProgramExercise(
+                exerciseName: "Bench Press",
+                orderIndex: 0,
+                startingWeight: benchTM,
+                targetSets: 3,
+                targetReps: 5,
+                increment: 5.0,  // Increase TM by 5 lbs after each cycle
+                notes: "Training Max based program"
+            )
+            bench.trainingDay = benchDay
+            benchDay.exercises.append(bench)
+            context.insert(bench)
+            
+            let deadlift = ProgramExercise(
+                exerciseName: "Deadlift",
+                orderIndex: 0,
+                startingWeight: deadliftTM,
+                targetSets: 3,
+                targetReps: 5,
+                increment: 10.0,
+                notes: "Training Max based program"
+            )
+            deadlift.trainingDay = deadliftDay
+            deadliftDay.exercises.append(deadlift)
+            context.insert(deadlift)
+            
+            let press = ProgramExercise(
+                exerciseName: "Overhead Press",
+                orderIndex: 0,
+                startingWeight: pressTM,
+                targetSets: 3,
+                targetReps: 5,
+                increment: 5.0,
+                notes: "Training Max based program"
+            )
+            press.trainingDay = pressDay
+            pressDay.exercises.append(press)
+            context.insert(press)
+            
+            // Generate workout sessions for the entire program
+            generateFiveThreeOneSessions(
+                program: program,
+                squatDay: squatDay,
+                benchDay: benchDay,
+                deadliftDay: deadliftDay,
+                pressDay: pressDay,
+                totalWeeks: totalWeeks,
+                context: context
+            )
+            
+            return program
+        }
+        
+        /// Generates 5/3/1 sessions with 4-week cycles
+        private static func generateFiveThreeOneSessions(
+            program: Program,
+            squatDay: TrainingDay,
+            benchDay: TrainingDay,
+            deadliftDay: TrainingDay,
+            pressDay: TrainingDay,
+            totalWeeks: Int,
+            context: ModelContext
+        ) {
+            let calendar = Calendar.current
+            let startDate = program.startDate
+            
+            // 5/3/1: 4 sessions per week, one per lift
+            // Pattern repeats every 4 weeks
+            
+            var sessionNumber = 0
+            let trainingDays = [squatDay, benchDay, deadliftDay, pressDay]
+            
+            for week in 1...totalWeeks {
+                // Determine which week of the 4-week cycle we're in (1-4)
+                let cycleWeek = ((week - 1) % 4) + 1
+                
+                // Each training day gets one session this week
+                for (dayIndex, trainingDay) in trainingDays.enumerated() {
+                    sessionNumber += 1
+                    
+                    // Calculate date (Monday, Tuesday, Thursday, Friday pattern)
+                    let dayOffset: Int
+                    switch dayIndex {
+                    case 0: dayOffset = 0  // Monday - Squat
+                    case 1: dayOffset = 1  // Tuesday - Bench
+                    case 2: dayOffset = 3  // Thursday - Deadlift
+                    case 3: dayOffset = 4  // Friday - Press
+                    default: dayOffset = dayIndex
+                    }
+                    
+                    let daysFromStart = (week - 1) * 7 + dayOffset
+                    let sessionDate = calendar.date(byAdding: .day, value: daysFromStart, to: startDate) ?? startDate
+                    
+                    createFiveThreeOneSessionForDay(
+                        trainingDay: trainingDay,
+                        week: week,
+                        cycleWeek: cycleWeek,
+                        sessionNumber: sessionNumber,
+                        date: sessionDate,
+                        context: context
+                    )
+                }
+            }
+        }
+        
+        /// Creates a 5/3/1 session for a specific training day and cycle week
+        private static func createFiveThreeOneSessionForDay(
+            trainingDay: TrainingDay,
+            week: Int,
+            cycleWeek: Int,
+            sessionNumber: Int,
+            date: Date,
+            context: ModelContext
+        ) {
+            guard let exercise = trainingDay.exercises.first else { return }
+            
+            // Calculate training max for this week
+            // TM increases after each 4-week cycle
+            let cyclesCompleted = (week - 1) / 4
+            let currentTM = exercise.startingWeight + (exercise.increment * Double(cyclesCompleted))
+            
+            // Get the set/rep/percentage scheme for this cycle week
+            let scheme = getFiveThreeOneScheme(cycleWeek: cycleWeek)
+            
+            // Create ONE ExerciseSession with 3 sets
+            let exerciseSession = ExerciseSession(
+                date: date,
+                weekNumber: week,
+                sessionNumber: sessionNumber,
+                plannedWeight: currentTM * scheme.percentages.last!,  // Use top set weight as reference
+                plannedSets: 3,
+                plannedReps: scheme.reps.last!
+            )
+            
+            exerciseSession.exercise = exercise
+            exerciseSession.trainingDay = trainingDay
+            trainingDay.sessions.append(exerciseSession)
+            context.insert(exerciseSession)
+            
+            // Create 3 WorkoutSets with different weights and reps
+            for setNumber in 1...3 {
+                let percentage = scheme.percentages[setNumber - 1]
+                let reps = scheme.reps[setNumber - 1]
+                let isAMRAP = scheme.amrap[setNumber - 1]
+                
+                let setWeight = currentTM * percentage
+                
+                let workoutSet = WorkoutSet(
+                    setNumber: setNumber,
+                    targetReps: reps,
+                    targetWeight: setWeight,
+                    notes: isAMRAP ? "AMRAP (At least \(reps)+)" : nil
+                )
+                workoutSet.session = nil
+                exerciseSession.sets.append(workoutSet)
+                context.insert(workoutSet)
+            }
+        }
+        
+        /// Returns the set/rep/percentage scheme for a given cycle week
+        private static func getFiveThreeOneScheme(cycleWeek: Int) -> (percentages: [Double], reps: [Int], amrap: [Bool]) {
+            switch cycleWeek {
+            case 1:  // Week 1: 5/5/5+
+                return (
+                    percentages: [0.65, 0.75, 0.85],
+                    reps: [5, 5, 5],
+                    amrap: [false, false, true]
+                )
+            case 2:  // Week 2: 3/3/3+
+                return (
+                    percentages: [0.70, 0.80, 0.90],
+                    reps: [3, 3, 3],
+                    amrap: [false, false, true]
+                )
+            case 3:  // Week 3: 5/3/1+
+                return (
+                    percentages: [0.75, 0.85, 0.95],
+                    reps: [5, 3, 1],
+                    amrap: [false, false, true]
+                )
+            case 4:  // Week 4: Deload (5/5/5)
+                return (
+                    percentages: [0.40, 0.50, 0.60],
+                    reps: [5, 5, 5],
+                    amrap: [false, false, false]
+                )
+            default:
+                return (
+                    percentages: [0.65, 0.75, 0.85],
+                    reps: [5, 5, 5],
+                    amrap: [false, false, true]
+                )
+            }
+        }
 }

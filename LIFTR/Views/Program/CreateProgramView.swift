@@ -56,9 +56,18 @@ struct CreateProgramView: View {
                             }
                         )
                         
+                        // 5/3/1 Template
+                        TemplateCard(
+                            template: .fiveThreeOne,
+                            isSelected: selectedTemplate == .fiveThreeOne,
+                            onSelect: {
+                                selectedTemplate = .fiveThreeOne
+                                showTemplateSetup = true
+                            }
+                        )
+                        
                         // Coming Soon Templates
-                        ComingSoonTemplateCard(template: .smolov)
-                        ComingSoonTemplateCard(template: .fiveThreeOne)
+                        // ComingSoonTemplateCard(template: .smolov)
                     }
                     .padding()
                 }
@@ -120,11 +129,11 @@ struct TemplateCard: View {
                     Divider()
                     
                     HStack(spacing: 16) {
-                        Label("12 weeks", systemImage: "calendar")
+                        Label(weeksLabel, systemImage: "calendar")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Label("3x/week", systemImage: "figure.strengthtraining.traditional")
+                        Label(frequencyLabel, systemImage: "figure.strengthtraining.traditional")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
@@ -149,6 +158,24 @@ struct TemplateCard: View {
         .buttonStyle(.plain)
     }
     
+    private var weeksLabel: String {
+        switch template {
+        case .fiveThreeOne:
+            return "12 weeks (3 cycles)"
+        default:
+            return "12 weeks"
+        }
+    }
+    
+    private var frequencyLabel: String {
+        switch template {
+        case .fiveThreeOne:
+            return "4x/week"
+        default:
+            return "3x/week"
+        }
+    }
+    
     private var progressionLabel: String {
         switch template {
         case .startingStrength:
@@ -157,6 +184,8 @@ struct TemplateCard: View {
             return "Weekly"
         case .madcow:
             return "Ramping"
+        case .fiveThreeOne:
+            return "Cyclic"
         default:
             return "Progressive"
         }

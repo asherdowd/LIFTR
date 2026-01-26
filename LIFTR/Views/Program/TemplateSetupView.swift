@@ -127,6 +127,8 @@ struct TemplateSetupView: View {
             return "e.g., My Texas Method"
         case .madcow:
             return "e.g., My Madcow 5x5"
+        case .fiveThreeOne:
+            return "e.g., My 5/3/1"
         default:
             return "e.g., My Program"
         }
@@ -140,6 +142,8 @@ struct TemplateSetupView: View {
             return "Current 5 Rep Max"
         case .madcow:
             return "Current 5 Rep Max"
+        case .fiveThreeOne:
+            return "Current 1 Rep Max"
         default:
             return "Weights"
         }
@@ -153,6 +157,8 @@ struct TemplateSetupView: View {
             return "Enter your current 5 rep max for each exercise. These will be used as your Intensity Day targets."
         case .madcow:
             return "Enter your current 5 rep max for each exercise. These will be your top set targets."
+        case .fiveThreeOne:
+            return "Enter your current 1 rep max for each exercise. Training Max will be calculated at 90% of these values."
         default:
             return "Enter weights for each exercise."
         }
@@ -231,6 +237,14 @@ struct TemplateSetupView: View {
                 deadlift: deadlift
             )
             
+        case .fiveThreeOne:
+            createFiveThreeOneProgram(
+                squat: squat,
+                bench: bench,
+                press: press,
+                deadlift: deadlift
+            )
+            
         default:
             showError(message: "This template is not yet implemented")
         }
@@ -289,6 +303,25 @@ struct TemplateSetupView: View {
             pressWeight: press,
             deadliftWeight: deadlift,
             totalWeeks: 12,
+            context: context
+        )
+        
+        saveAndDismiss()
+    }
+    
+    private func createFiveThreeOneProgram(
+        squat: Double,
+        bench: Double,
+        press: Double,
+        deadlift: Double
+    ) {
+        _ = ProgramTemplates.createFiveThreeOne(
+            name: programName.trimmingCharacters(in: .whitespaces),
+            squatMax: squat,  // User enters 1RM, we calculate TM
+            benchMax: bench,
+            pressMax: press,
+            deadliftMax: deadlift,
+            totalWeeks: 12,  // 3 complete cycles
             context: context
         )
         
