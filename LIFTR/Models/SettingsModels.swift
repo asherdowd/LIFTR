@@ -103,6 +103,12 @@ class GlobalProgressionSettings {
     
     var upcomingWorkoutsDays: Int
     
+    // Rest Timer Settings
+    var defaultRestTime: Int
+    var autoStartRestTimer: Bool
+    var restTimerSound: Bool
+    var restTimerHaptic: Bool
+    
     init(
         id: UUID = UUID(),
         adjustmentMode: AdjustmentMode = .prompt,
@@ -118,7 +124,11 @@ class GlobalProgressionSettings {
         autoDeloadFrequency: Int = 8,
         trackRPE: Bool = false,
         allowMidWorkoutAdjustments: Bool = true,
-        upcomingWorkoutsDays: Int = 7
+        upcomingWorkoutsDays: Int = 7,
+        defaultRestTime: Int = 180,
+        autoStartRestTimer: Bool = true,
+        restTimerSound: Bool = true,
+        restTimerHaptic: Bool = true
     ) {
         self.id = id
         self.adjustmentMode = adjustmentMode
@@ -135,6 +145,10 @@ class GlobalProgressionSettings {
         self.trackRPE = trackRPE
         self.allowMidWorkoutAdjustments = allowMidWorkoutAdjustments
         self.upcomingWorkoutsDays = upcomingWorkoutsDays
+        self.defaultRestTime = defaultRestTime
+        self.autoStartRestTimer = autoStartRestTimer
+        self.restTimerSound = restTimerSound
+        self.restTimerHaptic = restTimerHaptic
     }
 }
 

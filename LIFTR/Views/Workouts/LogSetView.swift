@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AVFoundation
 
 struct LogSetView: View {
     @Environment(\.dismiss) var dismiss
@@ -10,6 +11,15 @@ struct LogSetView: View {
     @State private var weightUsed: String = ""
     @State private var rpeValue: Double = 7
     @State private var notes: String = ""
+    @Environment(\.modelContext) private var context
+    @Query private var globalSettings: [GlobalProgressionSettings]
+
+    @State private var showRestTimer = false
+
+    var currentSettings: GlobalProgressionSettings {
+        globalSettings.first ?? GlobalProgressionSettings()
+    }
+    
     
     var body: some View {
         NavigationView {
@@ -79,6 +89,8 @@ struct LogSetView: View {
                     .disabled(repsCompleted.isEmpty || weightUsed.isEmpty)
                 }
             }
+            
+            
             .navigationTitle("Log Set \(set.setNumber)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -87,6 +99,22 @@ struct LogSetView: View {
                         dismiss()
                     }
                 }
+                
+            }
+            .sheet(isPresented: $showRestTimer) {
+                RestTimerView(
+                    duration: currentSettings.defaultRestTime,
+                    enableSound: currentSettings.restTimerSound,
+                    enableHaptic: currentSettings.restTimerHaptic,
+                    onComplete: {
+                        showRestTimer = false
+                        dismiss()
+                    },
+                    onDismiss: {
+                        showRestTimer = false
+                        dismiss()
+                    }
+                )
             }
             .onAppear {
                 if let actualReps = set.actualReps {
@@ -113,6 +141,11 @@ struct LogSetView: View {
         set.notes = notes.isEmpty ? nil : notes
         set.completed = true
         
-        dismiss()
-    }
+        if currentSettings.autoStartRestTimer {
+                showRestTimer = true
+            } else {
+                dismiss()
+            }
+        }
+
 }
