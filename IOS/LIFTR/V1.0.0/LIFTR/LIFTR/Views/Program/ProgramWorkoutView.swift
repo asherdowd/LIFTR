@@ -123,10 +123,17 @@ struct ProgramWorkoutView: View {
             }
         }
         .sheet(item: $selectedSet) { set in
-            LogSetView(set: set, trackRPE: currentSettings.trackRPE)
+            if let exerciseSession = exerciseSessions.first(where: { $0.session.sets.contains(where: { $0.id == set.id }) }) {
+                LogSetView(
+                    set: set,
+                    trackRPE: currentSettings.trackRPE,
+                    exerciseName: exerciseSession.session.exercise?.exerciseName ?? "Exercise",
+                    totalSets: exerciseSession.session.plannedSets
+                )
                 .onDisappear {
                     updateCanComplete()
                 }
+            }
         }
         .sheet(isPresented: $showCalculator) {
             CalculatorViewWrapper(targetWeight: calculatorWeight)

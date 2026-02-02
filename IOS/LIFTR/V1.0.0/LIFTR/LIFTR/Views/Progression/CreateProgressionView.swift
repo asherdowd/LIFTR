@@ -250,6 +250,8 @@ struct CreateProgressionView: View {
         }
         
         // Create the progression
+        let normalizedStartDate = Calendar.current.startOfDay(for: Date())
+
         let progression = Progression(
             exerciseName: exerciseName.trimmingCharacters(in: .whitespaces),
             templateType: selectedTemplate,
@@ -257,7 +259,8 @@ struct CreateProgressionView: View {
             currentMax: currentMaxValue,
             targetMax: targetMaxValue,
             startingWeight: calculatedStartingWeight,
-            totalWeeks: weeksValue
+            totalWeeks: weeksValue,
+            startDate: normalizedStartDate  // ADD THIS
         )
         
         context.insert(progression)
@@ -312,10 +315,10 @@ struct CreateProgressionView: View {
             
             // Create sessions for this week
             for day in 1...sessionsPerWeek {
-                // Calculate the date for this session
-                // Week 1, Day 1 = startDate
-                // Week 1, Day 2 = startDate + 2 days (spacing sessions throughout the week)
-                let daysFromStart = (week - 1) * 7 + (day - 1) * (7 / sessionsPerWeek)
+                // Calculate session spacing based on sessions per week
+                // 1/week = every 7 days, 2/week = every 3-4 days, 3/week = every 2 days, etc.
+                let daysBetweenSessions = sessionsPerWeek > 1 ? (7 / sessionsPerWeek) : 7
+                let daysFromStart = (week - 1) * 7 + (day - 1) * daysBetweenSessions
                 let sessionDate = calendar.date(byAdding: .day, value: daysFromStart, to: startDate) ?? startDate
                 
                 let session = WorkoutSession(
@@ -345,7 +348,6 @@ struct CreateProgressionView: View {
             }
         }
     }
-    
     // MARK: - Calculate Week Weight
     
     private func calculateWeekWeight(

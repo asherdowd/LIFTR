@@ -210,11 +210,13 @@ struct CreateCardioProgressionView: View {
             showErrorMessage(message: "Please fill in all fields with valid values")
             return
         }
+        let normalizedStartDate = Calendar.current.startOfDay(for: Date())
         
         let progression = CardioProgression(
             name: progressionName.trimmingCharacters(in: .whitespaces),
             cardioType: selectedType,
             totalWeeks: weeksValue,
+            startDate: normalizedStartDate,
             targetDistance: selectedType == .running ? Double(targetDistance) : nil,
             startingWeeklyDistance: selectedType == .running ? Double(startingWeeklyDistance) : nil,
             exerciseName: selectedType == .calisthenics ? exerciseName : nil,
@@ -223,6 +225,7 @@ struct CreateCardioProgressionView: View {
             workoutType: selectedType == .crossfit ? workoutType : nil,
             workoutDescription: selectedType == .crossfit ? workoutDescription : nil,
             useMetric: useMetric
+            
         )
         
         context.insert(progression)
@@ -248,7 +251,8 @@ struct CreateCardioProgressionView: View {
                 // Calculate the date for this session
                 // Week 1, Day 1 = startDate
                 // Week 1, Day 2 = startDate + 2 days (spacing sessions throughout the week)
-                let daysFromStart = (week - 1) * 7 + (day - 1) * (7 / sessionsPerWeek)
+                let daysBetweenSessions = sessionsPerWeek > 1 ? (7 / sessionsPerWeek) : 7
+                let daysFromStart = (week - 1) * 7 + (day - 1) * daysBetweenSessions
                 let sessionDate = calendar.date(byAdding: .day, value: daysFromStart, to: startDate) ?? startDate
                 
                 let session = CardioSession(

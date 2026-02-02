@@ -6,6 +6,8 @@ struct LogSetView: View {
     @Environment(\.dismiss) var dismiss
     @Bindable var set: WorkoutSet
     let trackRPE: Bool
+    let exerciseName: String      // ADD THIS
+    let totalSets: Int             // ADD THIS
     
     @State private var repsCompleted: String = ""
     @State private var weightUsed: String = ""
@@ -18,6 +20,10 @@ struct LogSetView: View {
 
     var currentSettings: GlobalProgressionSettings {
         globalSettings.first ?? GlobalProgressionSettings()
+    }
+    
+    var setInfo: String {
+        "Set \(set.setNumber) of \(totalSets)"
     }
     
     
@@ -101,19 +107,16 @@ struct LogSetView: View {
                 }
                 
             }
-            .sheet(isPresented: $showRestTimer) {
+            .sheet(isPresented: $showRestTimer, onDismiss: {
+                // Timer was dismissed
+            }) {
                 RestTimerView(
-                    duration: currentSettings.defaultRestTime,
-                    enableSound: currentSettings.restTimerSound,
-                    enableHaptic: currentSettings.restTimerHaptic,
-                    onComplete: {
-                        showRestTimer = false
-                        dismiss()
-                    },
-                    onDismiss: {
-                        showRestTimer = false
-                        dismiss()
-                    }
+                    defaultDuration: currentSettings.defaultRestTime,
+                    exerciseName: exerciseName,
+                    setInfo: setInfo,
+                    autoStart: currentSettings.autoStartRestTimer,
+                    playSound: currentSettings.restTimerSound,
+                    enableHaptic: currentSettings.restTimerHaptic
                 )
             }
             .onAppear {

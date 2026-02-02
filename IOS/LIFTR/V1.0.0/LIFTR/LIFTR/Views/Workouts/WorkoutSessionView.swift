@@ -140,7 +140,12 @@ struct WorkoutSessionView: View {
         }
         
         .sheet(item: $selectedSet) { set in
-            LogSetView(set: set, trackRPE: currentSettings.trackRPE)
+            LogSetView(
+                set: set,
+                trackRPE: currentSettings.trackRPE,
+                exerciseName: progression.exerciseName,
+                totalSets: session.plannedSets
+            )
         }
         .sheet(isPresented: $showCalculator) {
             CalculatorViewWrapper(targetWeight: session.plannedWeight)
