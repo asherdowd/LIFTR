@@ -28,11 +28,18 @@ struct RestTimerWidgetLiveActivity: Widget {
                 
                 DynamicIslandExpandedRegion(.trailing) {
                     VStack(alignment: .trailing, spacing: 4) {
-                        // The magic: timerInterval automatically counts down
-                        Text(timerInterval: context.state.startTime...context.state.endTime, countsDown: true)
-                            .font(.system(size: 40, weight: .bold, design: .rounded))
-                            .monospacedDigit()
-                            .foregroundColor(timerColor(for: context))
+                        // Show countdown only when running, static when paused
+                        if context.state.timerState == .running {
+                            Text(timerInterval: context.state.startTime...context.state.endTime, countsDown: true)
+                                .font(.system(size: 40, weight: .bold, design: .rounded))
+                                .monospacedDigit()
+                                .foregroundColor(timerColor(for: context))
+                        } else {
+                            Text(formattedTime(context: context))
+                                .font(.system(size: 40, weight: .bold, design: .rounded))
+                                .monospacedDigit()
+                                .foregroundColor(timerColor(for: context))
+                        }
                         
                         Text(context.state.timerState.rawValue.uppercased())
                             .font(.caption2)
@@ -64,11 +71,19 @@ struct RestTimerWidgetLiveActivity: Widget {
                 
             } compactTrailing: {
                 // Compact Trailing (right side of Dynamic Island)
-                Text(timerInterval: context.state.startTime...context.state.endTime, countsDown: true)
-                    .font(.caption2)
-                    .monospacedDigit()
-                    .foregroundColor(timerColor(for: context))
-                    .frame(width: 50)
+                if context.state.timerState == .running {
+                    Text(timerInterval: context.state.startTime...context.state.endTime, countsDown: true)
+                        .font(.caption2)
+                        .monospacedDigit()
+                        .foregroundColor(timerColor(for: context))
+                        .frame(width: 50)
+                } else {
+                    Text(formattedTime(context: context))
+                        .font(.caption2)
+                        .monospacedDigit()
+                        .foregroundColor(timerColor(for: context))
+                        .frame(width: 50)
+                }
                 
             } minimal: {
                 // Minimal (when multiple Live Activities are active)
@@ -81,10 +96,37 @@ struct RestTimerWidgetLiveActivity: Widget {
     
     // MARK: - Helper Functions
     
+    /// Format time as MM:SS for static display
+    /// Uses pausedTimeRemaining when paused to prevent recalculation
+    private func formattedTime(context: ActivityViewContext<RestTimerAttributes>) -> String {
+        let remaining: Int
+        
+        // When paused, use stored value to prevent countdown
+        if context.state.timerState == .paused, let pausedTime = context.state.pausedTimeRemaining {
+            remaining = pausedTime
+        } else if context.state.timerState == .completed {
+            remaining = 0
+        } else {
+            // Running - calculate from dates
+            remaining = max(0, Int(context.state.endTime.timeIntervalSince(Date())))
+        }
+        
+        let minutes = remaining / 60
+        let seconds = remaining % 60
+        return String(format: "%d:%02d", minutes, seconds)
+    }
+    
     /// Determine timer color based on time remaining
     private func timerColor(for context: ActivityViewContext<RestTimerAttributes>) -> Color {
-        let now = Date()
-        let timeRemaining = context.state.endTime.timeIntervalSince(now)
+        let timeRemaining: Int
+        
+        if context.state.timerState == .paused, let pausedTime = context.state.pausedTimeRemaining {
+            timeRemaining = pausedTime
+        } else if context.state.timerState == .completed {
+            timeRemaining = 0
+        } else {
+            timeRemaining = max(0, Int(context.state.endTime.timeIntervalSince(Date())))
+        }
         
         if context.state.timerState == .completed {
             return .green
@@ -127,11 +169,18 @@ struct LockScreenRestTimerView: View {
                 Spacer()
                 
                 VStack(spacing: 4) {
-                    // The magic countdown text
-                    Text(timerInterval: context.state.startTime...context.state.endTime, countsDown: true)
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundColor(timerColor)
+                    // Show countdown only when running, static when paused/completed
+                    if context.state.timerState == .running {
+                        Text(timerInterval: context.state.startTime...context.state.endTime, countsDown: true)
+                            .font(.system(size: 48, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundColor(timerColor)
+                    } else {
+                        Text(formattedTime)
+                            .font(.system(size: 48, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundColor(timerColor)
+                    }
                     
                     Text(context.state.timerState.rawValue.uppercased())
                         .font(.caption)
@@ -148,10 +197,37 @@ struct LockScreenRestTimerView: View {
         .padding()
     }
     
+    /// Format time as MM:SS for static display
+    /// Uses pausedTimeRemaining when paused to prevent recalculation
+    private var formattedTime: String {
+        let remaining: Int
+        
+        // When paused, use stored value to prevent countdown
+        if context.state.timerState == .paused, let pausedTime = context.state.pausedTimeRemaining {
+            remaining = pausedTime
+        } else if context.state.timerState == .completed {
+            remaining = 0
+        } else {
+            // Running - calculate from dates
+            remaining = max(0, Int(context.state.endTime.timeIntervalSince(Date())))
+        }
+        
+        let minutes = remaining / 60
+        let seconds = remaining % 60
+        return String(format: "%d:%02d", minutes, seconds)
+    }
+    
     /// Determine timer color based on time remaining
     private var timerColor: Color {
-        let now = Date()
-        let timeRemaining = context.state.endTime.timeIntervalSince(now)
+        let timeRemaining: Int
+        
+        if context.state.timerState == .paused, let pausedTime = context.state.pausedTimeRemaining {
+            timeRemaining = pausedTime
+        } else if context.state.timerState == .completed {
+            timeRemaining = 0
+        } else {
+            timeRemaining = max(0, Int(context.state.endTime.timeIntervalSince(Date())))
+        }
         
         if context.state.timerState == .completed {
             return .green
@@ -185,14 +261,33 @@ struct TimerProgressBar: View {
         }
     }
     
-    /// Calculate progress (0.0 to 1.0)
+    /// Calculate progress (0.0 to 1.0) based on elapsed time
     private var progress: CGFloat {
-        let now = Date()
-        let totalDuration = context.state.endTime.timeIntervalSince(context.state.startTime)
-        let elapsed = now.timeIntervalSince(context.state.startTime)
+        let totalDuration = TimeInterval(context.state.totalDuration)
+        guard totalDuration > 0 else { return 1.0 }
         
-        // Clamp between 0 and 1
-        return min(max(CGFloat(elapsed / totalDuration), 0.0), 1.0)
+        let elapsed: TimeInterval
+        
+        switch context.state.timerState {
+        case .paused:
+            // When paused, calculate elapsed from remaining time
+            if let pausedTime = context.state.pausedTimeRemaining {
+                elapsed = totalDuration - TimeInterval(pausedTime)
+            } else {
+                elapsed = 0
+            }
+            
+        case .completed:
+            // Completed = 100% elapsed
+            elapsed = totalDuration
+            
+        case .running:
+            // Running - calculate actual elapsed time from original start
+            elapsed = Date().timeIntervalSince(context.state.originalStartTime)
+        }
+        
+        let calculatedProgress = elapsed / totalDuration
+        return min(max(CGFloat(calculatedProgress), 0.0), 1.0)
     }
     
     /// Progress bar color based on completion

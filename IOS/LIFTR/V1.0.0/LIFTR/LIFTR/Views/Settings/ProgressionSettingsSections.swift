@@ -249,6 +249,7 @@ struct TimeButton: View {
                 .foregroundColor(selected ? .white : .primary)
                 .cornerRadius(8)
         }
+        .buttonStyle(.plain)
     }
     
     private func formatTimeShort(_ seconds: Int) -> String {

@@ -6,8 +6,8 @@ struct LogSetView: View {
     @Environment(\.dismiss) var dismiss
     @Bindable var set: WorkoutSet
     let trackRPE: Bool
-    let exerciseName: String      // ADD THIS
-    let totalSets: Int             // ADD THIS
+    let exerciseName: String
+    let totalSets: Int
     
     @State private var repsCompleted: String = ""
     @State private var weightUsed: String = ""
@@ -25,7 +25,6 @@ struct LogSetView: View {
     var setInfo: String {
         "Set \(set.setNumber) of \(totalSets)"
     }
-    
     
     var body: some View {
         NavigationView {
@@ -95,8 +94,6 @@ struct LogSetView: View {
                     .disabled(repsCompleted.isEmpty || weightUsed.isEmpty)
                 }
             }
-            
-            
             .navigationTitle("Log Set \(set.setNumber)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -105,18 +102,20 @@ struct LogSetView: View {
                         dismiss()
                     }
                 }
-                
             }
-            .sheet(isPresented: $showRestTimer, onDismiss: {
-                // Timer was dismissed
-            }) {
+            .sheet(isPresented: $showRestTimer) {
                 RestTimerView(
                     defaultDuration: currentSettings.defaultRestTime,
                     exerciseName: exerciseName,
                     setInfo: setInfo,
                     autoStart: currentSettings.autoStartRestTimer,
                     playSound: currentSettings.restTimerSound,
-                    enableHaptic: currentSettings.restTimerHaptic
+                    enableHaptic: currentSettings.restTimerHaptic,
+                    onComplete: {
+                        // Timer complete rest tapped - dismiss LogSetView
+                        // timer already dismisses itself, this dismisses LogSetView
+                        dismiss()
+                    }
                 )
             }
             .onAppear {
@@ -144,11 +143,12 @@ struct LogSetView: View {
         set.notes = notes.isEmpty ? nil : notes
         set.completed = true
         
+        try? context.save()
+        
         if currentSettings.autoStartRestTimer {
-                showRestTimer = true
-            } else {
-                dismiss()
-            }
+            showRestTimer = true
+        } else {
+            dismiss()
         }
-
+    }
 }

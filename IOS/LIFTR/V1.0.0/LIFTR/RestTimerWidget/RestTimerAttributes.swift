@@ -18,14 +18,23 @@ struct RestTimerAttributes: ActivityAttributes {
     // MARK: - Dynamic Content State (Changes During Activity)
     
     public struct ContentState: Codable, Hashable {
-        /// The time when the timer started
+        /// The time when the timer originally started (never changes, used for progress)
+        var originalStartTime: Date
+        
+        /// The total duration of the timer in seconds (never changes, used for progress)
+        var totalDuration: Int
+        
+        /// The time when the current interval started (for countdown display)
         var startTime: Date
         
-        /// The time when the timer will end
+        /// The time when the timer will end (for countdown display)
         var endTime: Date
         
         /// Current state of the timer
         var timerState: TimerState
+        
+        /// Time remaining in seconds when paused (stores exact value to prevent recalculation)
+        var pausedTimeRemaining: Int?
     }
     
     // MARK: - Timer State
@@ -54,37 +63,51 @@ extension RestTimerAttributes.ContentState {
     static func initial(duration: TimeInterval) -> RestTimerAttributes.ContentState {
         let now = Date()
         return RestTimerAttributes.ContentState(
+            originalStartTime: now,
+            totalDuration: Int(duration),
             startTime: now,
             endTime: now.addingTimeInterval(duration),
-            timerState: .running
+            timerState: .running,
+            pausedTimeRemaining: nil
         )
     }
     
-    /// Create paused state
-    func paused() -> RestTimerAttributes.ContentState {
-        RestTimerAttributes.ContentState(
-            startTime: self.startTime,
-            endTime: self.endTime,
-            timerState: .paused
-        )
-    }
-    
-    /// Create resumed state with adjusted end time
-    func resumed(remainingTime: TimeInterval) -> RestTimerAttributes.ContentState {
+    /// Create paused state with frozen time
+    static func paused(originalStart: Date, totalDuration: Int, timeRemaining: Int) -> RestTimerAttributes.ContentState {
         let now = Date()
         return RestTimerAttributes.ContentState(
+            originalStartTime: originalStart,
+            totalDuration: totalDuration,
             startTime: now,
-            endTime: now.addingTimeInterval(remainingTime),
-            timerState: .running
+            endTime: now,  // Same as startTime so countdown stops
+            timerState: .paused,
+            pausedTimeRemaining: timeRemaining
+        )
+    }
+    
+    /// Create running state (for resume or updates)
+    static func running(originalStart: Date, totalDuration: Int, timeRemaining: Int) -> RestTimerAttributes.ContentState {
+        let now = Date()
+        return RestTimerAttributes.ContentState(
+            originalStartTime: originalStart,
+            totalDuration: totalDuration,
+            startTime: now,
+            endTime: now.addingTimeInterval(TimeInterval(timeRemaining)),
+            timerState: .running,
+            pausedTimeRemaining: nil
         )
     }
     
     /// Create completed state
-    func completed() -> RestTimerAttributes.ContentState {
-        RestTimerAttributes.ContentState(
-            startTime: self.startTime,
-            endTime: self.endTime,
-            timerState: .completed
+    static func completed(originalStart: Date, totalDuration: Int) -> RestTimerAttributes.ContentState {
+        let now = Date()
+        return RestTimerAttributes.ContentState(
+            originalStartTime: originalStart,
+            totalDuration: totalDuration,
+            startTime: now,
+            endTime: now,
+            timerState: .completed,
+            pausedTimeRemaining: 0
         )
     }
 }
