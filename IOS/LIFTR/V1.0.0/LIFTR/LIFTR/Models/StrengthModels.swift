@@ -146,6 +146,20 @@ class WorkoutSession {
     var completedDate: Date?
     var paused: Bool
     
+    // Strava Integration (V3)
+    var startTime: Date?
+    var endTime: Date?
+    var totalDuration: TimeInterval?
+    var stravaActivityId: String?
+    var syncedToStrava: Bool
+    
+    // Apple Health Integration (V4)
+    var healthKitWorkoutId: String?
+    var syncedToHealthKit: Bool?
+    var caloriesBurned: Double?
+    var heartRateAverage: Int?
+    var heartRateMax: Int?
+    
     @Relationship(deleteRule: .cascade) var sets: [WorkoutSet]
     
     var progression: Progression?
@@ -163,6 +177,16 @@ class WorkoutSession {
         completed: Bool = false,
         completedDate: Date? = nil,
         paused: Bool = false,
+        startTime: Date? = nil,
+        endTime: Date? = nil,
+        totalDuration: TimeInterval? = nil,
+        stravaActivityId: String? = nil,
+        syncedToStrava: Bool = false,
+        healthKitWorkoutId: String? = nil,
+        syncedToHealthKit: Bool? = nil,
+        caloriesBurned: Double? = nil,
+        heartRateAverage: Int? = nil,
+        heartRateMax: Int? = nil,
         notes: String? = nil
     ) {
         self.id = id
@@ -175,6 +199,16 @@ class WorkoutSession {
         self.completed = completed
         self.completedDate = completedDate
         self.paused = paused
+        self.startTime = startTime
+        self.endTime = endTime
+        self.totalDuration = totalDuration
+        self.stravaActivityId = stravaActivityId
+        self.syncedToStrava = syncedToStrava
+        self.healthKitWorkoutId = healthKitWorkoutId
+        self.syncedToHealthKit = syncedToHealthKit
+        self.caloriesBurned = caloriesBurned
+        self.heartRateAverage = heartRateAverage
+        self.heartRateMax = heartRateMax
         self.sets = []
         self.notes = notes
     }

@@ -141,17 +141,18 @@ static func performStartupChecks(context: ModelContext) {
 
 ## 🎯 CURRENT SCHEMA STATUS
 
-**Version:** V2 (as of January 27, 2026)
+**Version:** V3 (as of March 6, 2026)
 
-**Last Change:** Added rest timer properties to GlobalProgressionSettings
-- `defaultRestTime: Int`
-- `autoStartRestTimer: Bool`
-- `restTimerSound: Bool`
-- `restTimerHaptic: Bool`
+**Last Change:** Added Strava and Apple Health integration properties
+- 5 Strava properties: startTime, endTime, totalDuration, stravaActivityId, syncedToStrava
+- 5 Health properties: healthKitWorkoutId, syncedToHealthKit, caloriesBurned, heartRateAverage, heartRateMax
+- Added to: WorkoutSession, ExerciseSession, CardioSession
 
-**Migration Status:** ✅ MigrationService repair function implemented
+**Migration Status:** ✅ Lightweight migration (automatic)
 
-**Next Version Will Be:** V3
+**Next Version Will Be:** V4
+
+
 
 ---
 
@@ -188,16 +189,6 @@ static func performStartupChecks(context: ModelContext) {
 ---
 
 ## 🔮 PLANNED FUTURE MIGRATIONS
-
-### V2 → V3 (Planned: Milestone 10 - Strava)
-**Changes:**
-- Add `startTime: Date?` to WorkoutSession/ExerciseSession/CardioSession
-- Add `endTime: Date?` to WorkoutSession/ExerciseSession/CardioSession
-- Add `totalDuration: TimeInterval?` to sessions
-- Add `stravaActivityId: String?` to sessions
-- Add `syncedToStrava: Bool` to sessions
-
-**Migration:** MigrationService repair function
 
 ### V3 → V4 (Planned: User Profile Expansion)
 **Changes:**

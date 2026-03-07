@@ -1,8 +1,8 @@
 # LIFTR Database Schema Documentation
 
-**Last Updated:** January 27, 2026  
-**Version:** 1.2.1 (Build 5)  
-**Schema Version:** V2 (with rest timer settings)
+**Last Updated:** March 6, 2026  
+**Version:** 1.2.1 (Build 8)  
+**Schema Version:** V3 (with Strava and Apple Health Integration)
 
 This document describes the complete SwiftData model structure for LIFTR.
 
@@ -54,7 +54,7 @@ This document describes the complete SwiftData model structure for LIFTR.
 
 **⚠️ Schema Changes:**
 - **V1 → V2:** Added 4 rest timer properties (defaultRestTime, autoStartRestTimer, restTimerSound, restTimerHaptic)
-
+- **V2 → V3:** Added 10 integration properties (5 Strava + 5 Apple Health) to WorkoutSession, ExerciseSession, CardioSession
 ---
 
 ### ExerciseProgressionSettings
@@ -121,6 +121,16 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `completed` | Bool | false | Completion status |
 | `completedDate` | Date? | nil | Actual completion date |
 | `paused` | Bool | false | Paused mid-workout |
+| `startTime` | Date? | nil | Session start time (Strava/Health) | ⚠️ V3 |
+| `endTime` | Date? | nil | Session end time (Strava/Health) | ⚠️ V3 |
+| `totalDuration` | TimeInterval? | nil | Total session duration | ⚠️ V3 |
+| `stravaActivityId` | String? | nil | Strava activity ID | ⚠️ V3 |
+| `syncedToStrava` | Bool | false | Synced to Strava | ⚠️ V3 |
+| `healthKitWorkoutId` | String? | nil | HealthKit workout ID | ⚠️ V3 |
+| `syncedToHealthKit` | Bool? | nil | Synced to HealthKit | ⚠️ V3 |
+| `caloriesBurned` | Double? | nil | Calories burned | ⚠️ V3 |
+| `heartRateAverage` | Int? | nil | Average heart rate | ⚠️ V3 |
+| `heartRateMax` | Int? | nil | Max heart rate | ⚠️ V3 |
 | `notes` | String? | nil | Optional notes |
 
 **Relationships:**
@@ -239,6 +249,16 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `completed` | Bool | false | Completion status |
 | `completedDate` | Date? | nil | Actual completion date |
 | `notes` | String? | nil | Optional notes |
+| `startTime` | Date? | nil | Session start time (Strava/Health) | ⚠️ V3 |
+| `endTime` | Date? | nil | Session end time (Strava/Health) | ⚠️ V3 |
+| `totalDuration` | TimeInterval? | nil | Total session duration | ⚠️ V3 |
+| `stravaActivityId` | String? | nil | Strava activity ID | ⚠️ V3 |
+| `syncedToStrava` | Bool | false | Synced to Strava | ⚠️ V3 |
+| `healthKitWorkoutId` | String? | nil | HealthKit workout ID | ⚠️ V3 |
+| `syncedToHealthKit` | Bool? | nil | Synced to HealthKit | ⚠️ V3 |
+| `caloriesBurned` | Double? | nil | Calories burned | ⚠️ V3 |
+| `heartRateAverage` | Int? | nil | Average heart rate | ⚠️ V3 |
+| `heartRateMax` | Int? | nil | Max heart rate | ⚠️ V3 |
 
 **Relationships:**
 - `exercise`: ProgramExercise? (parent)
@@ -293,6 +313,16 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `completed` | Bool | false | Completion status |
 | `completedDate` | Date? | nil | Actual completion date |
 | `notes` | String? | nil | Optional notes |
+| `startTime` | Date? | nil | Session start time (Strava/Health) | ⚠️ V3 |
+| `endTime` | Date? | nil | Session end time (Strava/Health) | ⚠️ V3 |
+| `totalDuration` | TimeInterval? | nil | Total session duration | ⚠️ V3 |
+| `stravaActivityId` | String? | nil | Strava activity ID | ⚠️ V3 |
+| `syncedToStrava` | Bool | false | Synced to Strava | ⚠️ V3 |
+| `healthKitWorkoutId` | String? | nil | HealthKit workout ID | ⚠️ V3 |
+| `syncedToHealthKit` | Bool? | nil | Synced to HealthKit | ⚠️ V3 |
+| `caloriesBurned` | Double? | nil | Calories burned | ⚠️ V3 |
+| `heartRateAverage` | Int? | nil | Average heart rate | ⚠️ V3 |
+| `heartRateMax` | Int? | nil | Max heart rate | ⚠️ V3 |
 
 **Relationships:**
 - `progression`: CardioProgression? (parent)

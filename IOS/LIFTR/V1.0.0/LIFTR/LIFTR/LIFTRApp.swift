@@ -7,7 +7,7 @@ struct LiftrApp: App {
     
     init() {
         do {
-            // Initialize the container with individual types (not array)
+            // Initialize with all model types
             container = try ModelContainer(
                 for: User.self,
                 GlobalProgressionSettings.self,

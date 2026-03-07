@@ -131,6 +131,20 @@ class CardioSession {
     var completedDate: Date?
     var duration: TimeInterval?
     
+    //Strava Integration V3
+    var startTime: Date?
+    var endTime: Date?
+    var totalDuration: TimeInterval?
+    var stravaActivityId: String?
+    var syncedToStrava: Bool
+    
+    // Apple Health Integration (V4)
+    var healthKitWorkoutId: String?
+    var syncedToHealthKit: Bool?
+    var caloriesBurned: Double?
+    var heartRateAverage: Int?
+    var heartRateMax: Int?
+
     var plannedDistance: Double?
     var actualDistance: Double?
     var pace: Double?
@@ -158,6 +172,11 @@ class CardioSession {
         completed: Bool = false,
         completedDate: Date? = nil,
         duration: TimeInterval? = nil,
+        startTime: Date? = nil,
+        endTime: Date? = nil,
+        totalDuration: TimeInterval? = nil,
+        stravaActivityId: String? = nil,
+        syncedToStrava: Bool = false,
         plannedDistance: Double? = nil,
         actualDistance: Double? = nil,
         pace: Double? = nil,
@@ -178,6 +197,16 @@ class CardioSession {
         self.completed = completed
         self.completedDate = completedDate
         self.duration = duration
+        self.startTime = startTime
+        self.endTime = endTime
+        self.totalDuration = totalDuration
+        self.stravaActivityId = stravaActivityId
+        self.syncedToStrava = syncedToStrava
+        self.healthKitWorkoutId = healthKitWorkoutId
+        self.syncedToHealthKit = syncedToHealthKit
+        self.caloriesBurned = caloriesBurned
+        self.heartRateAverage = heartRateAverage
+        self.heartRateMax = heartRateMax
         self.plannedDistance = plannedDistance
         self.actualDistance = actualDistance
         self.pace = pace

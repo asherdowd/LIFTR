@@ -159,7 +159,7 @@ class MigrationService {
  5. Test migration path with old data
  6. Update CRITICAL_REMINDERS.md
  
- CURRENT SCHEMA VERSION: V2 (Rest Timer - January 27, 2026)
+ CURRENT SCHEMA VERSION: V3 (Strava + Apple Health - March 6, 2026)
  NEXT VERSION: V3 (Strava Integration - TBD)
  
  See Docs/DATABASE_SCHEMA.md for complete schema history.

@@ -197,6 +197,20 @@ static func performStartupChecks(context: ModelContext) {
   - `restTimerHaptic: Bool`
 - **Migration:** Handled by `repairRestTimerDefaults()` in MigrationService.swift
 
+**As of March 6, 2026:**
+- **Version:** V3
+- **Changes from V2:** Added Schema Versioning and support for Strava and Apple Health
+    - Added to CardioSession, WorkoutSession & Excercise Session:
+    - | `startTime` | Date? | nil | Session start time (Strava/Health) | ⚠️ V3 |
+    - | `endTime` | Date? | nil | Session end time (Strava/Health) | ⚠️ V3 |
+    - | `totalDuration` | TimeInterval? | nil | Total session duration | ⚠️ V3 |
+    - | `stravaActivityId` | String? | nil | Strava activity ID | ⚠️ V3 |
+    - | `syncedToStrava` | Bool | false | Synced to Strava | ⚠️ V3 |
+    - | `healthKitWorkoutId` | String? | nil | HealthKit workout ID | ⚠️ V3 |
+    - | `syncedToHealthKit` | Bool? | nil | Synced to HealthKit | ⚠️ V3 |
+    - | `caloriesBurned` | Double? | nil | Calories burned | ⚠️ V3 |
+    - | `heartRateAverage` | Int? | nil | Average heart rate | ⚠️ V3 |
+    - | `heartRateMax` | Int? | nil | Max heart rate | ⚠️ V3 |
 **Next Version Will Be:** V3
 
 ---
@@ -281,15 +295,15 @@ Before committing ANY model changes:
 
 **Implemented:**
 - ✅ V1→V2: Rest timer properties (handled by `repairRestTimerDefaults()`)
+- ✅ V2→V3: Strava + Apple Health properties (handled by lightweight migration)
 
 **Planned:**
-- ⏳ V2→V3: Strava integration (startTime, endTime, totalDuration, stravaActivityId)
 - ⏳ V3→V4: User profile expansion (age, weight, height, etc.)
 - ⏳ V4→V5: Apple Health sync properties
 
 **Testing Status:**
-- ⚠️ V1→V2 migration tested: PENDING (lightweight migration + repair function)
-
+- ⚠️ V1→V2 migration tested: TESTED (lightweight migration + repair function)
+- ⚠️ V3→V4 migration tested: PENDING (Schema versioning and data retention on upgrade)
 ---
 
 **END OF CRITICAL REMINDERS**
