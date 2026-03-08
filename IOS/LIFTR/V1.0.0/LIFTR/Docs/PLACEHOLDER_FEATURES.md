@@ -1,54 +1,29 @@
 # LIFTR - Placeholder Features & Incomplete Implementations
 
-**Last Updated:** January 27, 2026  
-**Version:** 1.2.1 (Build 5)
-
-This document tracks all placeholder features, incomplete implementations, and TODOs that need completion before full production release.
+**Last Updated:** March 8, 2026  
+**Version:** 1.2.1 (Build 9)
 
 ---
 
-## 🚨 HIGH PRIORITY - Core Functionality
+## ✅ COMPLETED
 
-### 1. **Data Migration System** (Milestone 8)
-**Status:** ❌ Not Implemented  
-**Location:** Models layer  
-**Priority:** CRITICAL
+### Data Migration System
+**Status:** ✅ Implemented (Build 9)  
+**Date:** March 8, 2026
 
-**Issue:**
-- SwiftData schema changes currently break existing user data
-- No versioned schema migration system in place
-- Users must delete and reinstall app after model changes
-
-**Required Implementation:**
-- Create `SchemaVersions.swift` with versioned schemas
-- Implement `SchemaMigrationPlan` for V1 → V2 → V3 migrations
-- Add migration tests
-- Document migration procedures
-
-**Impact:** User data loss on updates - BLOCKER for production
+Versioned schema system with automatic migration handling.
 
 ---
 
-### 2. **Apple Health Integration**
+## 🚨 HIGH PRIORITY
+
+### 1. Apple Health Integration
 **Status:** ❌ Placeholder Only  
-**Location:** `Views/SettingsView.swift` - IntegrationsView  
-**Priority:** HIGH
+**Location:** `Views/SettingsView.swift` - IntegrationsView
 
-**Current State:**
-```swift
-struct IntegrationsView: View {
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Integrations Coming Soon")
-        }
-    }
-}
-```
-
-**Required Implementation:**
-- HealthKit authorization flow
-- Workout data export (strength sessions with sets/reps/weight)
-- Cardio data export (duration, distance, calories)
+**Required:**
+- HealthKit authorization
+- Workout export (strength + cardio)
 - Background sync
 - Privacy settings
 
@@ -58,358 +33,164 @@ struct IntegrationsView: View {
 
 ---
 
-### 3. **Strava Integration** (Milestone 10)
+### 2. Strava Integration (Milestone 10)
 **Status:** ❌ Placeholder Only  
-**Location:** `Views/SettingsView.swift` - IntegrationsView  
-**Priority:** MEDIUM-HIGH  
-**Dependencies:** Milestone 7 (Timer System) - ✅ COMPLETE
+**Location:** `Views/SettingsView.swift` - IntegrationsView
 
-**Required Implementation:**
-- OAuth 2.0 authentication flow
-- Activity upload (workouts as strength training activities)
-- Duration tracking (from workout timer)
-- Rate limit handling (100 requests/15 min, 1000/day)
-- Sync history view
-- Error handling and retry logic
+**Required:**
+- OAuth 2.0 authentication
+- Activity upload
+- Rate limit handling
+- Sync history
 
 **Files to Create:**
 - `Services/StravaService.swift`
 - `Models/StravaModels.swift`
 - `Views/Settings/StravaSettingsView.swift`
 
-**API Requirements:**
-- Strava API Client ID/Secret (register at developers.strava.com)
-- Callback URL configuration
-- Token storage (secure keychain)
+**API:** Register at developers.strava.com
 
 ---
 
-## 🔧 MEDIUM PRIORITY - Enhancements
-
-### 4. **Progression Recalculation**
-**Status:** ❌ TODO in Code  
-**Location:** `Views/Progression/EditProgressionView.swift:302`  
-**Priority:** MEDIUM
-
-**Current State:**
-```swift
-Button(action: {
-    // TODO: Implement recalculation logic
-    dismiss()
-}) {
-    Text("Recalculate")
-}
-```
-
-**Required Implementation:**
-- Recalculate progression based on new current max
-- Regenerate remaining workout sessions
-- Preserve completed session history
-- Update weights for future sessions
-
-**Complexity:** Medium - involves session regeneration logic
-
----
-
-### 5. **User Profile Functionality**
-**Status:** ⚠️ Partially Implemented  
-**Location:** `Views/SettingsView.swift` - UserProfileView  
-**Priority:** MEDIUM
-
-**Current State:**
-- Basic firstName/email fields exist
-- No User model integration with workouts
-- No profile photos
-- No additional user metadata
-
-**Missing Features:**
-- Age, weight, height tracking
-- Profile photo upload
-- Workout preferences
-- Training goals
-- Experience level
-- Body measurements tracking
+### 3. Progression Recalculation
+**Status:** ❌ TODO  
+**Location:** `Views/Progression/EditProgressionView.swift:302`
 
 **Required:**
-- Expand User model in `Models/SettingsModels.swift`
-- Add body measurement tracking views
-- Integrate with workout planning
+- Recalculate based on new current max
+- Regenerate remaining sessions
+- Preserve completed history
 
 ---
 
-### 6. **Support/Issue Reporting**
-**Status:** ⚠️ UI Only, No Backend  
-**Location:** `Views/SupportView.swift`  
-**Priority:** MEDIUM
+## 🔧 MEDIUM PRIORITY
 
-**Current State:**
-- Form UI exists (title, description, screenshot upload)
-- `submitIssue()` function has no backend integration
-- No actual issue submission mechanism
+### 4. User Profile Expansion
+**Status:** ⚠️ Basic Only
 
-**Required Implementation:**
-- Backend API endpoint for issue submission
-- Email integration (send to support@liftr.app)
-- Or third-party service integration (Zendesk, Intercom, etc.)
-- Issue tracking system
-- User notification of submission success
+**Current:** firstName, email  
+**Missing:** age, weight, height, measurements, photo, preferences
+
+**Required:**
+- Expand User model
+- Body measurement tracking
+- Profile photo upload
 
 ---
 
-## 📱 LOW PRIORITY - Nice to Have
+### 5. Support/Issue Reporting
+**Status:** ⚠️ UI Only  
+**Location:** `Views/SupportView.swift`
 
-### 7. **Program Templates - Additional Options**
-**Status:** ⚠️ Some Templates Missing  
-**Location:** `Views/Program/CreateProgramView.swift`  
-**Priority:** LOW
-
-**Implemented:**
-- ✅ Starting Strength
-- ✅ Texas Method
-- ✅ Madcow 5×5
-- ✅ 5/3/1 (Wendler)
-
-**Commented Out / Not Implemented:**
-- ❌ Smolov (intentionally skipped - too complex/niche)
-- ❌ Other intermediate/advanced templates
-
-**Potential Additions:**
-- Westside Barbell (advanced)
-- GZCL Method (intermediate)
-- nSuns (intermediate-advanced)
-- Upper/Lower splits
-- Push/Pull/Legs splits
-
-**Note:** Current template library covers beginner → intermediate lifters adequately.
+**Current:** Form exists but doesn't submit  
+**Required:** Backend endpoint or email integration
 
 ---
 
-### 8. **Metric Unit Support**
-**Status:** ⚠️ Toggle Exists But Incomplete  
-**Location:** Settings → Preferences  
-**Priority:** LOW
+### 6. Metric Unit Support
+**Status:** ⚠️ Toggle exists, no conversion  
+**Location:** Settings → Preferences
 
-**Current State:**
-- Settings toggle for useMetric exists
-- Unit conversion NOT implemented throughout app
-- All displays hardcoded to lbs
-- Inventory, workouts, progressions all use imperial
-
-**Required Implementation:**
-- Unit conversion utility functions
-- Update all weight displays (lbs ↔ kg)
-- Update all increment values (2.5 lbs = 1.25 kg)
-- Plate calculator metric support (20kg, 15kg, 10kg, 5kg, 2.5kg, 1.25kg)
-- Settings to choose display precision
-
-**Complexity:** Medium - touches many views
+**Required:**
+- Unit conversion throughout app
+- Metric plate calculator
+- Display precision settings
 
 ---
 
-### 9. **Advanced Analytics**
-**Status:** ⚠️ Basic Analytics Only  
-**Location:** `Views/AnalyticsView.swift`  
-**Priority:** LOW
+## 📊 LOW PRIORITY
 
-**Current Features:**
-- Basic PR tracking
-- Simple charts
-
-**Missing Features:**
-- Volume tracking (total weight × reps)
-- Tonnage over time
-- Workout frequency analysis
-- Rest day patterns
-- Exercise-specific trends
-- Body part split tracking
-- Estimated 1RM calculations
-- Strength standards comparison
-- Export data to CSV
+### 7. Advanced Analytics
+**Current:** Basic PR tracking, simple charts  
+**Missing:** Volume tracking, tonnage, frequency analysis, CSV export
 
 ---
 
-### 10. **Social Features**
-**Status:** ❌ Not Planned Yet  
-**Priority:** VERY LOW
-
-**Potential Features:**
-- Share workouts/PRs
-- Follow other users
-- Leaderboards
-- Challenges
-- Workout feed
-- Comments/likes
-
-**Note:** Requires backend infrastructure, user accounts, moderation
+### 8. Additional Program Templates
+**Implemented:** Starting Strength, Texas Method, Madcow, 5/3/1  
+**Potential:** GZCL, nSuns, Push/Pull/Legs
 
 ---
 
-## 🐛 KNOWN ISSUES / BUGS
+### 9. Social Features
+**Status:** ❌ Not Planned  
+**Features:** Share workouts, follow users, leaderboards, challenges
 
-### 11. **SwiftUI Sheet Dismissal Bug**
+**Note:** Requires backend infrastructure
+
+---
+
+## 🐛 KNOWN ISSUES
+
+### SwiftUI Sheet Dismissal Bug
 **Status:** ⚠️ Workaround Implemented  
-**Location:** `Views/Tests/` (test files document the issue)  
-**Priority:** LOW (workaround functional)
+**Location:** `Views/Tests/`
 
-**Issue:**
-- Double sheet presentations cause dismiss() to malfunction
-- Specific pattern: Sheet 1 → Sheet 2 → Alert → dismiss() doesn't work
-
-**Current Workaround:**
-- Using `programWasCreated` binding to cascade dismissals
-- Tested in Test1_MinimalView.swift through Test7
-
-**Status:** Functional but not ideal. May need Apple bug report.
+Double sheet presentations cause dismiss() issues. Functional workaround using binding cascade.
 
 ---
 
 ## 🔬 TESTING GAPS
 
-### 12. **Unit Tests**
-**Status:** ❌ No Unit Tests  
-**Priority:** MEDIUM-HIGH
+### Unit Tests
+**Status:** ❌ None  
+**Required:** Model validation, calculations, data integrity
 
-**Missing:**
-- Model validation tests
-- Calculation tests (plate loading, progression, etc.)
-- Service layer tests
-- Data integrity tests
-
-**Required:**
-- XCTest target setup
-- Test coverage for critical calculations
-- Mock data generators
-
----
-
-### 13. **UI Tests**
-**Status:** ❌ No UI Tests  
-**Priority:** MEDIUM
-
-**Missing:**
-- Critical user flows
-- Workout creation/logging
-- Navigation tests
-- Settings persistence tests
+### UI Tests
+**Status:** ❌ None  
+**Required:** Critical user flows, navigation, persistence
 
 ---
 
 ## 📝 DOCUMENTATION GAPS
 
-### 14. **Code Documentation**
-**Status:** ⚠️ Minimal Comments  
-**Priority:** MEDIUM
+### Code Documentation
+**Status:** ⚠️ Minimal  
+**Missing:** Function docs, algorithm explanations, architecture guide
 
-**Missing:**
-- Function-level documentation
-- Complex algorithm explanations
-- Architecture documentation (ARCHITECTURE.md)
-- API integration guides
-
----
-
-### 15. **User Documentation**
-**Status:** ❌ No User Guide  
-**Priority:** LOW (for now)
-
-**Missing:**
-- In-app tutorial/onboarding
-- Help documentation
-- Video tutorials
-- FAQ section
+### User Documentation
+**Status:** ❌ None  
+**Missing:** Tutorial, help docs, FAQ
 
 ---
 
 ## 🚀 DEPLOYMENT REQUIREMENTS
 
-### 16. **App Store Metadata**
+### App Store Metadata
 **Status:** ⚠️ Incomplete  
-**Priority:** HIGH (before production)
-
-**Required:**
-- App description
-- Screenshots (all device sizes)
-- App Store keywords
-- Privacy policy
-- Support URL
-- Marketing materials
-
----
-
-### 17. **Backend Infrastructure** (If Applicable)
-**Status:** ❌ Not Planned Yet  
-**Priority:** Depends on Feature Set
-
-**Potential Needs:**
-- User authentication system
-- Cloud data sync
-- Issue tracking system
-- Analytics backend
-- Push notifications
-
-**Current:** App is fully local - no backend required for core functionality
-
----
-
-## 📊 PRIORITY SUMMARY
-
-### Must Have Before Production (v1.0):
-1. ✅ ~~Data Migration System~~ → Add to Milestone 8
-2. ❌ Apple Health Integration (if marketed feature)
-3. ❌ Unit Testing (critical paths)
-4. ❌ App Store metadata
-
-### Should Have (v1.1):
-1. Strava Integration
-2. Progression Recalculation
-3. Enhanced User Profile
-4. Issue Reporting Backend
-
-### Nice to Have (v1.2+):
-1. Metric Unit Support
-2. Additional Program Templates
-3. Advanced Analytics
-4. Social Features
+**Required:** Description, screenshots, keywords, privacy policy, support URL
 
 ---
 
 ## 📋 MILESTONE ALIGNMENT
 
-| Milestone | Status | Placeholder Features |
-|-----------|--------|---------------------|
-| 1-6 | ✅ Complete | Core strength tracking, programs, templates |
-| 7 | ✅ Complete | Timer system |
-| 8 | ⏳ Planned | **Data Migration** ← CRITICAL |
-| 9 | ⏳ Planned | Code optimization, testing |
-| 10 | ⏳ Planned | **Strava Integration** |
-| 11+ | 🔮 Future | Apple Health, Social, Advanced Analytics |
+| Milestone | Status | Features |
+|-----------|--------|----------|
+| 1-6 | ✅ Complete | Core tracking, programs, templates |
+| 7 | ✅ Complete | Rest timer |
+| 8 | ✅ Complete | **Versioned schemas** |
+| 9 | ⏳ Planned | Testing, optimization |
+| 10 | ⏳ Planned | **Strava integration** |
+| 11+ | 🔮 Future | Apple Health, social, analytics |
 
 ---
 
-## 🎯 RECOMMENDED NEXT STEPS
+## 🎯 NEXT STEPS
 
-1. **Immediate (This Week):**
-   - Document current database schema (V1)
-   - Plan V2 migration strategy
-   - Test Build 5 thoroughly
+**Immediate:**
+- Thorough testing of Build 9
+- Fix bugs from TestFlight
 
-2. **Short Term (Next 2 Weeks):**
-   - Implement Milestone 8 (Data Migration)
-   - Add critical unit tests
-   - Fix any bugs from TestFlight feedback
+**Short Term (Next Month):**
+- Strava integration
+- Apple Health integration
+- Unit tests for critical paths
 
-3. **Medium Term (Next Month):**
-   - Apple Health integration
-   - Strava integration
-   - Enhanced analytics
-
-4. **Long Term (2-3 Months):**
-   - Metric support
-   - Social features
-   - Advanced program templates
+**Long Term:**
+- Metric support
+- Advanced analytics
+- Social features
 
 ---
 
 **END OF DOCUMENT**
-
-*This is a living document. Update as features are implemented or requirements change.*

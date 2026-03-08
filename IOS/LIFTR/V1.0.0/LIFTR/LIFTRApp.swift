@@ -7,23 +7,14 @@ struct LiftrApp: App {
     
     init() {
         do {
-            // Initialize with all model types
+            // Use versioned schema with migration plan
+            let schema = Schema(versionedSchema: CurrentSchema.self)
+            let modelConfiguration = ModelConfiguration(schema: schema)
+            
             container = try ModelContainer(
-                for: User.self,
-                GlobalProgressionSettings.self,
-                ExerciseProgressionSettings.self,
-                PlateItem.self,
-                BarItem.self,
-                CollarItem.self,
-                Program.self,
-                TrainingDay.self,
-                ProgramExercise.self,
-                ExerciseSession.self,
-                Progression.self,
-                WorkoutSession.self,
-                WorkoutSet.self,
-                CardioProgression.self,
-                CardioSession.self
+                for: schema,
+                migrationPlan: LIFTRMigrationPlan.self,
+                configurations: [modelConfiguration]
             )
             
             // Run migration checks on startup

@@ -33,9 +33,6 @@
 		EC88A8B82F2854890005A456 /* AdvancedProgressionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC88A8B72F2854850005A456 /* AdvancedProgressionSettingsView.swift */; };
 		EC88A8BA2F2854A00005A456 /* ProgressionSettingsSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC88A8B92F28549C0005A456 /* ProgressionSettingsSections.swift */; };
 		EC88A8C22F28647A0005A456 /* MigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC88A8C12F28647A0005A456 /* MigrationService.swift */; };
-		EC902E0E2F15F1F300A666C2 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC902E0D2F15F1F300A666C2 /* SharedModels.swift */; };
-		EC902E102F189EAC00A666C2 /* ProgramModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC902E0F2F189EAC00A666C2 /* ProgramModels.swift */; };
-		ECC8E9912E6B56F000E76F7D /* LIFTRApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9902E6B56F000E76F7D /* LIFTRApp.swift */; };
 		ECC8E9932E6B56F000E76F7D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9922E6B56F000E76F7D /* ContentView.swift */; };
 		ECC8E9952E6B56F000E76F7D /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9942E6B56F000E76F7D /* Item.swift */; };
 		ECC8E9972E6B56F100E76F7D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ECC8E9962E6B56F100E76F7D /* Assets.xcassets */; };
@@ -55,12 +52,20 @@
 		ECC8E9DC2E8F84B600E76F7D /* ProgressionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DB2E8F84B600E76F7D /* ProgressionDetailView.swift */; };
 		ECC8E9DE2E8F852E00E76F7D /* EditProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DD2E8F852D00E76F7D /* EditProgressionView.swift */; };
 		ECC8E9E02E8F8BB000E76F7D /* CreateCardioProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DF2E8F8BB000E76F7D /* CreateCardioProgressionView.swift */; };
-		ECC8E9E22E8F8CB200E76F7D /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E12E8F8CB200E76F7D /* User.swift */; };
-		ECC8E9E42E8F8CD500E76F7D /* InventoryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E32E8F8CD500E76F7D /* InventoryModels.swift */; };
-		ECC8E9E62E8F8CE500E76F7D /* SettingsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E52E8F8CE500E76F7D /* SettingsModels.swift */; };
-		ECC8E9E82E8F8CF500E76F7D /* StrengthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E72E8F8CF500E76F7D /* StrengthModels.swift */; };
-		ECC8E9EA2E8F8D0300E76F7D /* CardioModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */; };
 		ECC8E9EC2E8F8D1100E76F7D /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */; };
+		ECDC59102F5D3276004EC2BE /* CurrentSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC590D2F5D3276004EC2BE /* CurrentSchema.swift */; };
+		ECDC59112F5D3276004EC2BE /* SchemaV1.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC590F2F5D3276004EC2BE /* SchemaV1.swift */; };
+		ECDC591B2F5D33B2004EC2BE /* StrengthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59192F5D33B2004EC2BE /* StrengthModels.swift */; };
+		ECDC591C2F5D33B2004EC2BE /* CardioModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59142F5D33B2004EC2BE /* CardioModels.swift */; };
+		ECDC591D2F5D33B2004EC2BE /* ProgramModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59162F5D33B2004EC2BE /* ProgramModels.swift */; };
+		ECDC591E2F5D33B2004EC2BE /* InventoryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59152F5D33B2004EC2BE /* InventoryModels.swift */; };
+		ECDC591F2F5D33B2004EC2BE /* UserModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC591A2F5D33B2004EC2BE /* UserModels.swift */; };
+		ECDC59202F5D33B2004EC2BE /* SettingsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59172F5D33B2004EC2BE /* SettingsModels.swift */; };
+		ECDC59212F5D33B2004EC2BE /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59182F5D33B2004EC2BE /* SharedModels.swift */; };
+		ECDC59232F5D33F9004EC2BE /* ModelTypealiases.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59222F5D33F9004EC2BE /* ModelTypealiases.swift */; };
+		ECDC59272F5D3443004EC2BE /* LIFTRApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59262F5D3443004EC2BE /* LIFTRApp.swift */; };
+		ECDC59292F5D35C3004EC2BE /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59282F5D35C3004EC2BE /* Enums.swift */; };
+		ECDC593C2F5D4155004EC2BE /* MigrationPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC593B2F5D4154004EC2BE /* MigrationPlan.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,10 +133,7 @@
 		EC88A8B72F2854850005A456 /* AdvancedProgressionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedProgressionSettingsView.swift; sourceTree = "<group>"; };
 		EC88A8B92F28549C0005A456 /* ProgressionSettingsSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionSettingsSections.swift; sourceTree = "<group>"; };
 		EC88A8C12F28647A0005A456 /* MigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationService.swift; sourceTree = "<group>"; };
-		EC902E0D2F15F1F300A666C2 /* SharedModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedModels.swift; sourceTree = "<group>"; };
-		EC902E0F2F189EAC00A666C2 /* ProgramModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramModels.swift; sourceTree = "<group>"; };
 		ECC8E98D2E6B56F000E76F7D /* LIFTR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LIFTR.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		ECC8E9902E6B56F000E76F7D /* LIFTRApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFTRApp.swift; sourceTree = "<group>"; };
 		ECC8E9922E6B56F000E76F7D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		ECC8E9942E6B56F000E76F7D /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		ECC8E9962E6B56F100E76F7D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -155,12 +157,20 @@
 		ECC8E9DB2E8F84B600E76F7D /* ProgressionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionDetailView.swift; sourceTree = "<group>"; };
 		ECC8E9DD2E8F852D00E76F7D /* EditProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProgressionView.swift; sourceTree = "<group>"; };
 		ECC8E9DF2E8F8BB000E76F7D /* CreateCardioProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCardioProgressionView.swift; sourceTree = "<group>"; };
-		ECC8E9E12E8F8CB200E76F7D /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
-		ECC8E9E32E8F8CD500E76F7D /* InventoryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryModels.swift; sourceTree = "<group>"; };
-		ECC8E9E52E8F8CE500E76F7D /* SettingsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModels.swift; sourceTree = "<group>"; };
-		ECC8E9E72E8F8CF500E76F7D /* StrengthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthModels.swift; sourceTree = "<group>"; };
-		ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioModels.swift; sourceTree = "<group>"; };
 		ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		ECDC590D2F5D3276004EC2BE /* CurrentSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentSchema.swift; sourceTree = "<group>"; };
+		ECDC590F2F5D3276004EC2BE /* SchemaV1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaV1.swift; sourceTree = "<group>"; };
+		ECDC59142F5D33B2004EC2BE /* CardioModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioModels.swift; sourceTree = "<group>"; };
+		ECDC59152F5D33B2004EC2BE /* InventoryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryModels.swift; sourceTree = "<group>"; };
+		ECDC59162F5D33B2004EC2BE /* ProgramModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramModels.swift; sourceTree = "<group>"; };
+		ECDC59172F5D33B2004EC2BE /* SettingsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModels.swift; sourceTree = "<group>"; };
+		ECDC59182F5D33B2004EC2BE /* SharedModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedModels.swift; sourceTree = "<group>"; };
+		ECDC59192F5D33B2004EC2BE /* StrengthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthModels.swift; sourceTree = "<group>"; };
+		ECDC591A2F5D33B2004EC2BE /* UserModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModels.swift; sourceTree = "<group>"; };
+		ECDC59222F5D33F9004EC2BE /* ModelTypealiases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelTypealiases.swift; sourceTree = "<group>"; };
+		ECDC59262F5D3443004EC2BE /* LIFTRApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFTRApp.swift; sourceTree = "<group>"; };
+		ECDC59282F5D35C3004EC2BE /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
+		ECDC593B2F5D4154004EC2BE /* MigrationPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationPlan.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -340,6 +350,7 @@
 				EC6273ED2F2EEDE700AF0B30 /* RestTimerWidget */,
 				EC6273E82F2EEDE700AF0B30 /* Frameworks */,
 				ECC8E98E2E6B56F000E76F7D /* Products */,
+				ECDC59262F5D3443004EC2BE /* LIFTRApp.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -360,7 +371,6 @@
 				ECC8E9C02E6B5D4100E76F7D /* Services */,
 				ECC8E9BE2E6B5A0200E76F7D /* Models */,
 				ECC8E9BF2E6B5C6900E76F7D /* Views */,
-				ECC8E9902E6B56F000E76F7D /* LIFTRApp.swift */,
 				ECC8E9942E6B56F000E76F7D /* Item.swift */,
 				ECC8E9962E6B56F100E76F7D /* Assets.xcassets */,
 				ECC8E9982E6B56F100E76F7D /* LIFTR.entitlements */,
@@ -398,14 +408,10 @@
 		ECC8E9BE2E6B5A0200E76F7D /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				ECC8E9E12E8F8CB200E76F7D /* User.swift */,
-				ECC8E9E32E8F8CD500E76F7D /* InventoryModels.swift */,
-				ECC8E9E52E8F8CE500E76F7D /* SettingsModels.swift */,
-				ECC8E9E72E8F8CF500E76F7D /* StrengthModels.swift */,
-				ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */,
+				ECDC590C2F5D321D004EC2BE /* SchemaVersions */,
 				ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */,
-				EC902E0D2F15F1F300A666C2 /* SharedModels.swift */,
-				EC902E0F2F189EAC00A666C2 /* ProgramModels.swift */,
+				ECDC59222F5D33F9004EC2BE /* ModelTypealiases.swift */,
+				ECDC59282F5D35C3004EC2BE /* Enums.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -438,6 +444,31 @@
 				ECC8E9D12E8E300300E76F7D /* PlateCalculator.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		ECDC590C2F5D321D004EC2BE /* SchemaVersions */ = {
+			isa = PBXGroup;
+			children = (
+				ECDC59132F5D3290004EC2BE /* V1 */,
+				ECDC590D2F5D3276004EC2BE /* CurrentSchema.swift */,
+				ECDC590F2F5D3276004EC2BE /* SchemaV1.swift */,
+				ECDC593B2F5D4154004EC2BE /* MigrationPlan.swift */,
+			);
+			path = SchemaVersions;
+			sourceTree = "<group>";
+		};
+		ECDC59132F5D3290004EC2BE /* V1 */ = {
+			isa = PBXGroup;
+			children = (
+				ECDC59142F5D33B2004EC2BE /* CardioModels.swift */,
+				ECDC59152F5D33B2004EC2BE /* InventoryModels.swift */,
+				ECDC59162F5D33B2004EC2BE /* ProgramModels.swift */,
+				ECDC59172F5D33B2004EC2BE /* SettingsModels.swift */,
+				ECDC59182F5D33B2004EC2BE /* SharedModels.swift */,
+				ECDC59192F5D33B2004EC2BE /* StrengthModels.swift */,
+				ECDC591A2F5D33B2004EC2BE /* UserModels.swift */,
+			);
+			path = V1;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -614,17 +645,24 @@
 			files = (
 				ECC8E9E02E8F8BB000E76F7D /* CreateCardioProgressionView.swift in Sources */,
 				EC88A8B82F2854890005A456 /* AdvancedProgressionSettingsView.swift in Sources */,
-				ECC8E9E62E8F8CE500E76F7D /* SettingsModels.swift in Sources */,
+				ECDC59292F5D35C3004EC2BE /* Enums.swift in Sources */,
 				EC88A8B62F2854730005A456 /* BasicProgressionSettingsView.swift in Sources */,
 				ECC8E9D42E8E37C900E76F7D /* BarVisualizerView.swift in Sources */,
-				ECC8E9E42E8F8CD500E76F7D /* InventoryModels.swift in Sources */,
+				ECDC59102F5D3276004EC2BE /* CurrentSchema.swift in Sources */,
+				ECDC591B2F5D33B2004EC2BE /* StrengthModels.swift in Sources */,
+				ECDC591C2F5D33B2004EC2BE /* CardioModels.swift in Sources */,
+				ECDC591D2F5D33B2004EC2BE /* ProgramModels.swift in Sources */,
+				ECDC591E2F5D33B2004EC2BE /* InventoryModels.swift in Sources */,
+				ECDC591F2F5D33B2004EC2BE /* UserModels.swift in Sources */,
+				ECDC59202F5D33B2004EC2BE /* SettingsModels.swift in Sources */,
+				ECDC59212F5D33B2004EC2BE /* SharedModels.swift in Sources */,
+				ECDC59232F5D33F9004EC2BE /* ModelTypealiases.swift in Sources */,
+				ECDC59112F5D3276004EC2BE /* SchemaV1.swift in Sources */,
 				ECC8E9932E6B56F000E76F7D /* ContentView.swift in Sources */,
 				ECC8E9D82E8F7A8800E76F7D /* CreateProgressionView.swift in Sources */,
 				EC4DC0DA2E91C91700340825 /* SupportView.swift in Sources */,
-				ECC8E9EA2E8F8D0300E76F7D /* CardioModels.swift in Sources */,
 				ECC8E9CC2E6B5F1A00E76F7D /* AnalyticsView.swift in Sources */,
 				ECC8E9CA2E6B5F0600E76F7D /* CalculatorView.swift in Sources */,
-				EC902E102F189EAC00A666C2 /* ProgramModels.swift in Sources */,
 				EC0D7B102F1C18A000596B36 /* CalculatorViewWrapper.swift in Sources */,
 				EC0D7B112F1C18A000596B36 /* LogSetView.swift in Sources */,
 				EC0D7B122F1C18A000596B36 /* PerformanceSummaryView.swift in Sources */,
@@ -632,10 +670,8 @@
 				EC0D7B142F1C18A000596B36 /* WorkoutSessionView.swift in Sources */,
 				ECC8E9C82E6B5EE000E76F7D /* MainView.swift in Sources */,
 				EC4DC0D82E91C3FB00340825 /* CardioProgressionDetailView.swift in Sources */,
-				ECC8E9E82E8F8CF500E76F7D /* StrengthModels.swift in Sources */,
 				EC4DC0D62E91C26000340825 /* EditCardioProgressionView.swift in Sources */,
 				ECC8E9952E6B56F000E76F7D /* Item.swift in Sources */,
-				ECC8E9912E6B56F000E76F7D /* LIFTRApp.swift in Sources */,
 				EC88A8BA2F2854A00005A456 /* ProgressionSettingsSections.swift in Sources */,
 				ECC8E9DE2E8F852E00E76F7D /* EditProgressionView.swift in Sources */,
 				EC0D7B2D2F255D9700596B36 /* EditProgramView.swift in Sources */,
@@ -645,17 +681,17 @@
 				EC0D7B2B2F255D1100596B36 /* ProgramDetailView.swift in Sources */,
 				EC0D7B162F1C8D1A00596B36 /* ProgramTemplates.swift in Sources */,
 				ECC8E9D22E8E300300E76F7D /* PlateCalculator.swift in Sources */,
+				ECDC59272F5D3443004EC2BE /* LIFTRApp.swift in Sources */,
 				ECC8E9C42E6B5DB600E76F7D /* InventoryView.swift in Sources */,
 				EC0D7B192F1C8F0900596B36 /* CreateProgramView.swift in Sources */,
 				EC0D7B1A2F1C8F0900596B36 /* TemplateSetupView.swift in Sources */,
+				ECDC593C2F5D4155004EC2BE /* MigrationPlan.swift in Sources */,
 				EC4DC0D42E91C24600340825 /* CardioSessionView.swift in Sources */,
 				EC88A8B42F2854470005A456 /* RestTimerSettingsView.swift in Sources */,
 				ECC8E9EC2E8F8D1100E76F7D /* Extensions.swift in Sources */,
 				EC0D7B1C2F1C98DD00596B36 /* ProgramWorkoutView.swift in Sources */,
 				ECC8E9D62E8ED29000E76F7D /* SettingsView.swift in Sources */,
 				ECC8E9DC2E8F84B600E76F7D /* ProgressionDetailView.swift in Sources */,
-				EC902E0E2F15F1F300A666C2 /* SharedModels.swift in Sources */,
-				ECC8E9E22E8F8CB200E76F7D /* User.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -888,7 +924,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = LIFTR/LIFTR.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_ASSET_PATHS = "\"LIFTR/Preview Content\"";
 				DEVELOPMENT_TEAM = LR4W9AN5JB;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -935,7 +971,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = LIFTR/LIFTR.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_ASSET_PATHS = "\"LIFTR/Preview Content\"";
 				DEVELOPMENT_TEAM = LR4W9AN5JB;
 				ENABLE_HARDENED_RUNTIME = YES;

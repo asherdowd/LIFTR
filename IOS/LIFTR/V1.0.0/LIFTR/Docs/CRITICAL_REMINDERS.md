@@ -2,311 +2,111 @@
 
 **⚠️ READ THIS FIRST IN EVERY SESSION ⚠️**
 
-This document contains critical rules that must ALWAYS be followed when making changes to the LIFTR codebase.
+---
+
+## 🚨 RULE #1: NEVER MODIFY FROZEN SCHEMA FILES
+
+**FROZEN FILES (Never Modify):**
+- `Models/SchemaVersions/V1/` (all files)
+- `Models/SchemaVersions/SchemaV1.swift`
+
+**When SchemaV2 ships, add:**
+- `Models/SchemaVersions/V2/` (all files)
+- `Models/SchemaVersions/SchemaV2.swift`
+
+**To make schema changes:**
+1. Create new `SchemaVX.swift` and `VX/` folder
+2. Update `CurrentSchema.swift` to point to new version
+3. Update `MigrationPlan.swift` with migration stage
+4. Test migration thoroughly
 
 ---
 
-## 🚨 RULE #1: DATA MIGRATION IS MANDATORY
+## 📋 CURRENT SCHEMA STATUS
 
-### **NEVER modify @Model classes without migration planning**
+**Version:** V1 (as of March 8, 2026)
 
-**Why:** SwiftData schema changes break existing user data. Users will lose ALL their workouts, progressions, and settings if migration is not handled properly.
+**Location:** `Models/SchemaVersions/V1/`
 
-### **Before Making ANY Changes to Models:**
+**Models:** 15 total (User, GlobalProgressionSettings, ExerciseProgressionSettings, Progression, WorkoutSession, WorkoutSet, Program, TrainingDay, ProgramExercise, ExerciseSession, CardioProgression, CardioSession, PlateItem, BarItem, CollarItem)
 
-**1. Check if change affects existing properties:**
-   - Adding NEW properties → Requires migration consideration
-   - Modifying EXISTING properties → Requires migration
-   - Removing properties → Requires migration
-   - Changing property types → Requires migration
-   - Renaming properties → Requires migration
-
-**2. Document the change in DATABASE_SCHEMA.md:**
-   - Update the schema version (V2 → V3, etc.)
-   - Document what changed
-   - List migration steps needed
-
-**3. Add repair function to MigrationService.swift:**
-   ```swift
-   private static func repairV2toV3Migration(context: ModelContext) {
-       // Add default values for new properties
-       // Migrate existing data if needed
-       // Log the migration
-   }
-   ```
-
-**4. Test migration path:**
-   - Test with OLD data (previous build)
-   - Install NEW build
-   - Verify data is preserved
-   - Verify new properties have correct defaults
-
----
-
-## 📋 MODEL FILES TO WATCH
-
-**These files contain @Model classes - NEVER modify without migration plan:**
-
-- ✅ `Models/SettingsModels.swift` - GlobalProgressionSettings, ExerciseProgressionSettings
-- ✅ `Models/StrengthModels.swift` - Progression, WorkoutSession
-- ✅ `Models/SharedModels.swift` - WorkoutSet
-- ✅ `Models/ProgramModels.swift` - Program, TrainingDay, ProgramExercise, ExerciseSession
-- ✅ `Models/CardioModels.swift` - CardioProgression, CardioSession
-- ✅ `Models/InventoryModels.swift` - PlateItem, BarItem, CollarItem
-- ✅ `Models/UserModels.swift` - User
+**Next Version:** V2 (TBD)
 
 ---
 
 ## ✅ SAFE CHANGES (No Migration Needed)
 
-**You CAN make these changes without migration:**
-
-1. **Adding computed properties** (not stored)
-   ```swift
-   var totalWeight: Double {
-       return sets.reduce(0) { $0 + ($1.actualWeight ?? 0) }
-   }
-   ```
-
-2. **Adding methods to models**
-   ```swift
-   func calculatePerformance() -> Double { ... }
-   ```
-
-3. **Adding new, independent models** (no relationships to existing)
-   ```swift
-   @Model
-   class NewFeature { ... }  // Completely new, no foreign keys
-   ```
-
-4. **Modifying views** (UI changes don't affect data)
-
-5. **Adding services** (business logic doesn't affect schema)
+- Add computed properties (not stored)
+- Add methods to models
+- Modify views (UI changes)
+- Add services (business logic)
+- Modify enums (in `Models/Enums.swift`)
 
 ---
 
 ## ⚠️ CHANGES REQUIRING MIGRATION
 
-**You MUST add migration for:**
+- Add/remove stored properties to @Model classes
+- Change property types
+- Rename properties
+- Change relationships
+- Add new @Model classes with relationships to existing models
 
-1. **Adding stored properties to @Model classes**
-   ```swift
-   // REQUIRES MIGRATION
-   var newProperty: String  // ← New stored property
-   ```
-
-2. **Changing property types**
-   ```swift
-   // REQUIRES MIGRATION
-   var count: Int  // was String before
-   ```
-
-3. **Renaming properties**
-   ```swift
-   // REQUIRES MIGRATION
-   var userName: String  // was 'name' before
-   ```
-
-4. **Removing properties**
-   ```swift
-   // REQUIRES MIGRATION
-   // Removed: var oldProperty: String
-   ```
-
-5. **Adding/removing relationships**
-   ```swift
-   // REQUIRES MIGRATION
-   @Relationship var newRelation: [OtherModel]
-   ```
+**When making these changes:**
+1. Create SchemaVX
+2. Update MigrationPlan.swift
+3. Update CurrentSchema.swift
+4. Test on device with existing data
+5. Update docs (or let pre-commit hook do it)
 
 ---
 
-## 🔧 MIGRATION PROCESS
+## 📋 PRE-COMMIT CHECKLIST
 
-### **Step 1: Update DATABASE_SCHEMA.md**
+**Before every commit with model changes:**
 
-Add to the "Schema Versions" section:
-
-```markdown
-### VX (Description)
-**Date:** [Date]
-**Changes:**
-- Added `propertyName: Type` to ModelName
-- Changed `propertyName` from OldType to NewType
-
-**Migration VX-1→VX:**
-- Set `propertyName = defaultValue` for existing records
-```
-
-### **Step 2: Add Repair Function to MigrationService.swift**
-
-```swift
-private static func repairVXtoVYMigration(context: ModelContext) {
-    do {
-        let descriptor = FetchDescriptor<ModelName>()
-        let records = try context.fetch(descriptor)
-        
-        for record in records {
-            // Check if migration needed
-            if record.newProperty == defaultUnsetValue {
-                print("🔧 Repairing VX→VY: Setting defaults for ModelName")
-                record.newProperty = propertyDefault
-                // ... set other new properties
-            }
-        }
-        
-        try context.save()
-        print("✅ VX→VY migration complete")
-    } catch {
-        print("❌ Migration failed: \(error)")
-    }
-}
-```
-
-### **Step 3: Call from performStartupChecks()**
-
-```swift
-static func performStartupChecks(context: ModelContext) {
-    repairRestTimerDefaults(context: context)  // V1→V2
-    repairV2toV3Migration(context: context)     // V2→V3 ← ADD NEW
-    // Add future migrations here
-}
-```
-
-### **Step 4: Test Migration**
-
-1. Get device with old version
-2. Create test data
-3. Install new version
-4. Verify:
-   - ✅ App launches
-   - ✅ Existing data preserved
-   - ✅ New properties have correct defaults
-   - ✅ No crashes or errors
+- [ ] Created new SchemaVX (if needed)?
+- [ ] Updated MigrationPlan.swift?
+- [ ] Updated CurrentSchema.swift?
+- [ ] Tested migration on device?
+- [ ] Let pre-commit hook update docs
 
 ---
 
-## 📝 CURRENT SCHEMA VERSION
+## 🔥 NEVER DO THIS
 
-**As of January 27, 2026:**
-- **Version:** V2
-- **Changes from V1:** Added rest timer properties to GlobalProgressionSettings
-  - `defaultRestTime: Int`
-  - `autoStartRestTimer: Bool`
-  - `restTimerSound: Bool`
-  - `restTimerHaptic: Bool`
-- **Migration:** Handled by `repairRestTimerDefaults()` in MigrationService.swift
-
-**As of March 6, 2026:**
-- **Version:** V3
-- **Changes from V2:** Added Schema Versioning and support for Strava and Apple Health
-    - Added to CardioSession, WorkoutSession & Excercise Session:
-    - | `startTime` | Date? | nil | Session start time (Strava/Health) | ⚠️ V3 |
-    - | `endTime` | Date? | nil | Session end time (Strava/Health) | ⚠️ V3 |
-    - | `totalDuration` | TimeInterval? | nil | Total session duration | ⚠️ V3 |
-    - | `stravaActivityId` | String? | nil | Strava activity ID | ⚠️ V3 |
-    - | `syncedToStrava` | Bool | false | Synced to Strava | ⚠️ V3 |
-    - | `healthKitWorkoutId` | String? | nil | HealthKit workout ID | ⚠️ V3 |
-    - | `syncedToHealthKit` | Bool? | nil | Synced to HealthKit | ⚠️ V3 |
-    - | `caloriesBurned` | Double? | nil | Calories burned | ⚠️ V3 |
-    - | `heartRateAverage` | Int? | nil | Average heart rate | ⚠️ V3 |
-    - | `heartRateMax` | Int? | nil | Max heart rate | ⚠️ V3 |
-**Next Version Will Be:** V3
+- ❌ Modify files in `SchemaVersions/V1/` or any frozen schema
+- ❌ Skip migration testing
+- ❌ Add required (non-optional) properties without migration
+- ❌ Tell users to delete and reinstall
+- ❌ Commit schema changes without testing on device
 
 ---
 
-## 🎯 QUICK CHECKLIST
+## 📚 KEY FILES
 
-Before committing ANY model changes:
-
-- [ ] Did I modify any @Model class?
-- [ ] Did I update DATABASE_SCHEMA.md?
-- [ ] Did I add a repair function to MigrationService.swift?
-- [ ] Did I test the migration path?
-- [ ] Did I update CRITICAL_REMINDERS.md with new version?
-
-**If you answered YES to question 1 and NO to any other question: STOP AND FIX IT.**
-
----
-
-## 🚫 NEVER DO THIS
-
-**DO NOT:**
-- ❌ Modify model files without reading this document first
-- ❌ Tell users to "just delete and reinstall the app"
-- ❌ Assume SwiftData will "figure it out"
-- ❌ Skip testing migration paths
-- ❌ Forget to document schema changes
-- ❌ Add properties without setting defaults in migration
-- ❌ Make breaking changes without a migration plan
-
----
-
-## 📚 RELATED DOCUMENTATION
-
-- `Docs/DATABASE_SCHEMA.md` - Complete schema documentation
-- `Services/MigrationService.swift` - Migration repair functions
-- `Docs/PLACEHOLDER_FEATURES.md` - Planned future changes (check for model impacts)
+| File | Purpose |
+|------|---------|
+| `Models/SchemaVersions/CurrentSchema.swift` | Points to active schema (UPDATE THIS) |
+| `Models/SchemaVersions/MigrationPlan.swift` | Defines migrations (UPDATE THIS) |
+| `Models/SchemaVersions/VX/` | Frozen schema versions (NEVER MODIFY) |
+| `Models/ModelTypealiases.swift` | Maps model names to current schema |
+| `Models/Enums.swift` | Shared enums (safe to modify) |
+| `Docs/DATABASE_SCHEMA.md` | Schema documentation |
+| `Services/MigrationService.swift` | Migration repair functions |
 
 ---
 
 ## 💡 WHEN IN DOUBT
 
-**Ask these questions:**
+**Ask:**
+1. "Does this change affect stored data?" → If YES, need migration
+2. "Could a user with the old version have this data?" → If YES, need migration
+3. "What happens if I install this on a device with old data?" → Test it!
 
-1. "Does this change affect stored data?"
-   - If YES → Need migration
-   - If NO → Safe to proceed
-
-2. "Could a user with the old version have this data?"
-   - If YES → Need migration for existing users
-   - If NO → New users only, no migration needed
-
-3. "What happens if I install this on a device with old data?"
-   - If "data is lost" or "app crashes" → Need migration
-   - If "works fine" → Safe
+**Default: Add optional properties and use repair functions.**
 
 ---
 
-## 🆘 EMERGENCY: User Data Lost
-
-**If migration was missed and users lost data:**
-
-1. **Immediate action:**
-   - Revert the model changes
-   - Restore previous version
-   - Issue emergency TestFlight build
-
-2. **Fix:**
-   - Implement proper migration
-   - Test thoroughly
-   - Release new build with migration
-
-3. **Communication:**
-   - Apologize to affected users
-   - Explain what happened
-   - Provide timeline for fix
-
-**Prevention is MUCH better than recovery.**
-
----
-
-## ✅ CURRENT MIGRATION STATUS
-
-**Implemented:**
-- ✅ V1→V2: Rest timer properties (handled by `repairRestTimerDefaults()`)
-- ✅ V2→V3: Strava + Apple Health properties (handled by lightweight migration)
-
-**Planned:**
-- ⏳ V3→V4: User profile expansion (age, weight, height, etc.)
-- ⏳ V4→V5: Apple Health sync properties
-
-**Testing Status:**
-- ⚠️ V1→V2 migration tested: TESTED (lightweight migration + repair function)
-- ⚠️ V3→V4 migration tested: PENDING (Schema versioning and data retention on upgrade)
----
-
-**END OF CRITICAL REMINDERS**
-
-*This document is mandatory reading for all development sessions.*
-*Failure to follow these rules will result in user data loss.*
+**Last Updated:** March 8, 2026  
+**Schema:** V1

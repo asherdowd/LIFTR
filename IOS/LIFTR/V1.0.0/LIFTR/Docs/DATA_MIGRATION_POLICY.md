@@ -1,236 +1,116 @@
-# LIFTR - Data Migration Policy
+# LIFTR Data Migration Policy
 
-**CRITICAL: READ BEFORE MODIFYING ANY @Model CLASS**
-
----
-
-## 🚨 MANDATORY RULE
-
-**EVERY change to a `@Model` class REQUIRES data migration consideration.**
-
-Breaking this rule = **USER DATA LOSS** = **CRITICAL BUG**
+**Policy:** Never break user data. Always provide migration path.
 
 ---
 
-## ✅ BEFORE CHANGING ANY MODEL
+## 🎯 CURRENT STATUS
 
-### Step 1: Check Current Schema Version
-- Open `Docs/DATABASE_SCHEMA.md`
-- Note current version (e.g., V2)
-- Review the model you're changing
+**Version:** V1 (as of March 8, 2026)
 
-### Step 2: Determine Migration Impact
+**Last Change:** Established versioned schema system
 
-**Changes that REQUIRE migration:**
-- ❌ Adding a new required (non-optional) property
-- ❌ Removing a property
-- ❌ Renaming a property
-- ❌ Changing a property type
-- ❌ Adding/removing relationships
-- ❌ Changing relationship cardinality
+**Migration Status:** ✅ Baseline established
 
-**Changes that MAY work with lightweight migration:**
-- ✅ Adding optional properties with sensible defaults
-- ✅ Adding properties with default values in init
-- ⚠️ Still test thoroughly!
-
-### Step 3: Update Documentation FIRST
-
-**Before writing code, update:**
-
-1. **`Docs/DATABASE_SCHEMA.md`**
-   - Document the change
-   - Increment version number (V2 → V3)
-   - Add migration notes section
-
-2. **`CHANGELOG.md`**
-   - Document breaking change
-   - Note migration required
+**Next Version:** V2 (TBD)
 
 ---
 
-## 🔧 IMPLEMENTING MIGRATION
+## 📋 MIGRATION RULES
 
-### For Simple Property Additions (Recommended):
+### When to Create New Schema Version
 
-**Use MigrationService repair pattern:**
+**Required:**
+- Adding/removing stored properties
+- Changing property types
+- Renaming properties
+- Changing relationships
 
-1. Add property to model with default value
-2. Add repair function to `Services/MigrationService.swift`
+**Not Required:**
+- Adding computed properties
+- Adding methods
+- UI changes
+- Enum changes (in Enums.swift)
 
-**Example:**
-```swift
-private static func repairV2toV3Defaults(context: ModelContext) {
-    do {
-        let descriptor = FetchDescriptor<ModelName>()
-        let items = try context.fetch(descriptor)
-        
-        for item in items {
-            // Check if migration needed
-            if item.newProperty == someDefaultValue {
-                item.newProperty = properValue
-            }
-        }
-        
-        try context.save()
-        print("✅ V2→V3 migration repaired")
-    } catch {
-        print("❌ Migration repair failed: \(error)")
-    }
-}
-```
+### How to Create New Version
 
-3. Add to `performStartupChecks()`:
-```swift
-static func performStartupChecks(context: ModelContext) {
-    repairRestTimerDefaults(context: context)      // V1→V2
-    repairV2toV3Defaults(context: context)         // V2→V3 (NEW)
-    // Add future migrations here
-}
-```
+1. **Create SchemaVX.swift:**
+   - Copy previous schema structure
+   - Make changes
+   - Update version identifier
 
-### For Complex Changes:
+2. **Create VX/ folder:**
+   - Copy previous V folder
+   - Update model files with changes
+   - Change `extension SchemaVX-1` to `extension SchemaVX`
 
-**Use full SchemaVersions.swift approach:**
-- Only if property type changes or renames
-- Requires full schema duplication
-- See Apple's SwiftData migration docs
+3. **Update MigrationPlan.swift:**
+   - Add SchemaVX to schemas array
+   - Add migration stage VX-1→VX
 
----
+4. **Update CurrentSchema.swift:**
+   - Change `typealias CurrentSchema = SchemaVX`
 
-## 🧪 TESTING MIGRATION
-
-**MANDATORY TESTING STEPS:**
-
-1. **Before committing:**
-   - Install current build on test device
-   - Create test data (progressions, workouts, programs)
+5. **Test Migration:**
+   - Install old build on device
+   - Create test data
    - Install new build
-   - Verify all data preserved
-   - Verify new properties have correct defaults
+   - Verify data preserved and defaults set
 
-2. **TestFlight testing:**
-   - Upload new build
-   - Test upgrade from previous build
-   - Check user reports for data loss
-
-3. **Never skip testing:**
-   - Even "simple" changes can cause data loss
-   - Test on actual device, not just simulator
-   - Test with substantial data, not empty database
+6. **Commit:**
+   - Pre-commit hook will update docs automatically
 
 ---
 
-## 📋 CHECKLIST FOR MODEL CHANGES
+## ✅ TESTING REQUIREMENTS
 
-**Before committing ANY `@Model` changes:**
+**Before committing schema changes:**
 
-- [ ] Read this document
-- [ ] Updated `DATABASE_SCHEMA.md` with version bump
-- [ ] Added migration notes to schema doc
-- [ ] Implemented migration code (MigrationService or SchemaVersions)
-- [ ] Tested migration on device with existing data
-- [ ] Updated `CHANGELOG.md`
-- [ ] Verified all relationships still work
-- [ ] Ran app with test data successfully
-- [ ] No crashes on launch after upgrade
+- [ ] Installed previous build on test device
+- [ ] Created substantial test data (progressions, programs, workouts)
+- [ ] Installed new build (don't delete app)
+- [ ] App launched without crash
+- [ ] All data preserved
+- [ ] New properties have correct defaults
+- [ ] Tested on physical device (not just simulator)
 
-**If you can't check ALL boxes, DO NOT commit the change.**
+**If ANY test fails:** Fix before committing.
 
 ---
 
-## 🎯 CURRENT SCHEMA STATUS
+## 🔮 PLANNED MIGRATIONS
 
-**Version:** V3 (as of March 6, 2026)
-
-**Last Change:** Added Strava and Apple Health integration properties
-- 5 Strava properties: startTime, endTime, totalDuration, stravaActivityId, syncedToStrava
-- 5 Health properties: healthKitWorkoutId, syncedToHealthKit, caloriesBurned, heartRateAverage, heartRateMax
-- Added to: WorkoutSession, ExerciseSession, CardioSession
-
-**Migration Status:** ✅ Lightweight migration (automatic)
-
-**Next Version Will Be:** V4
-
-
-
----
-
-## 📚 KEY FILES
-
-| File | Purpose |
-|------|---------|
-| `Docs/DATABASE_SCHEMA.md` | Complete schema documentation |
-| `Services/MigrationService.swift` | Migration repair functions |
-| `Models/SchemaVersions.swift` | Full migration plan (if needed) |
-| `CHANGELOG.md` | Version history |
-| This file | Migration policy |
-
----
-
-## ⚠️ COMMON MISTAKES TO AVOID
-
-### ❌ DON'T:
-- Add required properties without migration
-- Rename properties without SchemaVersions
-- Change property types casually
-- Delete properties without considering existing data
-- Skip testing on real devices
-- Assume SwiftData will "just work"
-
-### ✅ DO:
-- Always add properties as optional first
-- Test migration with real data
-- Use repair functions for simple changes
-- Document every change
-- Version your schema
-- Err on the side of caution
-
----
-
-## 🔮 PLANNED FUTURE MIGRATIONS
-
-### V3 → V4 (Planned: User Profile Expansion)
-**Changes:**
-- Expand User model with body measurements
-- Add profile photo support
-- Add training preferences
-
+### V1 → V2 (Planned)
+**Changes:** TBD  
 **Migration:** TBD
 
 ---
 
-## 📞 QUESTIONS?
+## ⚠️ COMMON MISTAKES
 
-**If unsure about a model change:**
-1. Check `DATABASE_SCHEMA.md`
-2. Review this policy
-3. Test on device first
-4. Ask in project discussion before committing
+**Don't:**
+- Skip migration testing
+- Add required properties without defaults
+- Modify frozen schema files
+- Assume SwiftData will "figure it out"
 
-**When in doubt: Add optional properties and use repair functions.**
-
----
-
-## 🏆 SUCCESS METRICS
-
-**Good migration:**
-- ✅ Zero data loss
-- ✅ Zero crashes
-- ✅ Smooth upgrade experience
-- ✅ Proper defaults for new properties
-
-**Failed migration:**
-- ❌ Users lose workout data
-- ❌ App crashes on launch
-- ❌ Settings reset to defaults
-- ❌ Relationships broken
-
-**We aim for 100% good migrations.**
+**Do:**
+- Add properties as optional first
+- Set defaults in migration stage
+- Test with real data
+- Document changes
 
 ---
 
-**END OF POLICY**
+## 📞 IF MIGRATION FAILS
 
-*This policy is mandatory for all contributors and all future development.*
-*Violations may result in emergency patches and user data recovery efforts.*
+1. **Check console** for error messages
+2. **Verify MigrationPlan** includes all versions
+3. **Verify CurrentSchema** points to latest
+4. **Test migration manually** step by step
+5. **Fix and retest** before shipping
+
+---
+
+**See:** `Docs/DATABASE_SCHEMA.md` for schema details  
+**See:** `Docs/CRITICAL_REMINDERS.md` for development rules
