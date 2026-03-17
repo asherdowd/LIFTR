@@ -211,17 +211,44 @@ struct CardioSessionView: View {
         session.notes = notes.isEmpty ? nil : notes
         session.rpe = currentSettings.trackRPE ? Int(rpe) : nil
         
-        // Check if we should advance the week
-        let completedThisWeek = progression.sessions.filter {
-            $0.weekNumber == session.weekNumber && $0.completed
-        }.count
+        // Set timing data for HealthKit
+        if session.startTime == nil {
+            session.startTime = Date().addingTimeInterval(-(session.totalDuration ?? session.duration ?? 0))
+        }
+        if session.endTime == nil {
+            session.endTime = Date()
+        }
+        if session.totalDuration == nil {
+            session.totalDuration = session.duration
+        }
         
-        let totalThisWeek = progression.sessions.filter {
-            $0.weekNumber == session.weekNumber
-        }.count
+        // Export to HealthKit
+        Task {
+            do {
+                try await HealthKitService.shared.exportCardioSession(
+                    session,
+                    cardioType: progression.cardioType,
+                    context: context
+                )
+                await MainActor.run {
+                    HealthKitService.shared.updateLastSyncDate()
+                }
+            } catch {
+                print("⚠️ HealthKit export failed: \(error.localizedDescription)")
+            }
+        }
         
-        if completedThisWeek >= totalThisWeek && progression.currentWeek < progression.totalWeeks {
-            progression.currentWeek += 1
+        // Advance week if needed
+        if session.weekNumber == progression.currentWeek &&
+            progression.currentWeek < progression.totalWeeks {
+            let allSessionsThisWeek = progression.sessions.filter {
+                $0.weekNumber == progression.currentWeek
+            }
+            let allComplete = allSessionsThisWeek.allSatisfy { $0.completed }
+            
+            if allComplete {
+                progression.currentWeek += 1
+            }
         }
         
         try? context.save()

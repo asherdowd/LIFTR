@@ -143,6 +143,18 @@ struct LogSetView: View {
         set.notes = notes.isEmpty ? nil : notes
         set.completed = true
         
+        // Start workout timer on first set completion
+        // Handle both WorkoutSession (progressions) and ExerciseSession (programs)
+        if let workoutSession = set.session as? WorkoutSession {
+            if workoutSession.startTime == nil {
+                workoutSession.startTime = Date()
+            }
+        } else if let exerciseSession = set.session as? ExerciseSession {
+            if exerciseSession.startTime == nil {
+                exerciseSession.startTime = Date()
+            }
+        }
+        
         try? context.save()
         
         if currentSettings.autoStartRestTimer {

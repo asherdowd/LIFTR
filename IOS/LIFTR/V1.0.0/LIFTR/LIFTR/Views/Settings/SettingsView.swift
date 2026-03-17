@@ -475,19 +475,46 @@ struct ExerciseSettingsDetailView: View {
 
 struct IntegrationsView: View {
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "link.circle.fill")
-                .font(.system(size: 60))
-                .foregroundColor(.blue)
+        List {
+            NavigationLink(destination: HealthKitSettingsView()) {
+                HStack {
+                    Image(systemName: "heart.fill")
+                        .foregroundColor(.red)
+                    Text("Apple Health")
+                }
+            }
             
-            Text("Integrations Coming Soon")
+            NavigationLink(destination: StravaPlaceholderView()) {
+                HStack {
+                    Image(systemName: "figure.run")
+                        .foregroundColor(.orange)
+                    Text("Strava")
+                    Spacer()
+                    Text("Coming Soon")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .navigationTitle("Integrations")
+    }
+}
+
+// MARK: - Strava Placeholder
+
+struct StravaPlaceholderView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "figure.run.circle.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.orange)
+            
+            Text("Strava Integration")
                 .font(.title2)
                 .fontWeight(.bold)
             
-            Text("Apple Health and Strava integrations will be available in a future update.")
-                .multilineTextAlignment(.center)
+            Text("Coming in the next update")
                 .foregroundColor(.secondary)
-                .padding()
         }
         .padding()
     }

@@ -173,11 +173,40 @@ struct ProgramWorkoutView: View {
         
         // print("Completing week: \(completedWeekNumber)")
         
+        let completionDate = Date()
+        
         // Mark all sessions as completed
         for (_, session) in exerciseSessions {
             session.completed = true
-            session.completedDate = Date()
+            session.completedDate = completionDate
+            
+            // Set timing data for HealthKit
+            if session.startTime == nil {
+                session.startTime = completionDate.addingTimeInterval(-(session.totalDuration ?? 0))
+            }
+            if session.endTime == nil {
+                session.endTime = completionDate
+            }
+            
             // print("Marked complete: \(exercise.exerciseName) Week \(session.weekNumber)")
+        }
+        
+        // Export each session to HealthKit
+        for (_, session) in exerciseSessions {
+            Task {
+                do {
+                    try await HealthKitService.shared.exportExerciseSession(session, context: context)
+                } catch {
+                    print("⚠️ HealthKit export failed for \(session.exercise?.exerciseName ?? "exercise"): \(error.localizedDescription)")
+                }
+            }
+        }
+        
+        // Update last sync date after all exports
+        Task {
+            await MainActor.run {
+                HealthKitService.shared.updateLastSyncDate()
+            }
         }
         
         // Check if we should advance the week

@@ -66,6 +66,8 @@
 		ECDC59272F5D3443004EC2BE /* LIFTRApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59262F5D3443004EC2BE /* LIFTRApp.swift */; };
 		ECDC59292F5D35C3004EC2BE /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59282F5D35C3004EC2BE /* Enums.swift */; };
 		ECDC593C2F5D4155004EC2BE /* MigrationPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC593B2F5D4154004EC2BE /* MigrationPlan.swift */; };
+		ECDC59532F5DE854004EC2BE /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59522F5DE854004EC2BE /* HealthKitService.swift */; };
+		ECDC59552F5DE86C004EC2BE /* HealthKitSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDC59542F5DE86C004EC2BE /* HealthKitSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -171,6 +173,8 @@
 		ECDC59262F5D3443004EC2BE /* LIFTRApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFTRApp.swift; sourceTree = "<group>"; };
 		ECDC59282F5D35C3004EC2BE /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		ECDC593B2F5D4154004EC2BE /* MigrationPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationPlan.swift; sourceTree = "<group>"; };
+		ECDC59522F5DE854004EC2BE /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		ECDC59542F5DE86C004EC2BE /* HealthKitSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -335,6 +339,7 @@
 				EC88A8B52F2854620005A456 /* BasicProgressionSettingsView.swift */,
 				EC88A8B32F28543C0005A456 /* RestTimerSettingsView.swift */,
 				ECC8E9D52E8ED29000E76F7D /* SettingsView.swift */,
+				ECDC59542F5DE86C004EC2BE /* HealthKitSettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -442,6 +447,7 @@
 				EC88A8C12F28647A0005A456 /* MigrationService.swift */,
 				EC0D7B152F1C8D1300596B36 /* ProgramTemplates.swift */,
 				ECC8E9D12E8E300300E76F7D /* PlateCalculator.swift */,
+				ECDC59522F5DE854004EC2BE /* HealthKitService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -666,6 +672,7 @@
 				EC0D7B102F1C18A000596B36 /* CalculatorViewWrapper.swift in Sources */,
 				EC0D7B112F1C18A000596B36 /* LogSetView.swift in Sources */,
 				EC0D7B122F1C18A000596B36 /* PerformanceSummaryView.swift in Sources */,
+				ECDC59532F5DE854004EC2BE /* HealthKitService.swift in Sources */,
 				EC0D7B132F1C18A000596B36 /* SetRowView.swift in Sources */,
 				EC0D7B142F1C18A000596B36 /* WorkoutSessionView.swift in Sources */,
 				ECC8E9C82E6B5EE000E76F7D /* MainView.swift in Sources */,
@@ -682,6 +689,7 @@
 				EC0D7B162F1C8D1A00596B36 /* ProgramTemplates.swift in Sources */,
 				ECC8E9D22E8E300300E76F7D /* PlateCalculator.swift in Sources */,
 				ECDC59272F5D3443004EC2BE /* LIFTRApp.swift in Sources */,
+				ECDC59552F5DE86C004EC2BE /* HealthKitSettingsView.swift in Sources */,
 				ECC8E9C42E6B5DB600E76F7D /* InventoryView.swift in Sources */,
 				EC0D7B192F1C8F0900596B36 /* CreateProgramView.swift in Sources */,
 				EC0D7B1A2F1C8F0900596B36 /* TemplateSetupView.swift in Sources */,
@@ -741,7 +749,7 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = RestTimerWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = LR4W9AN5JB;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RestTimerWidget/Info.plist;
@@ -775,7 +783,7 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = RestTimerWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = LR4W9AN5JB;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RestTimerWidget/Info.plist;

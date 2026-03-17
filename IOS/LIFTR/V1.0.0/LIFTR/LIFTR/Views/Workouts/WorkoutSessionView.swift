@@ -156,23 +156,88 @@ struct WorkoutSessionView: View {
                     session.completed = true
                     session.completedDate = Date()
                     session.paused = false
+                    
+                    // Set timing data for HealthKit
+                    if session.startTime == nil {
+                        session.startTime = Date().addingTimeInterval(-(session.totalDuration ?? 0))
+                    }
+                    if session.endTime == nil {
+                        session.endTime = Date()
+                    }
+                    
                     checkAndAdvanceWeek()
                     applyAdjustment(adjustment)
+                    
+                    // Export to HealthKit
+                    Task {
+                        do {
+                            try await HealthKitService.shared.exportWorkoutSession(session, context: context)
+                            await MainActor.run {
+                                HealthKitService.shared.updateLastSyncDate()
+                            }
+                        } catch {
+                            print("⚠️ HealthKit export failed: \(error.localizedDescription)")
+                        }
+                    }
                 }
                 Button("Keep Original Plan") {
                     session.completed = true
                     session.completedDate = Date()
                     session.paused = false
-                    checkAndAdvanceWeek()  // ADDED
+                    
+                    // Set timing data for HealthKit
+                    if session.startTime == nil {
+                        session.startTime = Date().addingTimeInterval(-(session.totalDuration ?? 0))
+                    }
+                    if session.endTime == nil {
+                        session.endTime = Date()
+                    }
+                    
+                    checkAndAdvanceWeek()
                     try? context.save()
+                    
+                    // Export to HealthKit
+                    Task {
+                        do {
+                            try await HealthKitService.shared.exportWorkoutSession(session, context: context)
+                            await MainActor.run {
+                                HealthKitService.shared.updateLastSyncDate()
+                            }
+                        } catch {
+                            print("⚠️ HealthKit export failed: \(error.localizedDescription)")
+                        }
+                    }
+                    
                     dismiss()
                 }
                 Button("Manual Adjustment") {
                     session.completed = true
                     session.completedDate = Date()
                     session.paused = false
-                    checkAndAdvanceWeek()  // ADDED
+                    
+                    // Set timing data for HealthKit
+                    if session.startTime == nil {
+                        session.startTime = Date().addingTimeInterval(-(session.totalDuration ?? 0))
+                    }
+                    if session.endTime == nil {
+                        session.endTime = Date()
+                    }
+                    
+                    checkAndAdvanceWeek()
                     try? context.save()
+                    
+                    // Export to HealthKit
+                    Task {
+                        do {
+                            try await HealthKitService.shared.exportWorkoutSession(session, context: context)
+                            await MainActor.run {
+                                HealthKitService.shared.updateLastSyncDate()
+                            }
+                        } catch {
+                            print("⚠️ HealthKit export failed: \(error.localizedDescription)")
+                        }
+                    }
+                    
                     dismiss()
                 }
             }
@@ -201,14 +266,36 @@ struct WorkoutSessionView: View {
             session.completedDate = Date()
             session.paused = false
             
-            // ADDED: Check if we should advance the week
+            // Set timing data for HealthKit
+            if session.startTime == nil {
+                session.startTime = Date().addingTimeInterval(-(session.totalDuration ?? 0))
+            }
+            if session.endTime == nil {
+                session.endTime = Date()
+            }
+            
+            // Check if we should advance the week
             checkAndAdvanceWeek()
             
             // Auto-adjust if enabled
             if currentSettings.adjustmentMode == .autoAdjust && performance != .continueAsPlanned {
                 applyAdjustment(performance)
             }
+            
             try? context.save()
+            
+            // Export to HealthKit
+            Task {
+                do {
+                    try await HealthKitService.shared.exportWorkoutSession(session, context: context)
+                    await MainActor.run {
+                        HealthKitService.shared.updateLastSyncDate()
+                    }
+                } catch {
+                    print("⚠️ HealthKit export failed: \(error.localizedDescription)")
+                }
+            }
+            
             dismiss()
         }
     }
