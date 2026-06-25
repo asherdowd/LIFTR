@@ -19,6 +19,7 @@ jobs:
           cd IOS/LIFTR/V1.0.0/LIFTR
           xcodebuild -project LIFTR.xcodeproj \
                      -scheme LIFTR \
+                     -sdk iphoneos \
                      -configuration Release \
                      -archivePath $PWD/build/App.xcarchive \
                      archive \
