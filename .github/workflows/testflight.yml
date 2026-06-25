@@ -16,7 +16,7 @@ jobs:
 
       - name: Build and Archive App
         run: |
-          xcodebuild -project LIFTR.xcodeproj \
+          xcodebuild -project IOS/LIFTR/V1.0.0/LIFTR/LIFTR.xcodeproj \
                      -scheme LIFTR \
                      -configuration Release \
                      -archivePath $PWD/build/App.xcarchive \
