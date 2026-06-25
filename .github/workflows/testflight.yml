@@ -1,0 +1,39 @@
+name: Deploy Native Swift to TestFlight
+
+on:
+  workflow_dispatch: # Allows you to manually click "Run" from your Windows PC
+
+jobs:
+  deploy:
+    runs-on: macos-15 # Uses GitHub's cloud-hosted Mac
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_16.app # Adjust to matches your project version
+
+      - name: Build and Archive App
+        run: |
+          xcodebuild -project LIFTR.xcodeproj \
+                     -scheme LIFTR \
+                     -configuration Release \
+                     -archivePath $PWD/build/App.xcarchive \
+                     archive \
+                     CODE_SIGNING_ALLOWED=NO
+
+      - name: Export IPA File
+        run: |
+          xcodebuild -exportArchive \
+                     -archivePath $PWD/build/App.xcarchive \
+                     -exportPath $PWD/build/output \
+                     -exportOptionsPlist ExportOptions.plist
+
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v4
+        with:
+          app-path: '$PWD/build/output/LIFTR.ipa'
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
