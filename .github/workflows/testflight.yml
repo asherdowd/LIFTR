@@ -23,6 +23,7 @@ jobs:
                      -archivePath $PWD/build/App.xcarchive \
                      archive \
                      CODE_SIGNING_ALLOWED=NO
+                     | grep -A 5 -E "error:|warning:|failed" || true
 
       - name: Export IPA File
         run: |
