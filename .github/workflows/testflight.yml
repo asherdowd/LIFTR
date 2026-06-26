@@ -63,7 +63,7 @@ jobs:
           echo "=== Starting build with verbose output ==="
           xcodebuild -project LIFTR.xcodeproj \
                      -scheme LIFTR \
-                     -sdk iphoneos \
+                     -destination generic/platform=iOS \
                      -configuration Release \
                      -archivePath $PWD/build/App.xcarchive \
                      -verbose \
