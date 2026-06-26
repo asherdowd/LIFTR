@@ -56,17 +56,17 @@ jobs:
           rm -rf ~/Library/Developer/Xcode/DerivedData/LIFTR*
           echo "Derived data cleaned"
       
-      # DIAGNOSTIC: Build with verbose output (device-only, no simulator validation)
-      - name: Build and Archive App (Verbose)
+      # Try building without archive first
+      - name: Build App (No Archive)
         run: |
           cd IOS/LIFTR/V1.0.0/LIFTR
-          echo "=== Starting build with verbose output ==="
+          echo "=== Building app (no archive) ==="
           xcodebuild -project LIFTR.xcodeproj \
                      -scheme LIFTR \
                      -configuration Release \
-                     -archivePath $PWD/build/App.xcarchive \
                      -verbose \
-                     archive \
+                     -skipUnavailableActions \
+                     build \
                      -sdk iphoneos \
                      ARCHS=arm64 \
                      VALID_ARCHS=arm64 \
@@ -88,6 +88,22 @@ jobs:
             echo "=== Last 50 lines of build log ==="
             tail -50 build.log
           fi
+      
+      # Now archive if build succeeded
+      - name: Archive App
+        if: success()
+        run: |
+          cd IOS/LIFTR/V1.0.0/LIFTR
+          echo "=== Creating archive ==="
+          xcodebuild -project LIFTR.xcodeproj \
+                     -scheme LIFTR \
+                     -configuration Release \
+                     -archivePath $PWD/build/App.xcarchive \
+                     archive \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_IDENTITY="" \
+                     AD_HOC_CODE_SIGNING_ALLOWED=YES
       
       # Only proceed if build succeeded
       - name: Export IPA File
