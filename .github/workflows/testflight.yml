@@ -56,24 +56,25 @@ jobs:
           rm -rf ~/Library/Developer/Xcode/DerivedData/LIFTR*
           echo "Derived data cleaned"
       
-      # DIAGNOSTIC: Build with verbose output
+      # DIAGNOSTIC: Build with verbose output (device-only, no simulator validation)
       - name: Build and Archive App (Verbose)
         run: |
           cd IOS/LIFTR/V1.0.0/LIFTR
           echo "=== Starting build with verbose output ==="
           xcodebuild -project LIFTR.xcodeproj \
                      -scheme LIFTR \
-                     -destination generic/platform=iOS \
                      -configuration Release \
                      -archivePath $PWD/build/App.xcarchive \
                      -verbose \
                      archive \
+                     -sdk iphoneos \
+                     ARCHS=arm64 \
+                     VALID_ARCHS=arm64 \
+                     SUPPORTED_PLATFORMS=iphoneos \
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_IDENTITY="" \
-                     AD_HOC_CODE_SIGNING_ALLOWED=YES \
-                     SUPPORTED_PLATFORMS=iphoneos \
-                     ENABLE_PREVIEWS=NO 2>&1 | tee build.log
+                     AD_HOC_CODE_SIGNING_ALLOWED=YES 2>&1 | tee build.log
           
           echo ""
           echo "=== Searching for errors in build log ==="
