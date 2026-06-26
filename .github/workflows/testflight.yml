@@ -56,6 +56,17 @@ jobs:
           rm -rf ~/Library/Developer/Xcode/DerivedData/LIFTR*
           echo "Derived data cleaned"
       
+      # Clean up broken Preview Content reference from project file
+      - name: Remove Broken Preview Content Reference
+        run: |
+          cd IOS/LIFTR/V1.0.0/LIFTR
+          echo "=== Removing broken Preview Content reference ==="
+          # Remove Preview Assets.xcassets reference if it exists
+          sed -i '' '/Preview.*Assets\.xcassets/d' LIFTR.xcodeproj/project.pbxproj
+          # Also remove any dangling Preview Content references
+          sed -i '' '/Preview Content/d' LIFTR.xcodeproj/project.pbxproj
+          echo "Cleanup complete"
+      
       # Try building without archive first
       - name: Build App (No Archive)
         run: |
