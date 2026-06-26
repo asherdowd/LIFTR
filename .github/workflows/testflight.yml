@@ -1,8 +1,6 @@
-name: Deploy Native Swift to TestFlight
-
+name: Deploy Native Swift to TestFlight (Diagnostic)
 on:
   workflow_dispatch: 
-
 jobs:
   deploy:
     runs-on: macos-15 
@@ -10,34 +8,96 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
+      
+      - name: Check macOS Version
+        run: sw_vers
+      
+      # DIAGNOSTIC: List asset files
+      - name: List Asset Files
+        run: |
+          echo "=== Checking Assets.xcassets structure ==="
+          cd IOS/LIFTR/V1.0.0/LIFTR/LIFTR
+          find Assets.xcassets -type f | head -20
+          echo ""
+          echo "=== AppIcon.appiconset contents ==="
+          ls -lah Assets.xcassets/AppIcon.appiconset/
+          echo ""
+          echo "=== AccentColor.colorset contents ==="
+          ls -lah Assets.xcassets/AccentColor.colorset/
+      
+      # DIAGNOSTIC: Check for Git LFS
+      - name: Check Git LFS Status
+        run: |
+          echo "=== Checking for Git LFS ==="
+          git lfs ls-files
+          echo ""
+          echo "=== Checking PNG file sizes ==="
+          cd IOS/LIFTR/V1.0.0/LIFTR/LIFTR
+          find Assets.xcassets -name "*.png" -exec ls -lh {} \;
+      
+      # DIAGNOSTIC: Verify file encoding
+      - name: Verify Image Files
+        run: |
+          echo "=== Verifying PNG files ==="
+          cd IOS/LIFTR/V1.0.0/LIFTR/LIFTR/Assets.xcassets/AppIcon.appiconset
+          for file in *.png; do
+            echo "File: $file"
+            file "$file"
+            ls -lh "$file"
+          done
+      
       - name: Set up Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_16.app 
-
-      - name: Build and Archive App
+      
+      # DIAGNOSTIC: Clean build artifacts
+      - name: Clean Derived Data
+        run: |
+          echo "=== Removing derived data ==="
+          rm -rf ~/Library/Developer/Xcode/DerivedData/LIFTR*
+          echo "Derived data cleaned"
+      
+      # DIAGNOSTIC: Build with verbose output
+      - name: Build and Archive App (Verbose)
         run: |
           cd IOS/LIFTR/V1.0.0/LIFTR
+          echo "=== Starting build with verbose output ==="
           xcodebuild -project LIFTR.xcodeproj \
                      -scheme LIFTR \
                      -sdk iphoneos \
                      -configuration Release \
                      -archivePath $PWD/build/App.xcarchive \
+                     -verbose \
                      archive \
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_IDENTITY="" \
-                     AD_HOC_CODE_SIGNING_ALLOWED=YES
-                     | grep -A 5 -E "error:|warning:|failed" || true
-
+                     AD_HOC_CODE_SIGNING_ALLOWED=YES 2>&1 | tee build.log
+          
+          echo ""
+          echo "=== Searching for errors in build log ==="
+          grep -i "error\|failed" build.log || echo "No errors found in log"
+      
+      - name: Check Build Output
+        if: always()
+        run: |
+          cd IOS/LIFTR/V1.0.0/LIFTR
+          if [ -f build.log ]; then
+            echo "=== Last 50 lines of build log ==="
+            tail -50 build.log
+          fi
+      
+      # Only proceed if build succeeded
       - name: Export IPA File
+        if: success()
         run: |
           cd IOS/LIFTR/V1.0.0/LIFTR
           xcodebuild -exportArchive \
                      -archivePath $PWD/build/App.xcarchive \
                      -exportPath $PWD/build/output \
                      -exportOptionsPlist ExportOptions.plist
-
+      
       - name: Upload to TestFlight
+        if: success()
         uses: apple-actions/upload-testflight-build@v4
         with:
           app-path: 'IOS/LIFTR/V1.0.0/LIFTR/build/output/LIFTR.ipa'
