@@ -72,6 +72,7 @@ jobs:
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_IDENTITY="" \
                      AD_HOC_CODE_SIGNING_ALLOWED=YES 2>&1 | tee build.log
+                     SUPPORTED_PLATFORMS=iphoneos
           
           echo ""
           echo "=== Searching for errors in build log ==="
