@@ -161,7 +161,7 @@ static func performStartupChecks(context: ModelContext) {
 |------|---------|
 | `Docs/DATABASE_SCHEMA.md` | Complete schema documentation |
 | `Services/MigrationService.swift` | Migration repair functions |
-| `Models/SchemaVersions.swift` | Full migration plan (if needed) |
+| `Models/SchemaVersions.swift`~~ | Does not exist on main. A prior attempt exists on `archive/healthkit-and-schema-attempt` (incomplete, scaffolding only). Current migrations use the MigrationService repair-function pattern exclusively. | |
 | `CHANGELOG.md` | Version history |
 | This file | Migration policy |
 

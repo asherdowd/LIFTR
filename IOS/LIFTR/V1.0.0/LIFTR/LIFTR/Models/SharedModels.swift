@@ -8,7 +8,12 @@ enum ProgressionStatus: String, Codable {
     case paused = "Paused"
     case completed = "Completed"
 }
-
+enum ExerciseCoreType: String, Codable, CaseIterable {
+    case deadlift = "Deadlift"
+    case squat = "Squat"
+    case benchPress = "Bench Press"
+    case overheadPress = "Overhead Press"
+}
 // MARK: - Shared Models (used by multiple systems)
 
 @Model
@@ -53,5 +58,21 @@ class WorkoutSet {
     var wasSuccessful: Bool {
         guard let actualReps = actualReps else { return false }
         return actualReps >= targetReps
+    }
+}
+@Model
+class Exercise {
+    var id: UUID
+    var name: String
+    var coreType: ExerciseCoreType
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        coreType: ExerciseCoreType
+    ) {
+        self.id = id
+        self.name = name
+        self.coreType = coreType
     }
 }

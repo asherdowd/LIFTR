@@ -1,7 +1,7 @@
 # LIFTR Database Schema Documentation
 
-**Last Updated:** January 27, 2026  
-**Version:** 1.2.1 (Build 5)  
+**Last Updated:** July 6, 2026  
+**Version:** 1.2.1 (Build 7)  
 **Schema Version:** V2 (with rest timer settings)
 
 This document describes the complete SwiftData model structure for LIFTR.
@@ -150,6 +150,20 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `completed` | Bool | false | Completion status |
 | `notes` | String? | nil | Optional notes |
 
+### Exercise
+**Purpose:** Canonical exercise identity, referenced by Progression/ProgramExercise/ExerciseProgressionSettings/Cardio (future)
+**File:** `Models/SharedModels.swift`
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `id` | UUID | UUID() | Unique identifier |
+| `name` | String | - | User-facing alias (e.g., "Straight Leg Deadlift") |
+| `coreType` | ExerciseCoreType | - | Required canonical type, developer-controlled list |
+
+**Relationships:** None yet — added in a future model change once Progression/ProgramExercise/ExerciseProgressionSettings/Cardio are migrated to reference it.
+**Cardinality:** 0 or more instances
+
+**Note:** This is a new, independent model with no relationships to existing data — per CRITICAL_REMINDERS.md's "Safe Changes" rule, no migration is required for this addition.
 **Relationships:**
 - `session`: WorkoutSession? (parent - legacy)
 
@@ -437,7 +451,17 @@ enum CardioType: String, Codable, CaseIterable {
     case freeCardio = "Free Cardio"
 }
 ```
+### ExerciseCoreType
+**File:** `Models/SharedModels.swift`
 
+​```swift
+enum ExerciseCoreType: String, Codable, CaseIterable {
+    case deadlift = "Deadlift"
+    case squat = "Squat"
+    case benchPress = "Bench Press"
+    case overheadPress = "Overhead Press"
+}
+​```
 ---
 
 ## 📊 RELATIONSHIP DIAGRAM
@@ -463,6 +487,8 @@ CardioProgression
 PlateItem (independent)
 BarItem (independent)
 CollarItem (independent)
+
+Exercise (independent, standalone for now — 0:many)
 
 ExerciseProgressionSettings (independent, 0:many)
 ```
@@ -507,7 +533,7 @@ ExerciseProgressionSettings (independent, 0:many)
 - Add `startTime`, `endTime`, `totalDuration` to sessions (for Strava)
 - Expand User model (age, weight, height, measurements)
 - Add social features (following, sharing, etc.)
-- Add custom exercise library
+- - ~~Add custom exercise library~~ → Exercise model with stable identity added (see Exercise section above); migration of existing models to reference it + seed/picker UI still pending
 
 ---
 
