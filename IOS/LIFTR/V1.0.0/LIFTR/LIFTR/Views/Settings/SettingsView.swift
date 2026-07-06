@@ -5,11 +5,10 @@ import SwiftData
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var context
-    @Query private var globalSettings: [GlobalProgressionSettings]
-    @Query private var exerciseSettings: [ExerciseProgressionSettings]
+    @Query private var globalSettings: [GlobalWorkoutSettings]
     
-    var currentSettings: GlobalProgressionSettings {
-        globalSettings.first ?? GlobalProgressionSettings()
+    var currentSettings: GlobalWorkoutSettings {
+        globalSettings.first ?? GlobalWorkoutSettings()
     }
     
     var body: some View {
@@ -42,31 +41,28 @@ struct SettingsView: View {
                     }
                 }
                 
-                // Progression Rules Section
-                Section(header: Text("Workout Planning")) {
-                    NavigationLink(destination: GlobalProgressionSettingsView()) {
+                // Workout Settings Section
+                Section(header: Text("Workout Settings")) {
+                    NavigationLink(destination: WorkoutSettingsView()) {
                         HStack {
                             Image(systemName: "slider.horizontal.3")
                                 .foregroundColor(.orange)
-                            Text("Progression Rules")
+                            Text("Workout Preferences")
                         }
                     }
                     
-                    NavigationLink(destination: ExerciseRulesListView()) {
+                    NavigationLink(destination: RestTimerSettingsView()) {
                         HStack {
-                            Image(systemName: "list.bullet.clipboard")
+                            Image(systemName: "timer")
                                 .foregroundColor(.purple)
-                            Text("Exercise-Specific Rules")
-                            Spacer()
-                            Text("\(exerciseSettings.count)")
-                                .foregroundColor(.secondary)
+                            Text("Rest Timer")
                         }
                     }
                 }
                 
                 // Integrations Section
                 Section(header: Text("Integrations")) {
-                    NavigationLink(destination: IntegrationsView()) {
+                    NavigationLink(destination: HealthKitSettingsView()) {
                         HStack {
                             Image(systemName: "heart.fill")
                                 .foregroundColor(.red)
@@ -74,24 +70,19 @@ struct SettingsView: View {
                         }
                     }
                     
-                    NavigationLink(destination: IntegrationsView()) {
+                    NavigationLink(destination: StravaPlaceholderView()) {
                         HStack {
                             Image(systemName: "figure.run")
                                 .foregroundColor(.orange)
                             Text("Strava")
+                            Spacer()
+                            Text("Coming Soon")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
                     }
                 }
-                // Support Section
-                Section(header: Text("Support")) {
-                    NavigationLink(destination: SupportView()) {
-                        HStack {
-                            Image(systemName: "lifepreserver.fill")
-                                .foregroundColor(.green)
-                            Text("Report an Issue")
-                        }
-                    }
-                }
+                
                 // About Section
                 Section(header: Text("About")) {
                     HStack {
@@ -99,7 +90,7 @@ struct SettingsView: View {
                             .foregroundColor(.blue)
                         Text("Version")
                         Spacer()
-                        Text("1.0.0")
+                        Text("2.0.0 (Build 10)")
                             .foregroundColor(.secondary)
                     }
                 }
@@ -113,7 +104,7 @@ struct SettingsView: View {
             settings.useMetric.toggle()
             try? context.save()
         } else {
-            let newSettings = GlobalProgressionSettings()
+            let newSettings = GlobalWorkoutSettings()
             newSettings.useMetric = true
             context.insert(newSettings)
             try? context.save()
@@ -167,16 +158,180 @@ struct UserProfileView: View {
     }
 }
 
-// MARK: - Global Progression Settings View
+// MARK: - Workout Settings View
 
-struct GlobalProgressionSettingsView: View {
+struct WorkoutSettingsView: View {
+    @Environment(\.modelContext) private var context
+    @Query private var settings: [GlobalWorkoutSettings]
+    
+    @State private var trackRPE: Bool = true
+    @State private var adjustmentMode: AdjustmentMode = .prompt
+    @State private var excellentThreshold: Double = 100
+    @State private var goodThreshold: Double = 90
+    @State private var adjustmentThreshold: Double = 75
+    @State private var reductionPercent: Double = 10
+    @State private var deloadPercent: Double = 20
+    @State private var showPresetSheet: Bool = false
+    
     var body: some View {
-        List {
-            NavigationLink("Basic Settings", destination: BasicProgressionSettingsView())
-            NavigationLink("Advanced Settings", destination: AdvancedProgressionSettingsView())
-            NavigationLink("Rest Timer", destination: RestTimerSettingsView())
+        Form {
+            // Preset Profiles Section
+            Section {
+                Button(action: { showPresetSheet = true }) {
+                    HStack {
+                        Image(systemName: "wand.and.stars")
+                        Text("Load Preset Profile")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            
+            // Adjustment Behavior
+            Section(header: Text("Workout Adjustments")) {
+                Toggle("Track RPE", isOn: $trackRPE)
+                
+                Picker("Auto-Adjustment", selection: $adjustmentMode) {
+                    Text("Ask Me").tag(AdjustmentMode.prompt)
+                    Text("Auto-Adjust").tag(AdjustmentMode.autoAdjust)
+                    Text("Never Adjust").tag(AdjustmentMode.never)
+                }
+                .pickerStyle(.menu)
+            }
+            
+            // Performance Thresholds
+            Section(header: Text("Performance Thresholds"),
+                    footer: Text("Percentage of target reps completed")) {
+                
+                HStack {
+                    Text("Excellent threshold")
+                    Spacer()
+                    TextField("", value: $excellentThreshold, format: .number)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 60)
+                    Text("%")
+                }
+                
+                HStack {
+                    Text("Good threshold")
+                    Spacer()
+                    TextField("", value: $goodThreshold, format: .number)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 60)
+                    Text("%")
+                }
+                
+                HStack {
+                    Text("Adjustment threshold")
+                    Spacer()
+                    TextField("", value: $adjustmentThreshold, format: .number)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 60)
+                    Text("%")
+                }
+                
+                HStack {
+                    Text("Reduction percent")
+                    Spacer()
+                    TextField("", value: $reductionPercent, format: .number)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 60)
+                    Text("%")
+                }
+                
+                HStack {
+                    Text("Deload percent")
+                    Spacer()
+                    TextField("", value: $deloadPercent, format: .number)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 60)
+                    Text("%")
+                }
+            }
+            
+            // Reset Section
+            Section {
+                Button("Reset to Defaults", role: .destructive) {
+                    resetToDefaults()
+                }
+                .frame(maxWidth: .infinity)
+            }
         }
-        .navigationTitle("Progression Rules")
+        .navigationTitle("Workout Preferences")
+        .onAppear { loadSettings() }
+        .onChange(of: trackRPE) { _, _ in saveSettings() }
+        .onChange(of: adjustmentMode) { _, _ in saveSettings() }
+        .onChange(of: excellentThreshold) { _, _ in saveSettings() }
+        .onChange(of: goodThreshold) { _, _ in saveSettings() }
+        .onChange(of: adjustmentThreshold) { _, _ in saveSettings() }
+        .onChange(of: reductionPercent) { _, _ in saveSettings() }
+        .onChange(of: deloadPercent) { _, _ in saveSettings() }
+        .sheet(isPresented: $showPresetSheet) {
+            PresetProfileSheet(onSelect: { preset in
+                applyPreset(preset)
+                showPresetSheet = false
+            })
+        }
+    }
+    
+    private func loadSettings() {
+        guard let currentSettings = settings.first else {
+            let newSettings = GlobalWorkoutSettings()
+            context.insert(newSettings)
+            try? context.save()
+            return
+        }
+        
+        trackRPE = currentSettings.trackRPE
+        adjustmentMode = currentSettings.adjustmentMode
+        excellentThreshold = Double(currentSettings.excellentThreshold)
+        goodThreshold = Double(currentSettings.goodThreshold)
+        adjustmentThreshold = Double(currentSettings.adjustmentThreshold)
+        reductionPercent = currentSettings.reductionPercent
+        deloadPercent = currentSettings.deloadPercent
+    }
+    
+    private func saveSettings() {
+        if let currentSettings = settings.first {
+            currentSettings.trackRPE = trackRPE
+            currentSettings.adjustmentMode = adjustmentMode
+            currentSettings.excellentThreshold = Int(excellentThreshold)
+            currentSettings.goodThreshold = Int(goodThreshold)
+            currentSettings.adjustmentThreshold = Int(adjustmentThreshold)
+            currentSettings.reductionPercent = reductionPercent
+            currentSettings.deloadPercent = deloadPercent
+            try? context.save()
+        }
+    }
+    
+    private func resetToDefaults() {
+        let defaults = GlobalWorkoutSettings()
+        trackRPE = defaults.trackRPE
+        adjustmentMode = defaults.adjustmentMode
+        excellentThreshold = Double(defaults.excellentThreshold)
+        goodThreshold = Double(defaults.goodThreshold)
+        adjustmentThreshold = Double(defaults.adjustmentThreshold)
+        reductionPercent = defaults.reductionPercent
+        deloadPercent = defaults.deloadPercent
+        saveSettings()
+    }
+    
+    private func applyPreset(_ preset: PresetProfile) {
+        let presetSettings = preset.settings
+        trackRPE = presetSettings.trackRPE
+        adjustmentMode = presetSettings.adjustmentMode
+        excellentThreshold = Double(presetSettings.excellentThreshold)
+        goodThreshold = Double(presetSettings.goodThreshold)
+        adjustmentThreshold = Double(presetSettings.adjustmentThreshold)
+        reductionPercent = presetSettings.reductionPercent
+        deloadPercent = presetSettings.deloadPercent
+        saveSettings()
     }
 }
 
@@ -190,7 +345,7 @@ struct PresetProfileSheet: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                Text("Choose a preset profile to quickly configure your progression rules")
+                Text("Choose a preset profile to quickly configure your workout settings")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -292,215 +447,7 @@ struct PresetOption: View {
     }
 }
 
-// MARK: - Exercise Rules List View
-
-struct ExerciseRulesListView: View {
-    @Environment(\.modelContext) private var context
-    @Query private var exerciseSettings: [ExerciseProgressionSettings]
-    
-    var body: some View {
-        List {
-            if exerciseSettings.isEmpty {
-                Section {
-                    Text("No exercise-specific rules yet")
-                        .foregroundColor(.secondary)
-                    Text("Exercise rules will appear here once you create progressions")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            } else {
-                ForEach(exerciseSettings) { setting in
-                    NavigationLink(destination: ExerciseSettingsDetailView(exerciseSetting: setting)) {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(setting.exerciseName)
-                                    .font(.headline)
-                                
-                                if setting.useCustomRules {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "gear")
-                                            .font(.caption)
-                                        Text("Custom rules active")
-                                            .font(.caption)
-                                    }
-                                    .foregroundColor(.orange)
-                                } else {
-                                    Text("Using global defaults")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            
-                            Spacer()
-                        }
-                    }
-                }
-                .onDelete(perform: deleteSettings)
-            }
-        }
-        .navigationTitle("Exercise Rules")
-    }
-    
-    private func deleteSettings(at offsets: IndexSet) {
-        for index in offsets {
-            context.delete(exerciseSettings[index])
-        }
-        try? context.save()
-    }
-}
-
-// MARK: - Exercise Settings Detail View
-
-struct ExerciseSettingsDetailView: View {
-    @Environment(\.modelContext) private var context
-    @Bindable var exerciseSetting: ExerciseProgressionSettings
-    
-    var body: some View {
-        Form {
-            Section {
-                Toggle("Use custom rules for \(exerciseSetting.exerciseName)", isOn: $exerciseSetting.useCustomRules)
-            }
-            
-            if exerciseSetting.useCustomRules {
-                Section(header: Text("Performance Thresholds")) {
-                    HStack {
-                        Text("Excellent threshold")
-                        Spacer()
-                        TextField("", value: Binding(
-                            get: { exerciseSetting.excellentThreshold ?? 90 },
-                            set: { exerciseSetting.excellentThreshold = $0 }
-                        ), format: .number)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 60)
-                        Text("%")
-                    }
-                    
-                    HStack {
-                        Text("Good threshold")
-                        Spacer()
-                        TextField("", value: Binding(
-                            get: { exerciseSetting.goodThreshold ?? 75 },
-                            set: { exerciseSetting.goodThreshold = $0 }
-                        ), format: .number)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 60)
-                        Text("%")
-                    }
-                    
-                    HStack {
-                        Text("Adjustment threshold")
-                        Spacer()
-                        TextField("", value: Binding(
-                            get: { exerciseSetting.adjustmentThreshold ?? 50 },
-                            set: { exerciseSetting.adjustmentThreshold = $0 }
-                        ), format: .number)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 60)
-                        Text("%")
-                    }
-                    
-                    HStack {
-                        Text("Reduction percent")
-                        Spacer()
-                        TextField("", value: Binding(
-                            get: { exerciseSetting.reductionPercent ?? 5.0 },
-                            set: { exerciseSetting.reductionPercent = $0 }
-                        ), format: .number)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 60)
-                        Text("%")
-                    }
-                    
-                    HStack {
-                        Text("Deload percent")
-                        Spacer()
-                        TextField("", value: Binding(
-                            get: { exerciseSetting.deloadPercent ?? 10.0 },
-                            set: { exerciseSetting.deloadPercent = $0 }
-                        ), format: .number)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 60)
-                        Text("%")
-                    }
-                }
-                
-                Section(header: Text("Progression")) {
-                    HStack {
-                        Text("Weight increment")
-                        Spacer()
-                        TextField("", value: Binding(
-                            get: { exerciseSetting.weightIncrement ?? 5.0 },
-                            set: { exerciseSetting.weightIncrement = $0 }
-                        ), format: .number)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 60)
-                        Text("lbs")
-                    }
-                    
-                    HStack {
-                        Text("Auto-deload frequency")
-                        Spacer()
-                        TextField("", value: Binding(
-                            get: { exerciseSetting.autoDeloadFrequency ?? 8 },
-                            set: { exerciseSetting.autoDeloadFrequency = $0 }
-                        ), format: .number)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 60)
-                        Text("weeks")
-                    }
-                }
-            } else {
-                Section {
-                    Text("This exercise is using the global default rules. Enable custom rules above to override.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-        .navigationTitle(exerciseSetting.exerciseName)
-        .onChange(of: exerciseSetting.useCustomRules) { _, _ in
-            try? context.save()
-        }
-    }
-}
-
-// MARK: - Integrations View (Placeholder)
-
-struct IntegrationsView: View {
-    var body: some View {
-        List {
-            NavigationLink(destination: HealthKitSettingsView()) {
-                HStack {
-                    Image(systemName: "heart.fill")
-                        .foregroundColor(.red)
-                    Text("Apple Health")
-                }
-            }
-            
-            NavigationLink(destination: StravaPlaceholderView()) {
-                HStack {
-                    Image(systemName: "figure.run")
-                        .foregroundColor(.orange)
-                    Text("Strava")
-                    Spacer()
-                    Text("Coming Soon")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-        .navigationTitle("Integrations")
-    }
-}
-
-// MARK: - Strava Placeholder
+// MARK: - Integrations Placeholder
 
 struct StravaPlaceholderView: View {
     var body: some View {
@@ -513,9 +460,10 @@ struct StravaPlaceholderView: View {
                 .font(.title2)
                 .fontWeight(.bold)
             
-            Text("Coming in the next update")
+            Text("Coming in a future update")
                 .foregroundColor(.secondary)
         }
         .padding()
+        .navigationTitle("Strava")
     }
 }

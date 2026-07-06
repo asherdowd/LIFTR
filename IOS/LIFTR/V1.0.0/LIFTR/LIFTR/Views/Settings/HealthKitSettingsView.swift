@@ -2,217 +2,200 @@ import SwiftUI
 import HealthKit
 
 struct HealthKitSettingsView: View {
-    @StateObject private var healthService = HealthKitService.shared
-    @State private var showAuthorizationAlert = false
-    @State private var showErrorAlert = false
-    @State private var errorMessage = ""
+    @StateObject private var healthKitService = HealthKitService.shared
+    @State private var showingAuthorizationAlert = false
+    @State private var authorizationError: Error?
     
     var body: some View {
-        Form {
-            // Status Section
-            Section {
+        List {
+            Section(header: Text("Authorization Status")) {
                 HStack {
-                    Image(systemName: healthService.isAuthorized ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                        .foregroundColor(healthService.isAuthorized ? .green : .orange)
-                    
                     Text("Status")
-                    
                     Spacer()
-                    
-                    Text(statusText)
-                        .foregroundColor(.secondary)
-                }
-                
-                if let lastSync = healthService.lastSyncDate {
-                    HStack {
-                        Image(systemName: "clock")
-                            .foregroundColor(.blue)
-                        Text("Last Sync")
-                        Spacer()
-                        Text(lastSync, style: .relative)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            } header: {
-                Text("Apple Health")
-            }
-            
-            // Authorization Section
-            if !healthService.isAuthorized {
-                Section {
-                    Button(action: requestAuthorization) {
-                        HStack {
-                            Image(systemName: "heart.circle.fill")
+                    if HKHealthStore.isHealthDataAvailable() {
+                        if healthKitService.isAuthorizedStatus {
+                            Label("Authorized", systemImage: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                        } else {
+                            Label("Not Authorized", systemImage: "xmark.circle.fill")
                                 .foregroundColor(.red)
-                            Text("Connect to Apple Health")
-                            Spacer()
-                            Image(systemName: "arrow.right")
-                                .foregroundColor(.secondary)
                         }
-                    }
-                } footer: {
-                    Text("Grant LIFTR permission to write workouts to Apple Health. Your workout data will be saved to the Health app.")
-                }
-            }
-            
-            // Sync Settings Section
-            if healthService.isAuthorized {
-                Section {
-                    Toggle(isOn: $healthService.syncEnabled) {
-                        HStack {
-                            Image(systemName: "arrow.triangle.2.circlepath")
-                                .foregroundColor(.blue)
-                            Text("Automatic Sync")
-                        }
-                    }
-                    .onChange(of: healthService.syncEnabled) { _, newValue in
-                        healthService.setSyncEnabled(newValue)
-                    }
-                } header: {
-                    Text("Sync Settings")
-                } footer: {
-                    Text(healthService.syncEnabled
-                         ? "Workouts will automatically sync to Apple Health when completed."
-                         : "Automatic sync is disabled. Workouts will not be sent to Apple Health.")
-                }
-                
-                // What Gets Synced Section
-                Section {
-                    InfoRow(icon: "figure.strengthtraining.traditional", 
-                           iconColor: .purple,
-                           title: "Strength Workouts",
-                           detail: "Sets, reps, weight, duration")
-                    
-                    InfoRow(icon: "figure.run",
-                           iconColor: .orange,
-                           title: "Cardio Sessions",
-                           detail: "Duration, distance, calories")
-                    
-                    InfoRow(icon: "flame.fill",
-                           iconColor: .red,
-                           title: "Calories Burned",
-                           detail: "When available")
-                    
-                    InfoRow(icon: "heart.fill",
-                           iconColor: .pink,
-                           title: "Heart Rate Data",
-                           detail: "Average and max BPM")
-                } header: {
-                    Text("What Gets Synced")
-                } footer: {
-                    Text("LIFTR syncs completed workouts to Apple Health as Strength Training or Cardio activities.")
-                }
-                
-                // Disconnect Section
-                Section {
-                    Button(role: .destructive, action: { showAuthorizationAlert = true }) {
-                        HStack {
-                            Image(systemName: "link.badge.minus")
-                            Text("Disconnect")
-                        }
-                    }
-                } footer: {
-                    Text("This will stop syncing workouts to Apple Health. Previously synced data will remain in the Health app.")
-                }
-            }
-            
-            // Device Compatibility
-            if !healthService.isHealthKitAvailable {
-                Section {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.orange)
-                        Text("HealthKit not available on this device")
+                    } else {
+                        Text("Not Available")
                             .foregroundColor(.secondary)
+                    }
+                }
+                
+                if !healthKitService.isAuthorizedStatus && HKHealthStore.isHealthDataAvailable() {
+                    Button("Request Authorization") {
+                        requestAuthorization()
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
+            
+            Section(header: Text("About")) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Apple Health Integration")
+                        .font(.headline)
+                    
+                    Text("LIFTR can sync your workout data to Apple Health, including:")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label("Workout duration and type", systemImage: "clock")
+                        Label("Calories burned", systemImage: "flame")
+                        Label("Heart rate data", systemImage: "heart")
+                    }
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+                }
+                .padding(.vertical, 4)
+            }
+            
+            if healthKitService.isAuthorizedStatus {
+                Section(header: Text("Sync Settings")) {
+                    NavigationLink(destination: RecentWorkoutsView()) {
+                        HStack {
+                            Image(systemName: "list.bullet")
+                            Text("Recent Workouts")
+                        }
                     }
                 }
             }
         }
         .navigationTitle("Apple Health")
-        .alert("Disconnect Apple Health?", isPresented: $showAuthorizationAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Disconnect", role: .destructive) {
-                disconnectHealthKit()
-            }
-        } message: {
-            Text("LIFTR will no longer sync workouts to Apple Health. You can reconnect at any time.")
-        }
-        .alert("Error", isPresented: $showErrorAlert) {
+        .alert("Authorization Error", isPresented: $showingAuthorizationAlert) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text(errorMessage)
+            if let error = authorizationError {
+                Text(error.localizedDescription)
+            } else {
+                Text("Failed to authorize HealthKit")
+            }
+        }
+        .onAppear {
+            healthKitService.checkAuthorizationStatus()
         }
     }
-    
-    // MARK: - Computed Properties
-    
-    private var statusText: String {
-        if !healthService.isHealthKitAvailable {
-            return "Not Available"
-        }
-        
-        switch healthService.authorizationStatus {
-        case .notDetermined:
-            return "Not Connected"
-        case .sharingDenied:
-            return "Denied"
-        case .sharingAuthorized:
-            return "Connected"
-        @unknown default:
-            return "Unknown"
-        }
-    }
-    
-    // MARK: - Actions
     
     private func requestAuthorization() {
-        Task {
-            do {
-                try await healthService.requestAuthorization()
-            } catch {
-                await MainActor.run {
-                    errorMessage = error.localizedDescription
-                    showErrorAlert = true
+        healthKitService.requestAuthorization { success, error in
+            if !success {
+                authorizationError = error
+                showingAuthorizationAlert = true
+            }
+        }
+    }
+}
+
+// MARK: - Recent Workouts View
+
+struct RecentWorkoutsView: View {
+    @StateObject private var healthKitService = HealthKitService.shared
+    @State private var recentWorkouts: [HKWorkout] = []
+    @State private var isLoading = false
+    
+    var body: some View {
+        Group {
+            if isLoading {
+                ProgressView("Loading workouts...")
+            } else if recentWorkouts.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "figure.run.circle")
+                        .font(.system(size: 60))
+                        .foregroundColor(.secondary)
+                    Text("No recent workouts")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                List(recentWorkouts, id: \.uuid) { workout in
+                    WorkoutRowView(workout: workout)
+                }
+            }
+        }
+        .navigationTitle("Recent Workouts")
+        .onAppear {
+            loadRecentWorkouts()
+        }
+    }
+    
+    private func loadRecentWorkouts() {
+        isLoading = true
+        healthKitService.fetchRecentWorkouts(limit: 20) { workouts, error in
+            DispatchQueue.main.async {
+                isLoading = false
+                if let workouts = workouts {
+                    recentWorkouts = workouts
                 }
             }
         }
     }
-    
-    private func disconnectHealthKit() {
-        healthService.setSyncEnabled(false)
-        // Note: Cannot revoke HealthKit authorization programmatically
-        // User must go to Settings > Privacy > Health > LIFTR to revoke
-    }
 }
 
-// MARK: - Helper Views
-
-struct InfoRow: View {
-    let icon: String
-    let iconColor: Color
-    let title: String
-    let detail: String
+struct WorkoutRowView: View {
+    let workout: HKWorkout
     
     var body: some View {
-        HStack {
-            Image(systemName: icon)
-                .foregroundColor(iconColor)
-                .frame(width: 24)
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                Text(detail)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Image(systemName: iconForWorkoutType(workout.workoutActivityType))
+                    .foregroundColor(.blue)
+                Text(nameForWorkoutType(workout.workoutActivityType))
+                    .font(.headline)
+                Spacer()
+                Text(workout.startDate, style: .date)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            
+            HStack(spacing: 16) {
+                Label(workout.formattedDuration, systemImage: "clock")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                if let calories = workout.formattedCalories {
+                    Label(calories, systemImage: "flame")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+    
+    private func iconForWorkoutType(_ type: HKWorkoutActivityType) -> String {
+        switch type {
+        case .traditionalStrengthTraining:
+            return "dumbbell"
+        case .running:
+            return "figure.run"
+        case .cycling:
+            return "bicycle"
+        case .swimming:
+            return "figure.pool.swim"
+        default:
+            return "figure.walk"
         }
     }
-}
-
-// MARK: - Preview
-
-#Preview {
-    NavigationStack {
-        HealthKitSettingsView()
+    
+    private func nameForWorkoutType(_ type: HKWorkoutActivityType) -> String {
+        switch type {
+        case .traditionalStrengthTraining:
+            return "Strength Training"
+        case .running:
+            return "Running"
+        case .cycling:
+            return "Cycling"
+        case .swimming:
+            return "Swimming"
+        case .mixedCardio:
+            return "Mixed Cardio"
+        default:
+            return "Workout"
+        }
     }
 }

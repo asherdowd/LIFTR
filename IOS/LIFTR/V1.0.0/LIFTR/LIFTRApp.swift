@@ -7,19 +7,16 @@ struct LiftrApp: App {
     
     init() {
         do {
-            // Use versioned schema with migration plan
-            let schema = Schema(versionedSchema: CurrentSchema.self)
+            // Use SchemaV2 (new unified architecture)
+            let schema = Schema(versionedSchema: SchemaV2.self)
             let modelConfiguration = ModelConfiguration(schema: schema)
             
             container = try ModelContainer(
                 for: schema,
-                migrationPlan: LIFTRMigrationPlan.self,
                 configurations: [modelConfiguration]
             )
             
-            // Run migration checks on startup
-            let context = container.mainContext
-            MigrationService.performStartupChecks(context: context)
+            // Fresh V2 database - no migration needed
             
         } catch {
             fatalError("Failed to initialize ModelContainer: \(error)")

@@ -13,101 +13,35 @@ class MigrationService {
     static func performStartupChecks(context: ModelContext) {
         print("🔄 MigrationService: Starting startup checks...")
         
-        // Run all migration repairs in order
-        repairV1toV2_RestTimerDefaults(context: context)
-        
-        // Future migrations will be added here:
-        // repairV2toV3_StravaIntegration(context: context)
-        // repairV3toV4_UserProfileExpansion(context: context)
+        // V2 uses fresh schema - no migrations needed from V1
+        // Future migrations will be added here when moving to V3:
+        // repairV2toV3_NewFeature(context: context)
         
         print("✅ MigrationService: All checks complete")
     }
     
-    // MARK: - V1 → V2 Migration (Rest Timer Settings)
+    // MARK: - Future Migrations
     
-    /// Repairs V1 to V2 migration by setting default values for rest timer properties
-    /// V2 added: defaultRestTime, autoStartRestTimer, restTimerSound, restTimerHaptic
-    /// This runs once for users upgrading from V1 (Build 4 or earlier) to V2 (Build 5+)
-    private static func repairV1toV2_RestTimerDefaults(context: ModelContext) {
+    /// V2 → V3 Migration Template
+    /// Uncomment and implement when V3 is released
+    /*
+    private static func repairV2toV3_NewFeature(context: ModelContext) {
         do {
-            let descriptor = FetchDescriptor<GlobalProgressionSettings>()
+            let descriptor = FetchDescriptor<GlobalWorkoutSettings>()
             let settings = try context.fetch(descriptor)
             
             guard let currentSettings = settings.first else {
-                print("⚠️  No GlobalProgressionSettings found - will be created on first use")
+                print("⚠️  No GlobalWorkoutSettings found - will be created on first use")
                 return
             }
             
-            // Check if this is a V1 → V2 upgrade
-            // V1 data will have defaultRestTime = 0 (Int default)
-            if currentSettings.defaultRestTime == 0 {
-                print("🔧 V1→V2 Migration: Setting rest timer defaults")
-                
-                currentSettings.defaultRestTime = 180        // 3 minutes
-                currentSettings.autoStartRestTimer = true
-                currentSettings.restTimerSound = true
-                currentSettings.restTimerHaptic = true
-                
-                try context.save()
-                print("✅ V1→V2 Migration: Rest timer defaults applied")
-            } else {
-                print("✓ V1→V2 Migration: Already completed (defaultRestTime = \(currentSettings.defaultRestTime)s)")
-            }
+            // Check if migration is needed
+            // Apply migration logic here
             
+            try context.save()
+            print("✅ V2→V3 Migration: Complete")
         } catch {
-            print("❌ V1→V2 Migration failed: \(error.localizedDescription)")
-            // Don't crash - log error and continue
-            // User can still use app, just with wrong defaults
-        }
-    }
-    
-    // MARK: - Future Migrations
-    
-    /// V2 → V3 Migration (Strava Integration)
-    /// Planned: Add startTime, endTime, totalDuration, stravaActivityId to sessions
-    /// Uncomment and implement when V3 is released
-    /*
-    private static func repairV2toV3_StravaIntegration(context: ModelContext) {
-        do {
-            // Fetch all WorkoutSession, ExerciseSession, CardioSession
-            // Set default values for new Strava properties
-            // Example:
-            // let descriptor = FetchDescriptor<WorkoutSession>()
-            // let sessions = try context.fetch(descriptor)
-            // for session in sessions {
-            //     if session.stravaActivityId == nil {
-            //         // This is old data, initialize new properties
-            //         session.syncedToStrava = false
-            //     }
-            // }
-            // try context.save()
-            print("✅ V2→V3 Migration: Strava properties initialized")
-        } catch {
-            print("❌ V2→V3 Migration failed: \(error)")
-        }
-    }
-    */
-    
-    /// V3 → V4 Migration (User Profile Expansion)
-    /// Planned: Expand User model with body measurements, preferences
-    /// Uncomment and implement when V4 is released
-    /*
-    private static func repairV3toV4_UserProfileExpansion(context: ModelContext) {
-        do {
-            // Fetch User
-            // Set default values for new profile properties
-            // Example:
-            // let descriptor = FetchDescriptor<User>()
-            // let users = try context.fetch(descriptor)
-            // for user in users {
-            //     if user.experienceLevel == nil {
-            //         user.experienceLevel = "Beginner"
-            //     }
-            // }
-            // try context.save()
-            print("✅ V3→V4 Migration: User profile expanded")
-        } catch {
-            print("❌ V3→V4 Migration failed: \(error)")
+            print("❌ V2→V3 Migration failed: \(error.localizedDescription)")
         }
     }
     */
@@ -159,9 +93,8 @@ class MigrationService {
  5. Test migration path with old data
  6. Update CRITICAL_REMINDERS.md
  
- CURRENT SCHEMA VERSION: V3 (Strava + Apple Health - March 6, 2026)
- NEXT VERSION: V3 (Strava Integration - TBD)
+ CURRENT SCHEMA VERSION: V2 (Unified Architecture - Build 10)
+ NEXT VERSION: V3 (TBD)
  
  See Docs/DATABASE_SCHEMA.md for complete schema history.
- See Docs/DATA_MIGRATION_POLICY.md for migration procedures.
  */

@@ -3,44 +3,35 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         TabView {
-            MainViewWithSettings()
-                .tabItem { Label("Main", systemImage: "house") }
+            TodayViewWithSettings()
+                .tabItem {
+                    Label("Today", systemImage: "calendar.badge.clock")
+                }
+            
+            PlansView() 
+                .tabItem {
+                    Label("Plans", systemImage: "list.bullet.clipboard")
+                }
             
             InventoryView()
-                .tabItem { Label("Inventory", systemImage: "cube.box") }
+                .tabItem {
+                    Label("Inventory", systemImage: "cube.box")
+                }
             
-            CalculatorView()
-                .tabItem { Label("Calculator", systemImage: "function") }
-            
-            WorkoutsView()
-                .tabItem { Label("Workouts", systemImage: "calendar") }
-            
-            AnalyticsView()
-                .tabItem { Label("Analytics", systemImage: "chart.bar") }
-            // WorkoutSessionTestLauncher()
-               // .tabItem { Label("Tests", systemImage: "ladybug") }
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
+                }
         }
     }
 }
 
-// MARK: - Main View with Settings Button
+// MARK: - Today View with Settings in Toolbar
 
-struct MainViewWithSettings: View {
-    @State private var showSettings = false
-    
+struct TodayViewWithSettings: View {
     var body: some View {
-        NavigationView {
-            MainView()
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: { showSettings = true }) {
-                            Image(systemName: "gear")
-                        }
-                    }
-                }
-        }
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
+        NavigationStack {
+            TodayView()
         }
     }
 }

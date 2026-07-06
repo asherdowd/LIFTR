@@ -1,39 +1,44 @@
 import Foundation
 import SwiftData
 
-/// Model type aliases
-/// Maps friendly names to the current schema version
-/// Views use these names (User, WorkoutSession, etc.) which automatically
-/// point to the correct schema version (CurrentSchema.User, etc.)
-///
-/// When CurrentSchema updates to V2, all these automatically point to V2 models
-/// No view code changes needed!
+/// Model type aliases - V2
 
-// User Models
+typealias CurrentSchema = SchemaV2
+
+// MARK: - V2 Models
+
+typealias Plan = CurrentSchema.Plan
+typealias ScheduledWorkout = CurrentSchema.ScheduledWorkout
+typealias WorkoutExercise = CurrentSchema.WorkoutExercise
+typealias WorkoutSet = CurrentSchema.WorkoutSet  // ← RENAMED from Set
+typealias PlannedExercise = CurrentSchema.PlannedExercise
+typealias CustomExercise = CurrentSchema.CustomExercise
+typealias GlobalWorkoutSettings = CurrentSchema.GlobalWorkoutSettings
+
+// MARK: - Unchanged from V1 (but copied into V2)
+
 typealias User = CurrentSchema.User
-
-// Settings Models  
-typealias GlobalProgressionSettings = CurrentSchema.GlobalProgressionSettings
-typealias ExerciseProgressionSettings = CurrentSchema.ExerciseProgressionSettings
-
-// Inventory Models
 typealias PlateItem = CurrentSchema.PlateItem
 typealias BarItem = CurrentSchema.BarItem
 typealias CollarItem = CurrentSchema.CollarItem
+typealias ExerciseProgressionSettings = CurrentSchema.ExerciseProgressionSettings
 
-// Shared Models
-typealias WorkoutSet = CurrentSchema.WorkoutSet
+// MARK: - V2 Supporting Types
 
-// Strength Models
-typealias Progression = CurrentSchema.Progression
-typealias WorkoutSession = CurrentSchema.WorkoutSession
+typealias ExerciseDefinition = CurrentSchema.ExerciseDefinition
+typealias ExerciseCategory = CurrentSchema.ExerciseCategory
+typealias ExerciseStyle = CurrentSchema.ExerciseStyle
+typealias ExerciseType = CurrentSchema.ExerciseType
+typealias PlanType = CurrentSchema.PlanType
+typealias PlanStatus = CurrentSchema.PlanStatus
+typealias ProgressionStyle = CurrentSchema.ProgressionStyle
+typealias WarmupStyle = CurrentSchema.WarmupStyle
+typealias WarmupRepsStyle = CurrentSchema.WarmupRepsStyle
+typealias WorkoutType = CurrentSchema.WorkoutType
+typealias AdjustmentMode = CurrentSchema.AdjustmentMode
+typealias DefaultView = CurrentSchema.DefaultView
+typealias DayOfWeek = CurrentSchema.DayOfWeek
 
-// Program Models
-typealias Program = CurrentSchema.Program
-typealias TrainingDay = CurrentSchema.TrainingDay
-typealias ProgramExercise = CurrentSchema.ProgramExercise
-typealias ExerciseSession = CurrentSchema.ExerciseSession
+// MARK: - UI Helpers
 
-// Cardio Models
-typealias CardioProgression = CurrentSchema.CardioProgression
-typealias CardioSession = CurrentSchema.CardioSession
+typealias PresetProfile = CurrentSchema.PresetProfile
