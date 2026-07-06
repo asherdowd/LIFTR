@@ -2,7 +2,7 @@
 
 **Last Updated:** July 6, 2026  
 **Version:** 1.2.1 (Build 7)  
-**Schema Version:** V2 (with rest timer settings)
+**Schema Version:** V3 (Exercise identity + relationships)
 
 This document describes the complete SwiftData model structure for LIFTR.
 
@@ -13,7 +13,7 @@ This document describes the complete SwiftData model structure for LIFTR.
 ### Core Model Files:
 1. `Models/SettingsModels.swift` - Settings & preferences
 2. `Models/StrengthModels.swift` - Progressions & workout sessions
-3. `Models/SharedModels.swift` - Shared models (WorkoutSet, enums)
+3. `Models/SharedModels.swift` - Shared models (WorkoutSet, Exercise, enums)
 4. `Models/ProgramModels.swift` - Program system models
 5. `Models/CardioModels.swift` - Cardio progressions
 6. `Models/InventoryModels.swift` - Equipment inventory
@@ -64,7 +64,8 @@ This document describes the complete SwiftData model structure for LIFTR.
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `id` | UUID | UUID() | Unique identifier |
-| `exerciseName` | String | - | Exercise name |
+| `exerciseName` | String | - | Exercise name (legacy free-text, retained) |
+| `exercise` | Exercise? | nil | Relationship to canonical Exercise (nil until reconciled) ⚠️ V3 |
 | `useCustomRules` | Bool | false | Use custom rules vs global |
 | `excellentThreshold` | Int? | nil | Override: excellent threshold |
 | `goodThreshold` | Int? | nil | Override: good threshold |
@@ -74,7 +75,9 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `weightIncrement` | Double? | nil | Override: weight increment |
 | `autoDeloadFrequency` | Int? | nil | Override: deload frequency |
 
-**Relationships:** None  
+**Relationships:**
+- `exercise`: Exercise? (nil until reconciled via ExerciseReconciliationView)
+
 **Cardinality:** 0 or more instances
 
 ---
@@ -88,7 +91,8 @@ This document describes the complete SwiftData model structure for LIFTR.
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `id` | UUID | UUID() | Unique identifier |
-| `exerciseName` | String | - | Exercise name (e.g., "Squat") |
+| `exerciseName` | String | - | Exercise name (legacy free-text, retained) |
+| `exercise` | Exercise? | nil | Relationship to canonical Exercise (nil until reconciled) ⚠️ V3 |
 | `templateType` | TemplateType | - | Template used |
 | `progressionStyle` | ProgressionStyle | - | Progression style (linear, periodization, etc.) |
 | `status` | ProgressionStatus | .active | Active/Paused/Completed |
@@ -102,6 +106,7 @@ This document describes the complete SwiftData model structure for LIFTR.
 
 **Relationships:**
 - `sessions`: [WorkoutSession] (cascade delete)
+- `exercise`: Exercise? (nil until reconciled)
 
 ---
 
@@ -150,8 +155,18 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `completed` | Bool | false | Completion status |
 | `notes` | String? | nil | Optional notes |
 
+**Relationships:**
+- `session`: WorkoutSession? (parent - legacy)
+
+**Computed Properties:**
+- `wasSuccessful`: actualReps >= targetReps
+
+**Note:** Used by both Progressions AND Programs
+
+---
+
 ### Exercise
-**Purpose:** Canonical exercise identity, referenced by Progression/ProgramExercise/ExerciseProgressionSettings/Cardio (future)
+**Purpose:** Canonical exercise identity, referenced by Progression/ProgramExercise/ExerciseProgressionSettings/CardioProgression  
 **File:** `Models/SharedModels.swift`
 
 | Property | Type | Default | Description |
@@ -160,17 +175,12 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `name` | String | - | User-facing alias (e.g., "Straight Leg Deadlift") |
 | `coreType` | ExerciseCoreType | - | Required canonical type, developer-controlled list |
 
-**Relationships:** None yet — added in a future model change once Progression/ProgramExercise/ExerciseProgressionSettings/Cardio are migrated to reference it.
+**Relationships:**
+- Referenced by `Progression.exercise`, `ProgramExercise.exercise`, `ExerciseProgressionSettings.exercise`, `CardioProgression.exercise` (all optional, nil until reconciled)
+
 **Cardinality:** 0 or more instances
 
-**Note:** This is a new, independent model with no relationships to existing data — per CRITICAL_REMINDERS.md's "Safe Changes" rule, no migration is required for this addition.
-**Relationships:**
-- `session`: WorkoutSession? (parent - legacy)
-
-**Computed Properties:**
-- `wasSuccessful`: actualReps >= targetReps
-
-**Note:** Used by both Progressions AND Programs
+**Note:** Added in V2 (Build 7 dev) as an independent model requiring no migration. Relationships from the four models above were added in V3, requiring the interactive reconciliation flow described below (not a MigrationService repair function, since there is no single correct default `coreType` to auto-assign for existing data).
 
 ---
 
@@ -223,7 +233,8 @@ This document describes the complete SwiftData model structure for LIFTR.
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `id` | UUID | UUID() | Unique identifier |
-| `exerciseName` | String | - | Exercise name |
+| `exerciseName` | String | - | Exercise name (legacy free-text, retained) |
+| `exercise` | Exercise? | nil | Relationship to canonical Exercise (nil until reconciled) ⚠️ V3 |
 | `orderIndex` | Int | - | Order in workout |
 | `startingWeight` | Double | - | Starting weight |
 | `currentWeight` | Double | - | Current weight (auto-progressed) |
@@ -234,6 +245,7 @@ This document describes the complete SwiftData model structure for LIFTR.
 
 **Relationships:**
 - `trainingDay`: TrainingDay? (parent)
+- `exercise`: Exercise? (nil until reconciled)
 
 ---
 
@@ -255,7 +267,7 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `notes` | String? | nil | Optional notes |
 
 **Relationships:**
-- `exercise`: ProgramExercise? (parent)
+- `exercise`: ProgramExercise? (parent — note: this is the ProgramExercise relationship, unrelated to the new Exercise model)
 - `trainingDay`: TrainingDay? (grandparent)
 - `sets`: [WorkoutSet] (cascade delete)
 
@@ -278,11 +290,20 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `startDate` | Date | Date() | Start date |
 | `totalWeeks` | Int | - | Total duration |
 | `currentWeek` | Int | 1 | Current week |
+| `targetDistance` | Double? | nil | Target distance (running/swimming) |
+| `startingWeeklyDistance` | Double? | nil | Starting weekly distance |
+| `exerciseName` | String? | nil | Legacy free-text name (calisthenics/CrossFit use case), retained |
+| `exercise` | Exercise? | nil | Relationship to canonical Exercise (nil until reconciled) ⚠️ V3 |
+| `targetReps` | Int? | nil | Target reps (calisthenics) |
+| `startingReps` | Int? | nil | Starting reps (calisthenics) |
+| `workoutType` | CrossFitWorkoutType? | nil | CrossFit workout type |
+| `workoutDescription` | String? | nil | CrossFit workout description |
 | `useMetric` | Bool | false | Use km vs miles |
 | `notes` | String? | nil | Optional notes |
 
 **Relationships:**
 - `sessions`: [CardioSession] (cascade delete)
+- `exercise`: Exercise? (nil until reconciled)
 
 ---
 
@@ -451,17 +472,21 @@ enum CardioType: String, Codable, CaseIterable {
     case freeCardio = "Free Cardio"
 }
 ```
+
+---
+
 ### ExerciseCoreType
 **File:** `Models/SharedModels.swift`
 
-​```swift
+```swift
 enum ExerciseCoreType: String, Codable, CaseIterable {
     case deadlift = "Deadlift"
     case squat = "Squat"
     case benchPress = "Bench Press"
     case overheadPress = "Overhead Press"
 }
-​```
+```
+
 ---
 
 ## 📊 RELATIONSHIP DIAGRAM
@@ -472,25 +497,29 @@ GlobalProgressionSettings (singleton)
 User (singleton)
 
 Progression
-  └── WorkoutSession (1:many)
-       └── WorkoutSet (1:many)
+  ├── WorkoutSession (1:many)
+  │    └── WorkoutSet (1:many)
+  └── exercise: Exercise? (nil until reconciled)
 
 Program
   └── TrainingDay (1:many)
        ├── ProgramExercise (1:many)
+       │    └── exercise: Exercise? (nil until reconciled)
        └── ExerciseSession (1:many)
             └── WorkoutSet (1:many)
 
 CardioProgression
-  └── CardioSession (1:many)
+  ├── CardioSession (1:many)
+  └── exercise: Exercise? (nil until reconciled)
+
+Exercise (independent — referenced by the three above plus ExerciseProgressionSettings)
 
 PlateItem (independent)
 BarItem (independent)
 CollarItem (independent)
 
-Exercise (independent, standalone for now — 0:many)
-
 ExerciseProgressionSettings (independent, 0:many)
+  └── exercise: Exercise? (nil until reconciled)
 ```
 
 ---
@@ -501,19 +530,31 @@ ExerciseProgressionSettings (independent, 0:many)
 **Date:** January 1 - January 26, 2026  
 **Models:** All above models WITHOUT rest timer properties in GlobalProgressionSettings
 
-### V2 (With Rest Timer) ⚠️ CURRENT
-**Date:** January 27, 2026  
+### V2 (With Rest Timer + Exercise model)
+**Date:** January 27, 2026 (rest timer); July 6, 2026 (Exercise model added, no relationships yet)  
 **Changes:**
 - Added `defaultRestTime: Int` to GlobalProgressionSettings
 - Added `autoStartRestTimer: Bool` to GlobalProgressionSettings
 - Added `restTimerSound: Bool` to GlobalProgressionSettings
 - Added `restTimerHaptic: Bool` to GlobalProgressionSettings
+- Added `Exercise` model (independent, no relationships — no migration required)
 
 **Migration V1→V2:**
 - Set `defaultRestTime = 180` (3 minutes)
 - Set `autoStartRestTimer = true`
 - Set `restTimerSound = true`
 - Set `restTimerHaptic = true`
+- (Exercise model addition required no migration steps)
+
+### V3 (Exercise Identity Relationships) ⚠️ CURRENT
+**Date:** July 6, 2026  
+**Changes:**
+- Added `exercise: Exercise?` relationship to Progression, ProgramExercise, ExerciseProgressionSettings, CardioProgression
+- `exerciseName`/legacy free-text fields retained on all four (not removed) as fallback until fully reconciled
+
+**Migration V2→V3:**
+- No MigrationService repair function — there is no single correct default `coreType` to silently assign.
+- Handled via new interactive flow: `RootView` detects any record with a legacy exercise name and `exercise == nil`, and routes to `ExerciseReconciliationView` instead of `ContentView` until the user assigns a `coreType` to every distinct legacy name. Confirmed via device testing (fresh install: screen does not appear; upgrade over existing data: screen appears with correct names, resolves correctly, does not reappear after).
 
 ---
 
@@ -524,16 +565,18 @@ ExerciseProgressionSettings (independent, 0:many)
 3. **WorkoutSet is shared** - used by both Progressions and Programs
 4. **Cascade deletes** - deleting parent deletes children
 5. **Schema migration required** - V1 data cannot load in V2 without migration
+6. **exerciseName fields are NOT removed** - `Exercise` relationships were added alongside legacy free-text fields, not as replacements. Removing the legacy fields is a distinct, future, separately-considered change.
 
 ---
 
 ## 📝 FUTURE SCHEMA CHANGES
 
-**Potential V3 Changes:**
+**Potential future changes:**
 - Add `startTime`, `endTime`, `totalDuration` to sessions (for Strava)
 - Expand User model (age, weight, height, measurements)
 - Add social features (following, sharing, etc.)
-- - ~~Add custom exercise library~~ → Exercise model with stable identity added (see Exercise section above); migration of existing models to reference it + seed/picker UI still pending
+- Seed Exercise with common presets + picker UI (tracked separately, blocked by this work)
+- Consider removing legacy `exerciseName` fields once fully confident all data is reconciled (not yet planned)
 
 ---
 

@@ -23,7 +23,8 @@ struct LiftrApp: App {
                 WorkoutSession.self,
                 WorkoutSet.self,
                 CardioProgression.self,
-                CardioSession.self
+                CardioSession.self,
+                Exercise.self
             )
             
             // Run migration checks on startup
@@ -37,7 +38,7 @@ struct LiftrApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
         .modelContainer(container)
     }

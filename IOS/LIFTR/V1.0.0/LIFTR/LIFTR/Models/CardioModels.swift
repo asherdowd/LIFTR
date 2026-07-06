@@ -66,6 +66,7 @@ class CardioProgression {
     var startingWeeklyDistance: Double?
     
     var exerciseName: String?
+    var exercise: Exercise?
     var targetReps: Int?
     var startingReps: Int?
     
@@ -89,6 +90,7 @@ class CardioProgression {
         targetDistance: Double? = nil,
         startingWeeklyDistance: Double? = nil,
         exerciseName: String? = nil,
+        exercise: Exercise? = nil,
         targetReps: Int? = nil,
         startingReps: Int? = nil,
         workoutType: CrossFitWorkoutType? = nil,
@@ -106,6 +108,7 @@ class CardioProgression {
         self.targetDistance = targetDistance
         self.startingWeeklyDistance = startingWeeklyDistance
         self.exerciseName = exerciseName
+        self.exercise = exercise
         self.targetReps = targetReps
         self.startingReps = startingReps
         self.workoutType = workoutType

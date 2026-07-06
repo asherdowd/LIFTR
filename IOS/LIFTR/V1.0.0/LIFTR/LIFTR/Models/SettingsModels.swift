@@ -156,6 +156,7 @@ class GlobalProgressionSettings {
 class ExerciseProgressionSettings {
     var id: UUID
     var exerciseName: String
+    var exercise: Exercise?
     var useCustomRules: Bool
     
     var excellentThreshold: Int?
@@ -170,6 +171,7 @@ class ExerciseProgressionSettings {
     init(
         id: UUID = UUID(),
         exerciseName: String,
+        exercise: Exercise? = nil,
         useCustomRules: Bool = false,
         excellentThreshold: Int? = nil,
         goodThreshold: Int? = nil,
@@ -181,6 +183,7 @@ class ExerciseProgressionSettings {
     ) {
         self.id = id
         self.exerciseName = exerciseName
+        self.exercise = exercise
         self.useCustomRules = useCustomRules
         self.excellentThreshold = excellentThreshold
         self.goodThreshold = goodThreshold

@@ -61,6 +61,8 @@
 		ECC8E9E82E8F8CF500E76F7D /* StrengthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E72E8F8CF500E76F7D /* StrengthModels.swift */; };
 		ECC8E9EA2E8F8D0300E76F7D /* CardioModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */; };
 		ECC8E9EC2E8F8D1100E76F7D /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */; };
+		ECEAD3212FFC2B0100AA541E /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECEAD3202FFC2AFB00AA541E /* RootView.swift */; };
+		ECEAD3232FFC2B4800AA541E /* ExerciseReconciliationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECEAD3222FFC2B3400AA541E /* ExerciseReconciliationView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -161,6 +163,8 @@
 		ECC8E9E72E8F8CF500E76F7D /* StrengthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthModels.swift; sourceTree = "<group>"; };
 		ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioModels.swift; sourceTree = "<group>"; };
 		ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		ECEAD3202FFC2AFB00AA541E /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		ECEAD3222FFC2B3400AA541E /* ExerciseReconciliationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseReconciliationView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -413,6 +417,8 @@
 		ECC8E9BF2E6B5C6900E76F7D /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				ECEAD3222FFC2B3400AA541E /* ExerciseReconciliationView.swift */,
+				ECEAD3202FFC2AFB00AA541E /* RootView.swift */,
 				EC88A8B22F2854310005A456 /* Settings */,
 				EC88A8B12F27BA7F0005A456 /* Shared */,
 				EC0D7B232F1CA7E500596B36 /* Analytics */,
@@ -628,6 +634,7 @@
 				EC0D7B102F1C18A000596B36 /* CalculatorViewWrapper.swift in Sources */,
 				EC0D7B112F1C18A000596B36 /* LogSetView.swift in Sources */,
 				EC0D7B122F1C18A000596B36 /* PerformanceSummaryView.swift in Sources */,
+				ECEAD3232FFC2B4800AA541E /* ExerciseReconciliationView.swift in Sources */,
 				EC0D7B132F1C18A000596B36 /* SetRowView.swift in Sources */,
 				EC0D7B142F1C18A000596B36 /* WorkoutSessionView.swift in Sources */,
 				ECC8E9C82E6B5EE000E76F7D /* MainView.swift in Sources */,
@@ -636,6 +643,7 @@
 				EC4DC0D62E91C26000340825 /* EditCardioProgressionView.swift in Sources */,
 				ECC8E9952E6B56F000E76F7D /* Item.swift in Sources */,
 				ECC8E9912E6B56F000E76F7D /* LIFTRApp.swift in Sources */,
+				ECEAD3212FFC2B0100AA541E /* RootView.swift in Sources */,
 				EC88A8BA2F2854A00005A456 /* ProgressionSettingsSections.swift in Sources */,
 				ECC8E9DE2E8F852E00E76F7D /* EditProgressionView.swift in Sources */,
 				EC0D7B2D2F255D9700596B36 /* EditProgramView.swift in Sources */,
