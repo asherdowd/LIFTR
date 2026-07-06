@@ -26,7 +26,7 @@ This document contains critical rules that must ALWAYS be followed when making c
    - Document what changed
    - List migration steps needed
 
-**3. Add repair function to MigrationService.swift:**
+**3. Add repair function to MigrationService.swift — OR, if there is no single correct default value to silently assign (e.g., a required field with no safe universal default), design an interactive resolution flow instead. See "V2→V3: Exercise Identity" below for a worked example of this second pattern.**
    ```swift
    private static func repairV2toV3Migration(context: ModelContext) {
        // Add default values for new properties
@@ -49,7 +49,7 @@ This document contains critical rules that must ALWAYS be followed when making c
 
 - ✅ `Models/SettingsModels.swift` - GlobalProgressionSettings, ExerciseProgressionSettings
 - ✅ `Models/StrengthModels.swift` - Progression, WorkoutSession
-- ✅ `Models/SharedModels.swift` - WorkoutSet
+- ✅ `Models/SharedModels.swift` - WorkoutSet, Exercise
 - ✅ `Models/ProgramModels.swift` - Program, TrainingDay, ProgramExercise, ExerciseSession
 - ✅ `Models/CardioModels.swift` - CardioProgression, CardioSession
 - ✅ `Models/InventoryModels.swift` - PlateItem, BarItem, CollarItem
@@ -78,6 +78,7 @@ This document contains critical rules that must ALWAYS be followed when making c
    @Model
    class NewFeature { ... }  // Completely new, no foreign keys
    ```
+   Example: `Exercise` was added this way in V2 (no relationships yet, no migration required).
 
 4. **Modifying views** (UI changes don't affect data)
 
@@ -118,6 +119,7 @@ This document contains critical rules that must ALWAYS be followed when making c
    // REQUIRES MIGRATION
    @Relationship var newRelation: [OtherModel]
    ```
+   Example: adding `exercise: Exercise?` to Progression/ProgramExercise/ExerciseProgressionSettings/CardioProgression in V3 required migration — handled via an interactive reconciliation screen rather than a repair function, since `coreType` has no safe universal default (see below).
 
 ---
 
@@ -138,7 +140,7 @@ Add to the "Schema Versions" section:
 - Set `propertyName = defaultValue` for existing records
 ```
 
-### **Step 2: Add Repair Function to MigrationService.swift**
+### **Step 2: Add Repair Function to MigrationService.swift (default case)**
 
 ```swift
 private static func repairVXtoVYMigration(context: ModelContext) {
@@ -163,12 +165,21 @@ private static func repairVXtoVYMigration(context: ModelContext) {
 }
 ```
 
-### **Step 3: Call from performStartupChecks()**
+**Step 2 (alternative) — Interactive resolution, when no safe default exists:**
+
+Some changes have no single correct value to silently assign for existing data (e.g., V3's `Exercise.coreType`, a required field with no universal default). For these, build a blocking resolution screen instead of a repair function:
+
+- A detection view (e.g. `RootView`) queries for any record still needing resolution (new relationship still `nil`, legacy field still present)
+- If any exist, show a dedicated resolution screen instead of the normal app entry point, requiring the user to make the necessary choice(s) before proceeding
+- Once resolved, the app falls through to normal entry automatically (no separate "migration complete" flag needed if the detection query naturally returns empty once resolved)
+- This does NOT get added to `performStartupChecks()` — it lives in the View layer, since it needs `@Query`/user interaction, not a fire-and-forget context operation
+
+### **Step 3: Call from performStartupChecks() (default-value migrations only)**
 
 ```swift
 static func performStartupChecks(context: ModelContext) {
     repairRestTimerDefaults(context: context)  // V1→V2
-    repairV2toV3Migration(context: context)     // V2→V3 ← ADD NEW
+    repairV2toV3Migration(context: context)     // V2→V3 ← ADD NEW (only if a repair function, not interactive resolution)
     // Add future migrations here
 }
 ```
@@ -188,7 +199,12 @@ static func performStartupChecks(context: ModelContext) {
 
 ## 📝 CURRENT SCHEMA VERSION
 
-**As of January 27, 2026:**
+**As of July 6, 2026:**
+- **Version:** V3
+- **Changes from V2:** Added `exercise: Exercise?` relationship to Progression, ProgramExercise, ExerciseProgressionSettings, CardioProgression
+- **Migration:** Handled by interactive resolution (`RootView` + `ExerciseReconciliationView`), NOT a MigrationService repair function — see "Step 2 (alternative)" above
+
+**Previously, as of January 27, 2026:**
 - **Version:** V2
 - **Changes from V1:** Added rest timer properties to GlobalProgressionSettings
   - `defaultRestTime: Int`
@@ -197,7 +213,7 @@ static func performStartupChecks(context: ModelContext) {
   - `restTimerHaptic: Bool`
 - **Migration:** Handled by `repairRestTimerDefaults()` in MigrationService.swift
 
-**Next Version Will Be:** V3
+**Next Version Will Be:** V4
 
 ---
 
@@ -207,7 +223,7 @@ Before committing ANY model changes:
 
 - [ ] Did I modify any @Model class?
 - [ ] Did I update DATABASE_SCHEMA.md?
-- [ ] Did I add a repair function to MigrationService.swift?
+- [ ] Did I add a repair function to MigrationService.swift, OR determine an interactive resolution flow is needed instead (and build it)?
 - [ ] Did I test the migration path?
 - [ ] Did I update CRITICAL_REMINDERS.md with new version?
 
@@ -225,13 +241,15 @@ Before committing ANY model changes:
 - ❌ Forget to document schema changes
 - ❌ Add properties without setting defaults in migration
 - ❌ Make breaking changes without a migration plan
+- ❌ Silently auto-assign a value for a required field when there is no safe universal default — build an interactive resolution flow instead
 
 ---
 
 ## 📚 RELATED DOCUMENTATION
 
 - `Docs/DATABASE_SCHEMA.md` - Complete schema documentation
-- `Services/MigrationService.swift` - Migration repair functions
+- `Services/MigrationService.swift` - Migration repair functions (default-value migrations only)
+- `Views/RootView.swift` / `Views/ExerciseReconciliationView.swift` - Interactive resolution migrations
 - `Docs/PLACEHOLDER_FEATURES.md` - Planned future changes (check for model impacts)
 
 ---
@@ -251,6 +269,10 @@ Before committing ANY model changes:
 3. "What happens if I install this on a device with old data?"
    - If "data is lost" or "app crashes" → Need migration
    - If "works fine" → Safe
+
+4. "Is there a single correct default value I can silently assign to everyone?"
+   - If YES → Use a MigrationService repair function
+   - If NO → Build an interactive resolution flow instead (see Exercise identity example)
 
 ---
 
@@ -281,14 +303,16 @@ Before committing ANY model changes:
 
 **Implemented:**
 - ✅ V1→V2: Rest timer properties (handled by `repairRestTimerDefaults()`)
+- ✅ V2→V3: Exercise identity relationships (handled by interactive resolution — `RootView` + `ExerciseReconciliationView`, NOT a repair function). Tested on device: fresh install (no reconciliation screen shown, as expected) and upgrade over existing real data (screen appeared with correct names, resolved correctly, did not reappear on relaunch).
 
 **Planned:**
-- ⏳ V2→V3: Strava integration (startTime, endTime, totalDuration, stravaActivityId)
-- ⏳ V3→V4: User profile expansion (age, weight, height, etc.)
-- ⏳ V4→V5: Apple Health sync properties
+- ⏳ V3→V4: Strava integration (startTime, endTime, totalDuration, stravaActivityId)
+- ⏳ V4→V5: User profile expansion (age, weight, height, etc.)
+- ⏳ V5→V6: Apple Health sync properties
 
 **Testing Status:**
 - ⚠️ V1→V2 migration tested: PENDING (lightweight migration + repair function)
+- ✅ V2→V3 migration tested: CONFIRMED (fresh install + upgrade-over-existing-data, both verified on device)
 
 ---
 

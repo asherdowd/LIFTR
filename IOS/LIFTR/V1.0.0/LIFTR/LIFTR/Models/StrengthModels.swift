@@ -77,6 +77,7 @@ enum ProgressionAdjustment: Equatable {
 class Progression {
     var id: UUID
     var exerciseName: String
+    var exercise: Exercise?
     var templateType: TemplateType
     var progressionStyle: ProgressionStyle
     var status: ProgressionStatus
@@ -96,6 +97,7 @@ class Progression {
     init(
         id: UUID = UUID(),
         exerciseName: String,
+        exercise: Exercise? = nil,
         templateType: TemplateType,
         progressionStyle: ProgressionStyle,
         status: ProgressionStatus = .active,
@@ -109,6 +111,7 @@ class Progression {
     ) {
         self.id = id
         self.exerciseName = exerciseName
+        self.exercise = exercise
         self.templateType = templateType
         self.progressionStyle = progressionStyle
         self.status = status

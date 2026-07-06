@@ -72,6 +72,7 @@ class TrainingDay {
 class ProgramExercise {
     var id: UUID
     var exerciseName: String
+    var exercise: Exercise?
     var orderIndex: Int
     
     var startingWeight: Double
@@ -87,6 +88,7 @@ class ProgramExercise {
     init(
         id: UUID = UUID(),
         exerciseName: String,
+        exercise: Exercise? = nil,
         orderIndex: Int,
         startingWeight: Double,
         currentWeight: Double? = nil,
@@ -97,6 +99,7 @@ class ProgramExercise {
     ) {
         self.id = id
         self.exerciseName = exerciseName
+        self.exercise = exercise
         self.orderIndex = orderIndex
         self.startingWeight = startingWeight
         self.currentWeight = currentWeight ?? startingWeight
