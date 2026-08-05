@@ -47,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased — repo history note] - Builds 8 & 9 - Abandoned
+## [Unreleased — repo history note] - Builds 8-9 - Abandoned
 
 Builds 8 and 9 (tags `v1.2.1-build8`, `v1.2.1-build9`) were attempted but the underlying
 architecture refactor (schema versioning wrapper + Program/Progression restructure +
@@ -65,7 +65,31 @@ had zero real migration stages implemented — scaffolding only.
 
 ---
 
-## [1.2.1] - Build 36 (pending) - 2026-07-06
+## [Unreleased — repo history note] - Builds 10-37 - Consumed by Xcode Cloud misconfiguration
+
+Build numbers 10 through 37 were consumed unintentionally by a misconfigured Xcode Cloud
+workflow, not by any intended release. Builds 10-34: the workflow's project path pointed at
+the repo root instead of the actual nested `.xcodeproj`, and an unintended `Archive - macOS`
+action was present alongside `Archive - iOS`; these were fixed on 2026-07-06. However, the
+workflow's `Archive - iOS` action was still configured with Distribution Preparation set to
+"TestFlight (Internal Testing Only)" — meaning it auto-uploads on every push to `main`, with
+no manual approval step. As a result, pushing the manual `CURRENT_PROJECT_VERSION = 36`
+commit for this same Build 38 work triggered an automatic archive+upload on Xcode Cloud's own
+internal version counter, which does not read from git at all — landing on build 37 (skipping
+past the manually-set 36). App Store Connect confirms builds 35, 36, and 37 all completed
+successfully via this auto-upload path, entirely disconnected from the git-tracked build
+number. The workflow's Distribution Preparation has been set to "None" and the workflow
+disabled entirely as of 2026-07-06 to prevent recurrence. The `v1.2.1-build36` git tag was
+deleted, since it no longer reliably corresponds to what TestFlight actually has as build 36.
+
+**Lesson:** when using any CI auto-deploy tool, always verify the true next build number
+directly in App Store Connect → TestFlight → Builds before setting `CURRENT_PROJECT_VERSION`
+manually — git tags and local build settings cannot be trusted alone if CI has its own
+independent versioning path.
+
+---
+
+## [1.2.1] - Build 38 (pending) - 2026-07-06
 
 ### Added
 - `Exercise` model (`id`, `name`, `coreType: ExerciseCoreType`) — canonical exercise identity,
@@ -198,7 +222,7 @@ had zero real migration stages implemented — scaffolding only.
 but no such feature (model, preset list, or UI) was found anywhere in the codebase during a
 2026-07-06 audit. This is flagged here rather than silently removed, since it's not clear
 whether this entry was inaccurate at the time or referred to something later removed without
-a corresponding changelog entry. The real Exercise model work begins with Build 36 above.
+a corresponding changelog entry. The real Exercise model work begins with Build 38 above.
 
 ---
 
@@ -206,8 +230,9 @@ a corresponding changelog entry. The real Exercise model work begins with Build 
 
 | Version | Build | Date | Schema | Key Features |
 |---------|-------|------|--------|--------------|
-| 1.2.1 | 36 (pending) | 2026-07-06 | V3 | Exercise identity model + relationships + reconciliation flow |
+| 1.2.1 | 38 (pending) | 2026-07-06 | V3 | Exercise identity model + relationships + reconciliation flow |
 | — | 8, 9 | — | — | Abandoned (architecture refactor, non-working) — retired build numbers |
+| — | 10-37 | 2026-07-06 | — | Consumed by misconfigured Xcode Cloud (project path, extra action, then still-active auto-upload) — retired build numbers |
 | 1.2.1 | 7 | 2026-02-12 | V2 | Live Activity fixes, rest timer completion UX (per git tag `v1.2.1-build7`) |
 | 1.2.1 | 6 | 2026-01-27 | V2 | Rest timer, migration infrastructure (see numbering discrepancy note at top) |
 | 1.2.0 | 5 | 2026-01-26 | V1 | 5/3/1, Madcow, Texas Method templates |
@@ -224,7 +249,7 @@ a corresponding changelog entry. The real Exercise model work begins with Build 
 |------|-----|------|-------------|
 | Unversioned | V1 | N/A | Initial schema (Build 1-5) |
 | V1 | V2 | Lightweight | Added rest timer properties (Build 6/7) |
-| V2 | V3 | Interactive resolution | Added Exercise identity relationships (Build 36) — not a repair function, since `coreType` has no safe universal default |
+| V2 | V3 | Interactive resolution | Added Exercise identity relationships (Build 38) — not a repair function, since `coreType` has no safe universal default |
 
 ---
 

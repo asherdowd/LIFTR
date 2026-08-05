@@ -109,7 +109,8 @@
 
 - [ ] **Incremented Build Number?**
   - [ ] Xcode → Target → General → Identity — for **both** the app target AND every extension target (e.g. `RestTimerWidgetExtension`). A mismatch between them produces an App Store Connect `CFBundleVersion` validation warning/error — this happened at Build 7 and was fixed there; don't reintroduce it.
-  - [ ] Build: X → next unused number. **Never reuse a build number**, even one from an archive that failed or was never actually uploaded — if there's any doubt whether a number was already used, skip it. (Builds 8-9 are retired from the abandoned architecture refactor, and builds 10-35 were consumed by a misconfigured Xcode Cloud auto-deploy attempt — both permanently retired for this repo regardless of upload status. See README.md "Repo History Note." **Always verify the true next number directly in App Store Connect → TestFlight → Builds before assuming based on git tags alone** — git tags reflect manual archives only and will not show numbers consumed by CI auto-deploy.)
+  - [ ] Build: X → next unused number. **Never reuse a build number**, even one from an archive that failed or was never actually uploaded — if there's any doubt whether a number was already used, skip it. (Builds 8-9 are retired from the abandoned architecture refactor, and builds 10-37 were consumed by a misconfigured Xcode Cloud workflow — both permanently retired for this repo regardless of upload status. See README.md "Repo History Note." **Always verify the true next number directly in App Store Connect → TestFlight → Builds before assuming based on git tags alone** — git tags reflect manual archives only and will not show numbers consumed by CI auto-deploy. If you see a build number in App Store Connect that you don't recognize authorizing, treat it as consumed regardless of its status — do not assume "failed" or "invalid" means the number is safe to reuse.)
+  - [ ] **Xcode Cloud auto-upload disabled or set to manual approval?** If the workflow's Distribution Preparation is set to "TestFlight" or "App Store Connect" with automatic version management on, it can upload and consume build numbers independently of anything set in git or Xcode locally — this caused builds 35-37 to be consumed unintentionally in this repo's history. Confirm the workflow is either disabled, or set to "None" distribution, before manually archiving — otherwise your manual upload may race or conflict with an automatic one.
 
 - [ ] **Version Number Correct?**
   - [ ] Major release? Increment major (1.0.0 → 2.0.0)
@@ -619,7 +620,7 @@ grep -A 2 "CURRENT_PROJECT_VERSION" IOS/LIFTR/V1.0.0/LIFTR/LIFTR.xcodeproj/proje
   long-running branch with no buildable checkpoints in between
 - Preserved on `archive/healthkit-and-schema-attempt`, not continued
 
-### Build 36 Notes (Jul 6, 2026, pending upload)
+### Build 38 Notes (Jul 6, 2026, pending upload)
 - Repo reset to Build 7 baseline (verified matching live TestFlight)
 - Exercise identity model + relationships + interactive reconciliation flow added
 - Fixed CFBundleVersion mismatch (app vs. widget extension)
@@ -650,7 +651,7 @@ grep -A 2 "CURRENT_PROJECT_VERSION" IOS/LIFTR/V1.0.0/LIFTR/LIFTR.xcodeproj/proje
 **Last Updated:** July 6, 2026  
 **Current Schema:** V3  
 **Current Live Build:** 7  
-**Next Build:** 36 (pending — see "Repo History Note" in README.md: builds 8-9 abandoned, builds 10-35 consumed by a misconfigured Xcode Cloud auto-deploy attempt)
+**Next Build:** 38 (pending — see "Repo History Note" in README.md: builds 8-9 abandoned, builds 10-37 consumed by a misconfigured Xcode Cloud workflow including a still-active auto-upload that ran independently of the git-tracked build number)
 
 ---
 

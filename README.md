@@ -97,7 +97,7 @@ See the GitHub issue tracker (`Backlog` milestone) for current work. As of this 
 ### Repo History Note
 On July 6, 2026, the repo was reset to match the actual live TestFlight build (Build 7) as its baseline. A prior architecture refactor attempt (schema versioning + HealthKit integration, targeting what would have been Builds 8-9) was found to be non-working and was preserved for reference on `archive/healthkit-and-schema-attempt` rather than continued. `main` now equals Build 7 plus the Exercise identity work above.
 
-**Build number gap (10-35):** separately, an attempt to set up Xcode Cloud automatic-deploy (auto-incrementing build numbers) was misconfigured — it pointed at the wrong project path and included an unintended macOS archive action — and iterated the build counter up to 35 (recorded in App Store Connect as a failed build) before being fixed. Per Apple's actual constraint, a build number can never be reused once App Store Connect has any record of it, successful or not, regardless of which tool (manual archive, Xcode Cloud, etc.) produced it. As a result, the next real build after this repo cleanup is **36**, not 10.
+**Build number gap (8-37):** separately, Xcode Cloud automatic-deploy was misconfigured in several ways over time: pointed at the wrong project path, included an unintended macOS archive action, and — critically — remained set to automatically upload to TestFlight on every push to `main`, with no manual approval step. Builds 10-34 were consumed by earlier broken attempts (project path/action issues, never completed). After those were fixed, the auto-upload itself was still active: pushing the manual `CURRENT_PROJECT_VERSION = 36` commit for this same work triggered Xcode Cloud to auto-archive and upload on its own internal version counter, landing on build 37 (ignoring the git-tracked "36" entirely) — App Store Connect confirms builds 35, 36, AND 37 all completed successfully via this auto-upload, unrelated to the manual number in git. The workflow's Distribution Preparation has now been set to "None" and the workflow disabled entirely, so this should not recur. Per Apple's actual constraint, a build number can never be reused once App Store Connect has any record of it, successful or not, regardless of which tool produced it — so the next real, intentional build is **38**. The `v1.2.1-build36` git tag was deleted since it no longer reliably corresponds to what's actually in TestFlight as build 36.
 
 ---
 
@@ -368,4 +368,4 @@ See `Docs/PLACEHOLDER_FEATURES.md` and the GitHub issue tracker for the complete
 
 **Last Updated:** July 6, 2026  
 **Schema Version:** V3  
-**Build:** 7 (v1.2.1) — repo `main` also includes unreleased Exercise identity work pending upload as Build 36 (not 10 — see "Repo History Note" below)
+**Build:** 7 (v1.2.1) — repo `main` also includes unreleased Exercise identity work pending upload as Build 38 (not 10 or 36 — see "Repo History Note" below)
