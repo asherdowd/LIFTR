@@ -13,15 +13,9 @@
 ### Code Changes
 
 - [ ] **Schema Changes?** Did you modify any `@Model` classes?
-  - [ ] If YES: Did you create new SchemaVX.swift file?
-  - [ ] If YES: Did you update MigrationPlan.swift?
-  - [ ] If YES: Did you update CurrentSchema.swift?
-  - [ ] If YES: Did you add repair function to MigrationService.swift?
+  - [ ] If YES and a safe default exists for existing data: Did you add a repair function to MigrationService.swift?
+  - [ ] If YES and NO safe default exists (e.g., a new required field/relationship): Did you build an interactive resolution flow instead? (See `Views/RootView.swift`/`Views/ExerciseReconciliationView.swift` for a worked example.)
   - [ ] If YES: Did you update [DATABASE_SCHEMA.md](IOS/LIFTR/V1.0.0/LIFTR/Docs/DATABASE_SCHEMA.md)?
-  - [ ] If NO: Continue
-
-- [ ] **Frozen Files?** Did you modify any files in `Models/SchemaVersions/SchemaV*.swift`?
-  - [ ] If YES: STOP! These files are frozen. Create new version instead.
   - [ ] If NO: Continue
 
 - [ ] **New Files Created?** Did you create any new Swift files?
@@ -57,18 +51,18 @@
   - [ ] Created test data
   - [ ] Installed new build
   - [ ] Verified data preserved
-  - [ ] Verified new properties have correct defaults
+  - [ ] Verified new properties have correct defaults (or, for interactive resolution changes, that the flow appears and resolves correctly)
+  - [ ] Also tested a fresh install (no existing data) path separately
 
 ### Documentation
 
 - [ ] **Updated [DATABASE_SCHEMA.md](IOS/LIFTR/V1.0.0/LIFTR/Docs/DATABASE_SCHEMA.md)?** (if models changed)
-  - [ ] Incremented version number (V2 → V3)?
+  - [ ] Incremented version number (e.g. V2 → V3)?
   - [ ] Documented changes?
   - [ ] Added migration notes?
 
 - [ ] **Updated [CRITICAL_REMINDERS.md](IOS/LIFTR/V1.0.0/LIFTR/Docs/CRITICAL_REMINDERS.md)?** (if schema changed)
   - [ ] Updated current schema version?
-  - [ ] Updated frozen files list?
 
 - [ ] **Updated [PLACEHOLDER_FEATURES.md](IOS/LIFTR/V1.0.0/LIFTR/Docs/PLACEHOLDER_FEATURES.md)?** (if implemented placeholder)
   - [ ] Removed from placeholder list?
@@ -88,7 +82,7 @@
 
 - [ ] **Pre-commit Hook Passes?**
   - [ ] Hook doesn't block commit?
-  - [ ] If blocked, did you complete required steps?
+  - [ ] **Known limitation:** the hook only detects changes under `Models/SchemaVersions/`, which does not exist on `main` (abandoned approach — see README.md "Repo History Note"). It will NOT flag real model changes in `StrengthModels.swift`, `ProgramModels.swift`, `SettingsModels.swift`, `CardioModels.swift`, or `SharedModels.swift`. Do the documentation checklist above manually regardless of what the hook reports.
 
 - [ ] **Commit Message Follows Format?**
   ```
@@ -103,6 +97,7 @@
   Files created: Y
   Testing: Completed on device
   ```
+  **Tip:** for multi-line messages, write to a temp file first and commit with `git commit -F /tmp/commit_msg.txt` rather than pasting a multi-line string directly into an interactive `-m` prompt — avoids shell quoting/hang issues with special characters.
 
 ---
 
@@ -113,9 +108,8 @@
 ### Version Management
 
 - [ ] **Incremented Build Number?**
-  - [ ] Xcode → Target → General → Identity
-  - [ ] Build: X → X+1
-  - [ ] Example: Build 6 → Build 7
+  - [ ] Xcode → Target → General → Identity — for **both** the app target AND every extension target (e.g. `RestTimerWidgetExtension`). A mismatch between them produces an App Store Connect `CFBundleVersion` validation warning/error — this happened at Build 7 and was fixed there; don't reintroduce it.
+  - [ ] Build: X → next unused number. **Never reuse a build number**, even one from an archive that failed or was never actually uploaded — if there's any doubt whether a number was already used, skip it. (Builds 8 and 9 are permanently retired for this repo regardless of upload status — see README.md "Repo History Note.")
 
 - [ ] **Version Number Correct?**
   - [ ] Major release? Increment major (1.0.0 → 2.0.0)
@@ -133,7 +127,7 @@
 - [ ] **On Correct Branch?**
   ```bash
   git branch
-  # Should show: * main (or release branch)
+  # Should show: * main
   ```
 
 - [ ] **Pushed to Remote?**
@@ -144,7 +138,7 @@
 
 - [ ] **Tagged Release?**
   ```bash
-  git tag -a v1.2.1 -m "Release v1.2.1 - Feature description"
+  git tag -a v1.2.1-buildX -m "Release description"
   git push origin --tags
   ```
 
@@ -164,6 +158,10 @@
 - [ ] **Target Device = Any iOS Device?**
   - [ ] Not simulator
   - [ ] Not specific device
+
+- [ ] **Xcode Cloud workflow correct (if using it)?**
+  - [ ] Project path points to the actual nested project (`IOS/LIFTR/V1.0.0/LIFTR/LIFTR.xcodeproj`), not the repo root
+  - [ ] Only the intended platform archive action(s) are present (an accidental extra `Archive - macOS` action alongside `Archive - iOS` caused failed builds previously — verify only what's intended remains)
 
 ### Testing
 
@@ -185,13 +183,13 @@
 
 ### Migration Prep (if schema changed)
 
-- [ ] **Migration Service Working?**
-  - [ ] Check console logs show migration running
-  - [ ] Verify repair functions execute
-  - [ ] Confirm defaults set correctly
+- [ ] **Migration Working?**
+  - [ ] If a repair function: check console logs show it running, confirm defaults set correctly
+  - [ ] If interactive resolution: confirm the resolution screen appears correctly on upgrade-with-existing-data, and does NOT appear on fresh install
 
 - [ ] **Migration Path Tested?**
   - [ ] Previous build → current build tested
+  - [ ] Fresh install tested separately
   - [ ] No crashes
   - [ ] No data loss
 
@@ -259,7 +257,7 @@
 ### Upload
 
 - [ ] **Upload Started?**
-  - [ ] Organizer → Distribute App
+  - [ ] Organizer → Distribute App (or Xcode Cloud, if used)
   - [ ] TestFlight & App Store selected
   - [ ] Upload in progress
 
@@ -267,6 +265,7 @@
   - [ ] No errors during upload
   - [ ] Confirmation message received
   - [ ] Archive marked as uploaded in Organizer
+  - [ ] Check App Store Connect → TestFlight → Builds to confirm the build actually appears (don't assume from a "success" message alone — confirm the artifact actually landed)
 
 ---
 
@@ -317,27 +316,31 @@
 
 - [ ] **Updated CHANGELOG.md?**
   ```markdown
-  ## [1.2.1] - 2026-01-27
+  ## [Version] - Build X - YYYY-MM-DD
   
   ### Added
-  - Rest timer system
-  - Schema versioning
+  - New feature 1
   
   ### Changed
-  - Split settings views
+  - Changed behavior 1
   
   ### Fixed
-  - Migration crash on upgrade
+  - Bug fix 1
+  
+  ### Schema
+  - Schema V2 → V3 (if applicable)
   ```
 
 - [ ] **Updated [README.md](README.md)?**
-  - [ ] Current version number updated
-  - [ ] Current build number updated
-  - [ ] Schema version updated (if changed)
+  - [ ] Version number in header
+  - [ ] Build number in status section
+  - [ ] Schema version in technical section
+  - [ ] Release date
+  - [ ] Any new setup instructions
 
 - [ ] **Tagged in Git?**
   ```bash
-  git tag -a v1.2.1 -m "Build 7 - Rest Timer & Migration"
+  git tag -a v1.2.1-buildX -m "Build X - Description"
   git push origin --tags
   ```
 
@@ -374,11 +377,12 @@
   ```
 
 - [ ] **Increment Build Number**
-  - [ ] Build X+1 (never reuse build numbers)
+  - [ ] Next unused number (never reuse, regardless of whether the broken build was actually uploaded successfully)
 
 - [ ] **Test Thoroughly**
   - [ ] Test on device
   - [ ] Test migration if relevant
+  - [ ] Test fresh install separately
   - [ ] Verify fix works
 
 - [ ] **Upload New Build**
@@ -396,7 +400,7 @@
 
 - [ ] **CHANGELOG.md** (Repository root)
   ```markdown
-  ## [Version] - YYYY-MM-DD
+  ## [Version] - Build X - YYYY-MM-DD
   
   ### Added
   - New feature 1
@@ -421,7 +425,7 @@
 ### When Models Change
 
 - [ ] **[DATABASE_SCHEMA.md](IOS/LIFTR/V1.0.0/LIFTR/Docs/DATABASE_SCHEMA.md)**
-  - [ ] Increment version number (V2 → V3)
+  - [ ] Increment version number (e.g. V2 → V3)
   - [ ] Document new/changed/removed properties
   - [ ] Add migration notes section
   - [ ] Update "Current Schema Version" section
@@ -429,13 +433,12 @@
 
 - [ ] **[CRITICAL_REMINDERS.md](IOS/LIFTR/V1.0.0/LIFTR/Docs/CRITICAL_REMINDERS.md)**
   - [ ] Update "Current Schema Version" section
-  - [ ] Add new frozen file to list (e.g., SchemaV2.swift)
   - [ ] Update migration status section
 
 - [ ] **[DATA_MIGRATION_POLICY.md](IOS/LIFTR/V1.0.0/LIFTR/Docs/DATA_MIGRATION_POLICY.md)**
   - [ ] Update "Current Schema Status" section
-  - [ ] Add new version to "Planned Future Migrations"
-  - [ ] Document migration approach used
+  - [ ] Add new version to "Planned Future Migrations" (renumbering later planned versions if this insertion shifts them)
+  - [ ] Document migration approach used (repair function vs. interactive resolution)
 
 ### When Implementing Placeholder Features
 
@@ -464,17 +467,16 @@ Repository Root:
 
 ## ⚠️ CRITICAL REMINDERS
 
-### Schema Versioning Rules
+### Schema Change Rules
 
-**FROZEN FILES (Never Modify):**
-- `Models/SchemaVersions/SchemaV1.swift` (Build 7, shipped)
-- `Models/SchemaVersions/SchemaV2.swift` (Build 8, when shipped)
-- Add to list as new versions ship
+**For every model change:**
+- Determine whether a safe universal default exists for existing data.
+  - If YES → use a `MigrationService.swift` repair function.
+  - If NO (e.g., a new required field/relationship with no single correct value) → build an interactive resolution flow instead (see `Views/RootView.swift`/`Views/ExerciseReconciliationView.swift`).
+- Always update `Docs/DATABASE_SCHEMA.md` with the version bump and change description.
+- Always test both the upgrade-with-existing-data path AND the fresh-install path.
 
-**ALWAYS UPDATE:**
-- `Models/SchemaVersions/CurrentSchema.swift` (points to latest)
-- `Models/SchemaVersions/MigrationPlan.swift` (add new stages)
-- `Services/MigrationService.swift` (add repair functions)
+**Note:** this repo does not use a `Models/SchemaVersions/` versioned-schema wrapper system — an earlier attempt at that approach exists only on `archive/healthkit-and-schema-attempt` and was never completed (no real migration stages implemented). Do not reference it as a working pattern.
 
 ### Git Workflow
 
@@ -484,19 +486,19 @@ Repository Root:
 git status
 
 # 2. Stage files
-git add .
+git add <specific files>   # prefer explicit paths over `git add .`
 
-# 3. Commit (pre-commit hook will run)
-git commit -m "feat: Description"
+# 3. Commit (pre-commit hook will run, though see its known limitation above)
+git commit -F /tmp/commit_msg.txt   # for multi-line messages; -m "..." is fine for single-line
 
 # 4. Push to remote
-git push origin main
+git push origin <branch>
 ```
 
 **Before Every Release:**
 ```bash
 # 1. Tag the release
-git tag -a v1.2.1 -m "Release v1.2.1 - Feature description"
+git tag -a v1.2.1-buildX -m "Release description"
 
 # 2. Push tags
 git push origin --tags
@@ -516,7 +518,8 @@ git push origin --tags
 2. Create substantial test data
 3. Install new build over old build (don't delete)
 4. Launch app
-5. Verify: no crash, data preserved, new features work
+5. Verify: no crash, data preserved, new features work (or, for interactive resolution changes, that the resolution flow works correctly)
+6. Separately: fresh install (no existing data), verify no unnecessary resolution screens appear
 
 ---
 
@@ -530,32 +533,6 @@ git push origin --tags
 | **Version Bump** | ✓ | ✓ | - | - | - | - |
 | **Build Upload** | ✓ | ✓ | - | - | - | - |
 | **Implement Placeholder** | ✓ | ✓ | Maybe | - | - | ✓ |
-
----
-
-## 🎯 BUILD-SPECIFIC CHECKLISTS
-
-### Build 7 Checklist (Current - Schema V1 Wrapper)
-
-- [ ] Created SchemaV1.swift with all 15 models
-- [ ] No functional changes from Build 6
-- [ ] Testing: Upgrade from Build 6 works
-- [ ] Release notes: "Infrastructure update - no visible changes"
-
-### Build 8 Checklist (Future - Schema V2 with Rest Timer)
-
-- [ ] Created SchemaV2.swift
-- [ ] Updated MigrationPlan.swift
-- [ ] Updated CurrentSchema.swift
-- [ ] Added MigrationService repair function
-- [ ] Testing: Upgrade from Build 7 works
-- [ ] Release notes: Document rest timer feature
-
-### Future Builds
-
-- [ ] Always increment schema version if models change
-- [ ] Always test migration from previous build
-- [ ] Always update all relevant documentation
 
 ---
 
@@ -577,21 +554,16 @@ git diff
 
 # Are tags pushed?
 git tag
-```
 
-### Check Schema Version
-```bash
-# Search for current schema version
-grep -r "versionIdentifier" Models/SchemaVersions/
-
-# Check which schema is current
-grep "typealias CurrentSchema" Models/SchemaVersions/CurrentSchema.swift
+# Does main actually contain a given commit? (verify a merge landed)
+git merge-base --is-ancestor <commit-hash> main && echo "YES" || echo "NO"
 ```
 
 ### Check Build Number
 ```bash
 # In Xcode, or:
-grep -A 2 "CURRENT_PROJECT_VERSION" *.xcodeproj/project.pbxproj
+grep -A 2 "CURRENT_PROJECT_VERSION" IOS/LIFTR/V1.0.0/LIFTR/LIFTR.xcodeproj/project.pbxproj
+# Check EVERY match, not just the first — app target and extension targets must match
 ```
 
 ---
@@ -603,18 +575,20 @@ grep -A 2 "CURRENT_PROJECT_VERSION" *.xcodeproj/project.pbxproj
 2. Close and reopen Xcode
 3. Check signing certificates
 4. Check for errors in Issue Navigator
+5. If using Xcode Cloud: verify the workflow's project path and action list are correct (see Pre-Archive checklist above)
 
 ### Migration Crashes
 1. Check console logs for error
-2. Verify SchemaVersions are correct
-3. Verify MigrationPlan includes all versions
-4. Test migration manually
+2. If using a repair function: verify it's registered in `performStartupChecks()`
+3. If using interactive resolution: verify the detection query and the resolution view's linking logic
+4. Test migration manually with real device data
 
 ### TestFlight Upload Fails
 1. Check Apple Developer account status
 2. Verify certificates not expired
 3. Check app record in App Store Connect
 4. Try archive validation first
+5. If using Xcode Cloud, check the actual per-action build log (each archive action has its own status) rather than only the overall workflow status
 
 ### Users Report Data Loss
 1. EMERGENCY: Stop recommending update
@@ -634,10 +608,22 @@ grep -A 2 "CURRENT_PROJECT_VERSION" *.xcodeproj/project.pbxproj
 - User crash reported (no schema versioning)
 - Learned: Always version schemas from the start
 
-### Build 7 Notes (TBD)
-- Wrapping existing models in SchemaV1
-- No functional changes
-- Foundation for future migrations
+### Build 7 Notes (Feb 12, 2026)
+- Live Activity fixes, rest timer completion UX, MainView navigation fix
+- This is the build actually live in TestFlight as of this writing
+
+### Builds 8-9 Notes — Abandoned
+- Attempted architecture refactor (schema versioning wrapper + Program/Progression
+  restructure + HealthKit/Strava), bundled together, never reached a working state
+- Learned: don't bundle a foundational model restructure with multiple new features in one
+  long-running branch with no buildable checkpoints in between
+- Preserved on `archive/healthkit-and-schema-attempt`, not continued
+
+### Build 10 Notes (Jul 6, 2026, pending upload)
+- Repo reset to Build 7 baseline (verified matching live TestFlight)
+- Exercise identity model + relationships + interactive reconciliation flow added
+- Fixed CFBundleVersion mismatch (app vs. widget extension)
+- Tested: fresh install + upgrade over real existing data, both confirmed on device
 
 ---
 
@@ -652,18 +638,19 @@ grep -A 2 "CURRENT_PROJECT_VERSION" *.xcodeproj/project.pbxproj
 - [ ] CHANGELOG.md updated
 - [ ] Schema docs updated (if applicable)
 - [ ] Release notes written
-- [ ] Migration tested (if applicable)
+- [ ] Migration tested (if applicable) — both upgrade and fresh-install paths
 - [ ] Build tested on device
+- [ ] Xcode Cloud workflow verified correct (if using it)
 - [ ] Ready for beta testers
 
 **Upload with confidence!**
 
 ---
 
-**Last Updated:** January 31, 2026  
-**Current Schema:** V2  
-**Current Build:** 6  
-**Next Build:** 7
+**Last Updated:** July 6, 2026  
+**Current Schema:** V3  
+**Current Live Build:** 7  
+**Next Build:** 10 (pending — Builds 8, 9 permanently retired, see notes above)
 
 ---
 

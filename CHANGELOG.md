@@ -5,13 +5,98 @@ All notable changes to LIFTR will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+> **Known numbering discrepancy:** entries below "Build 6" (2026-01-27, rest timer) do not
+> line up cleanly with the actual git tags. The live TestFlight build containing that same
+> rest timer work is tagged `v1.2.1-build7` in git, not build 6. This gap is not reconciled
+> retroactively here — old entries are left as originally written rather than guessed at.
+> Starting with the entry below for the actual `v1.2.1-build7` tag, changelog entries are
+> written to match git tags exactly.
+
 ---
 
 ## [Unreleased]
 
-### Planned
-- Build 7: Schema V1 wrapper (migration infrastructure)
-- Build 8: Schema V2 with rest timer feature
+### In Progress
+- Settings redesign: wiring up per-exercise deload overrides, which currently exist in the
+  UI/model but are never read by the actual deload logic (tracked as issue #8)
+
+### Planned (see GitHub issue tracker for current, authoritative status)
+- Seed Exercise model with common presets + replace free-text entry with a picker (issue #12)
+- Merge Program and Progression into one model hierarchy (issue #4)
+- Fix Current PR Totals to include Program-based training, not just Progression (issue #3)
+
+---
+
+## [1.2.1] - Build 7 - 2026-02-12
+
+### Added
+- (Retroactive entry — this build's actual content, per git tag `v1.2.1-build7`)
+- Live Activity pause/resume fix (timer no longer counts down when paused)
+- Progress bar fix across all states (running, paused, completed)
+- REST COMPLETE state with Complete Rest button
+- onComplete callback dismisses LogSetView after rest
+
+### Fixed
+- Complete button not visible from MainView Upcoming Workouts
+- TimeButton taps in rest timer settings
+- Removed debug print statements
+
+### Technical
+- Files modified: RestTimer.swift, LogSetView.swift, MainView.swift, WorkoutsView.swift, RestTimerAttributes.swift, RestTimerWidgetLiveActivity.swift
+- Tested on device
+
+---
+
+## [Unreleased — repo history note] - Builds 8 & 9 - Abandoned
+
+Builds 8 and 9 (tags `v1.2.1-build8`, `v1.2.1-build9`) were attempted but the underlying
+architecture refactor (schema versioning wrapper + Program/Progression restructure +
+HealthKit/Strava integration, all bundled together) was never completed to a working state.
+Build 9 in particular was non-working when development on it was paused. This work was
+preserved for reference on `archive/healthkit-and-schema-attempt` (not merged into `main`)
+during a July 6, 2026 repo cleanup, rather than continued or discarded outright. Build
+numbers 8 and 9 are retired and will not be reused. See README.md "Repo History Note" for
+more detail.
+
+**Salvageable from this line:** `HealthKitService.swift` (working HealthKit export logic,
+not yet wired into `main` — depends on model properties not present there).
+**Not salvageable:** the schema-versioning wrapper (`SchemaV1.swift`/`MigrationPlan.swift`)
+had zero real migration stages implemented — scaffolding only.
+
+---
+
+## [1.2.1] - Build 10 (pending) - 2026-07-06
+
+### Added
+- `Exercise` model (`id`, `name`, `coreType: ExerciseCoreType`) — canonical exercise identity,
+  independent model, no migration required at time of addition
+- `exercise: Exercise?` relationship added to `Progression`, `ProgramExercise`,
+  `ExerciseProgressionSettings`, `CardioProgression` (legacy `exerciseName` fields retained,
+  not removed)
+- New interactive migration flow: `RootView` + `ExerciseReconciliationView` — detects
+  unresolved legacy exercise names and requires the user to assign each a `coreType` before
+  proceeding, since `coreType` is required with no safe universal default (not handled by a
+  MigrationService repair function)
+
+### Fixed
+- `CFBundleVersion` mismatch between the app target and `RestTimerWidgetExtension`
+  (extension was still at build 6 while the app was at 7)
+
+### Changed
+- Repo baseline reset to match actual live TestFlight Build 7 (see README.md "Repo History
+  Note"); `main` renamed from a divergent, non-working state to this verified baseline
+
+### Technical
+- Schema version: V2 → V3
+- Tested on device: fresh install (no reconciliation screen shown, as expected) and upgrade
+  over existing real data (screen shown with correct names, resolved correctly, did not
+  reappear on relaunch, existing session data unaffected)
+
+### Known Issues (not fixed in this build, tracked separately)
+- Current PR Totals still only reads Progression-based data, not Program-based (issue #3)
+- Per-exercise settings overrides (`ExerciseProgressionSettings`) remain non-functional —
+  configurable in Settings UI but never read by deload/adjustment logic (issue #8)
+- Program and Progression remain separate, overlapping model hierarchies (issue #4)
 
 ---
 
@@ -41,7 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Known Issues
 - User crash reported on upgrade from Build 5
 - Missing schema versioning causing migration failures
-- Will be fixed in Build 7
+- Addressed in the build tagged `v1.2.1-build7` (see entry above)
 
 ---
 
@@ -109,13 +194,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SwiftData persistence
 - iOS 17.0+ support
 
+**Note (added July 6, 2026):** "Exercise library" above was listed as shipped in this entry,
+but no such feature (model, preset list, or UI) was found anywhere in the codebase during a
+2026-07-06 audit. This is flagged here rather than silently removed, since it's not clear
+whether this entry was inaccurate at the time or referred to something later removed without
+a corresponding changelog entry. The real Exercise model work begins with Build 10 above.
+
 ---
 
 ## Version History Summary
 
 | Version | Build | Date | Schema | Key Features |
 |---------|-------|------|--------|--------------|
-| 1.2.1 | 6 | 2026-01-27 | V2 | Rest timer, migration infrastructure |
+| 1.2.1 | 10 (pending) | 2026-07-06 | V3 | Exercise identity model + relationships + reconciliation flow |
+| — | 8, 9 | — | — | Abandoned (architecture refactor, non-working) — retired build numbers |
+| 1.2.1 | 7 | 2026-02-12 | V2 | Live Activity fixes, rest timer completion UX (per git tag `v1.2.1-build7`) |
+| 1.2.1 | 6 | 2026-01-27 | V2 | Rest timer, migration infrastructure (see numbering discrepancy note at top) |
 | 1.2.0 | 5 | 2026-01-26 | V1 | 5/3/1, Madcow, Texas Method templates |
 | 1.1.0 | 4 | 2026-01-24 | V1 | Program management views |
 | 1.0.2 | 3 | 2026-01-23 | V1 | Multi-exercise workouts |
@@ -129,7 +223,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | From | To | Type | Description |
 |------|-----|------|-------------|
 | Unversioned | V1 | N/A | Initial schema (Build 1-5) |
-| V1 | V2 | Lightweight | Added rest timer properties (Build 6) |
+| V1 | V2 | Lightweight | Added rest timer properties (Build 6/7) |
+| V2 | V3 | Interactive resolution | Added Exercise identity relationships (Build 10) — not a repair function, since `coreType` has no safe universal default |
 
 ---
 
@@ -145,7 +240,7 @@ None yet.
 
 ---
 
-[Unreleased]: https://github.com/asherdowd/LIFTR/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/asherdowd/LIFTR/compare/v1.2.1-build7...HEAD
 [1.2.1]: https://github.com/asherdowd/LIFTR/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/asherdowd/LIFTR/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/asherdowd/LIFTR/compare/v1.0.2...v1.1.0
