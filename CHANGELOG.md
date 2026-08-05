@@ -65,7 +65,7 @@ had zero real migration stages implemented — scaffolding only.
 
 ---
 
-## [1.2.1] - Build 10 (pending) - 2026-07-06
+## [1.2.1] - Build 36 (pending) - 2026-07-06
 
 ### Added
 - `Exercise` model (`id`, `name`, `coreType: ExerciseCoreType`) — canonical exercise identity,
@@ -198,7 +198,7 @@ had zero real migration stages implemented — scaffolding only.
 but no such feature (model, preset list, or UI) was found anywhere in the codebase during a
 2026-07-06 audit. This is flagged here rather than silently removed, since it's not clear
 whether this entry was inaccurate at the time or referred to something later removed without
-a corresponding changelog entry. The real Exercise model work begins with Build 10 above.
+a corresponding changelog entry. The real Exercise model work begins with Build 36 above.
 
 ---
 
@@ -206,7 +206,7 @@ a corresponding changelog entry. The real Exercise model work begins with Build 
 
 | Version | Build | Date | Schema | Key Features |
 |---------|-------|------|--------|--------------|
-| 1.2.1 | 10 (pending) | 2026-07-06 | V3 | Exercise identity model + relationships + reconciliation flow |
+| 1.2.1 | 36 (pending) | 2026-07-06 | V3 | Exercise identity model + relationships + reconciliation flow |
 | — | 8, 9 | — | — | Abandoned (architecture refactor, non-working) — retired build numbers |
 | 1.2.1 | 7 | 2026-02-12 | V2 | Live Activity fixes, rest timer completion UX (per git tag `v1.2.1-build7`) |
 | 1.2.1 | 6 | 2026-01-27 | V2 | Rest timer, migration infrastructure (see numbering discrepancy note at top) |
@@ -224,7 +224,7 @@ a corresponding changelog entry. The real Exercise model work begins with Build 
 |------|-----|------|-------------|
 | Unversioned | V1 | N/A | Initial schema (Build 1-5) |
 | V1 | V2 | Lightweight | Added rest timer properties (Build 6/7) |
-| V2 | V3 | Interactive resolution | Added Exercise identity relationships (Build 10) — not a repair function, since `coreType` has no safe universal default |
+| V2 | V3 | Interactive resolution | Added Exercise identity relationships (Build 36) — not a repair function, since `coreType` has no safe universal default |
 
 ---
 

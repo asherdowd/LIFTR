@@ -97,6 +97,8 @@ See the GitHub issue tracker (`Backlog` milestone) for current work. As of this 
 ### Repo History Note
 On July 6, 2026, the repo was reset to match the actual live TestFlight build (Build 7) as its baseline. A prior architecture refactor attempt (schema versioning + HealthKit integration, targeting what would have been Builds 8-9) was found to be non-working and was preserved for reference on `archive/healthkit-and-schema-attempt` rather than continued. `main` now equals Build 7 plus the Exercise identity work above.
 
+**Build number gap (10-35):** separately, an attempt to set up Xcode Cloud automatic-deploy (auto-incrementing build numbers) was misconfigured — it pointed at the wrong project path and included an unintended macOS archive action — and iterated the build counter up to 35 (recorded in App Store Connect as a failed build) before being fixed. Per Apple's actual constraint, a build number can never be reused once App Store Connect has any record of it, successful or not, regardless of which tool (manual archive, Xcode Cloud, etc.) produced it. As a result, the next real build after this repo cleanup is **36**, not 10.
+
 ---
 
 ## 🎯 Key Features
@@ -366,4 +368,4 @@ See `Docs/PLACEHOLDER_FEATURES.md` and the GitHub issue tracker for the complete
 
 **Last Updated:** July 6, 2026  
 **Schema Version:** V3  
-**Build:** 7 (v1.2.1) — repo `main` also includes unreleased Exercise identity work pending upload as Build 10
+**Build:** 7 (v1.2.1) — repo `main` also includes unreleased Exercise identity work pending upload as Build 36 (not 10 — see "Repo History Note" below)
