@@ -64,12 +64,12 @@ class WorkoutSet {
 class Exercise {
     var id: UUID
     var name: String
-    var coreType: ExerciseCoreType
+    var coreType: ExerciseCoreType?
 
     init(
         id: UUID = UUID(),
         name: String,
-        coreType: ExerciseCoreType
+        coreType: ExerciseCoreType? = nil
     ) {
         self.id = id
         self.name = name
