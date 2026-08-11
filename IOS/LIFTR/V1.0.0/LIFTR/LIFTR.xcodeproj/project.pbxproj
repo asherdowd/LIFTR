@@ -13,6 +13,7 @@
 		EC0D7B132F1C18A000596B36 /* SetRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0D7B0E2F1C18A000596B36 /* SetRowView.swift */; };
 		EC0D7B142F1C18A000596B36 /* WorkoutSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0D7B0F2F1C18A000596B36 /* WorkoutSessionView.swift */; };
 		EC177323302AAC4800BE96BB /* UnifiedWorkoutModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC177322302AAC3C00BE96BB /* UnifiedWorkoutModels.swift */; };
+		EC177327302ABCB700BE96BB /* StartWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC177325302ABCB200BE96BB /* StartWorkoutView.swift */; };
 		EC4DC0D42E91C24600340825 /* CardioSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D32E91C23A00340825 /* CardioSessionView.swift */; };
 		EC4DC0D62E91C26000340825 /* EditCardioProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D52E91C25900340825 /* EditCardioProgressionView.swift */; };
 		EC4DC0D82E91C3FB00340825 /* CardioProgressionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D72E91C3DD00340825 /* CardioProgressionDetailView.swift */; };
@@ -102,6 +103,7 @@
 		EC0D7B0E2F1C18A000596B36 /* SetRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetRowView.swift; sourceTree = "<group>"; };
 		EC0D7B0F2F1C18A000596B36 /* WorkoutSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSessionView.swift; sourceTree = "<group>"; };
 		EC177322302AAC3C00BE96BB /* UnifiedWorkoutModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedWorkoutModels.swift; sourceTree = "<group>"; };
+		EC177325302ABCB200BE96BB /* StartWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartWorkoutView.swift; sourceTree = "<group>"; };
 		EC4DC0D32E91C23A00340825 /* CardioSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioSessionView.swift; sourceTree = "<group>"; };
 		EC4DC0D52E91C25900340825 /* EditCardioProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCardioProgressionView.swift; sourceTree = "<group>"; };
 		EC4DC0D72E91C3DD00340825 /* CardioProgressionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioProgressionDetailView.swift; sourceTree = "<group>"; };
@@ -248,6 +250,7 @@
 				EC0D7B0E2F1C18A000596B36 /* SetRowView.swift */,
 				EC0D7B0F2F1C18A000596B36 /* WorkoutSessionView.swift */,
 				ECC8E9CF2E6B64B300E76F7D /* WorkoutsView.swift */,
+				EC177325302ABCB200BE96BB /* StartWorkoutView.swift */,
 			);
 			path = Workouts;
 			sourceTree = "<group>";
@@ -599,6 +602,7 @@
 				ECC8E9CC2E6B5F1A00E76F7D /* AnalyticsView.swift in Sources */,
 				ECC8E9CA2E6B5F0600E76F7D /* CalculatorView.swift in Sources */,
 				EC0D7B102F1C18A000596B36 /* CalculatorViewWrapper.swift in Sources */,
+				EC177327302ABCB700BE96BB /* StartWorkoutView.swift in Sources */,
 				EC0D7B112F1C18A000596B36 /* LogSetView.swift in Sources */,
 				EC0D7B122F1C18A000596B36 /* PerformanceSummaryView.swift in Sources */,
 				EC0D7B132F1C18A000596B36 /* SetRowView.swift in Sources */,

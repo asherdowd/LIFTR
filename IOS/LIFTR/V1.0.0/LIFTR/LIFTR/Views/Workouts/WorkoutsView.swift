@@ -9,8 +9,7 @@ struct WorkoutsView: View {
     @Query(sort: \CardioProgression.startDate) private var allCardioProgressions: [CardioProgression]
     
     @State private var selectedCategory: WorkoutCategory = .strength
-    @State private var showNewProgression = false
-    @State private var showNewCardioProgression = false
+    @State private var showStartWorkout = false
     
     enum WorkoutCategory: String, CaseIterable {
         case strength = "Strength"
@@ -33,40 +32,52 @@ struct WorkoutsView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Category Picker
-                Picker("Category", selection: $selectedCategory) {
-                    ForEach(WorkoutCategory.allCases, id: \.self) { category in
-                        Label(category.rawValue, systemImage: category.icon)
-                            .tag(category)
+            NavigationView {
+                VStack(spacing: 0) {
+                    // Category Picker
+                    Picker("Category", selection: $selectedCategory) {
+                        ForEach(WorkoutCategory.allCases, id: \.self) { category in
+                            Label(category.rawValue, systemImage: category.icon)
+                                .tag(category)
+                        }
                     }
-                }
-                .pickerStyle(.segmented)
-                .padding()
-                
-                // Content based on selected category
-                ScrollView {
-                    VStack(spacing: 16) {
-                        switch selectedCategory {
-                        case .strength:
-                            if activeProgressions.isEmpty {
-                                EmptyProgressionsView(
-                                    type: "Strength",
-                                    onCreateNew: { showNewProgression = true }
-                                )
-                            } else {
-                                ForEach(activeProgressions) { progression in
-                                    ProgressionCard(progression: progression)
+                    .pickerStyle(.segmented)
+                    .padding()
+                    
+                    // Content based on selected category
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            switch selectedCategory {
+                            case .strength:
+                                if activeProgressions.isEmpty {
+                                    EmptyProgressionsView(
+                                        type: "Strength",
+                                        onCreateNew: { showStartWorkout = true }
+                                    )
+                                } else {
+                                    ForEach(activeProgressions) { progression in
+                                        ProgressionCard(progression: progression)
+                                    }
+                                }
+                                
+                            case .cardio:
+                                if activeCardioProgressions.isEmpty {
+                                    EmptyProgressionsView(
+                                        type: "Cardio",
+                                        onCreateNew: { showStartWorkout = true }
+                                    )
+                                } else {
+                                    ForEach(activeCardioProgressions) { progression in
+                                        CardioProgressionCard(progression: progression)
+                                    }
                                 }
                             }
                             
-                            // Create New Strength Progression Button
-                            Button(action: { showNewProgression = true }) {
+                            Button(action: { showStartWorkout = true }) {
                                 HStack {
                                     Image(systemName: "plus.circle.fill")
                                         .font(.title2)
-                                    Text("Create New Strength Progression")
+                                    Text("Start Workout")
                                         .font(.headline)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -76,50 +87,17 @@ struct WorkoutsView: View {
                                 .cornerRadius(12)
                             }
                             .padding(.horizontal)
-                            
-                        case .cardio:
-                            if activeCardioProgressions.isEmpty {
-                                EmptyProgressionsView(
-                                    type: "Cardio",
-                                    onCreateNew: { showNewCardioProgression = true }
-                                )
-                            } else {
-                                ForEach(activeCardioProgressions) { progression in
-                                    CardioProgressionCard(progression: progression)
-                                }
-                            }
-                            
-                            // Create New Cardio Progression Button
-                            Button(action: { showNewCardioProgression = true }) {
-                                HStack {
-                                    Image(systemName: "plus.circle.fill")
-                                        .font(.title2)
-                                    Text("Create New Cardio Progression")
-                                        .font(.headline)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                            }
-                            .padding(.horizontal)
                         }
+                        .padding(.vertical)
                     }
-                    .padding(.vertical)
                 }
-            }
-            .navigationTitle("Workouts")
-            .sheet(isPresented: $showNewProgression) {
-                CreateProgressionView()
-            }
-            .sheet(isPresented: $showNewCardioProgression) {
-                CreateCardioProgressionView()
-                
+                .navigationTitle("Workouts")
+                .sheet(isPresented: $showStartWorkout) {
+                    StartWorkoutView()
+                }
             }
         }
     }
-}
 
 // MARK: - Cardio Progression Card
 
