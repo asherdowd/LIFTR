@@ -8,7 +8,6 @@ struct MainView: View {
     @Query private var users: [User]
     @Query(sort: \Progression.startDate) private var allProgressions: [Progression]
     @Query(sort: \CardioProgression.startDate) private var allCardioProgressions: [CardioProgression]
-    @Query(sort: \Program.startDate) private var allPrograms: [Program]
     @Query private var globalSettings: [GlobalProgressionSettings]
 
     var currentSettings: GlobalProgressionSettings {
@@ -23,9 +22,6 @@ struct MainView: View {
         allCardioProgressions.filter { $0.status == .active }
     }
 
-    var activePrograms: [Program] {
-        allPrograms.filter { $0.status == .active }
-    }
 
     var recentStrengthSessions: [WorkoutSession] {
         let allSessions = activeProgressions.flatMap { $0.sessions }
@@ -65,40 +61,7 @@ struct MainView: View {
             .sorted { $0.date < $1.date }
     }
 
-    var upcomingProgramWorkouts: [(program: Program, trainingDay: TrainingDay, weekNumber: Int, sessionNumber: Int, date: Date)] {
-        let now = Date()
-        let futureDate = Calendar.current.date(byAdding: .day, value: currentSettings.upcomingWorkoutsDays, to: now) ?? now
-
-        var upcomingWorkouts: [(program: Program, trainingDay: TrainingDay, weekNumber: Int, sessionNumber: Int, date: Date)] = []
-
-        for program in activePrograms {
-            for trainingDay in program.trainingDays {
-                // Group sessions by sessionNumber (each workout instance)
-                let sessionsByWorkout = Dictionary(grouping: trainingDay.sessions) { $0.sessionNumber }
-
-                for (sessionNum, sessions) in sessionsByWorkout {
-                    // Check if any session in this workout is uncompleted
-                    let hasUncompleted = sessions.contains { !$0.completed }
-
-                    // Get the date and week from the first session
-                    if let firstSession = sessions.first,
-                       hasUncompleted,
-                       firstSession.date >= now,
-                       firstSession.date <= futureDate {
-                        upcomingWorkouts.append((
-                            program: program,
-                            trainingDay: trainingDay,
-                            weekNumber: firstSession.weekNumber,
-                            sessionNumber: sessionNum,
-                            date: firstSession.date
-                        ))
-                    }
-                }
-            }
-        }
-
-        return upcomingWorkouts.sorted { $0.date < $1.date }
-    }
+    
 
     // PR tracking - find heaviest lifts from completed sessions
     func getMaxWeight(for exerciseName: String) -> Double {
@@ -194,32 +157,7 @@ struct MainView: View {
                         }
                     }
 
-                    // Programs subsection
-                    if !upcomingProgramWorkouts.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "calendar.badge.checkmark")
-                                    .font(.caption)
-                                    .foregroundColor(.purple)
-                                Text("Programs")
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.horizontal)
-                            .padding(.top, upcomingStrengthSessions.isEmpty ? 0 : 8)
-
-                            ForEach(upcomingProgramWorkouts, id: \.sessionNumber) { workout in
-                                UpcomingProgramWorkoutRow(
-                                    program: workout.program,
-                                    trainingDay: workout.trainingDay,
-                                    weekNumber: workout.weekNumber,
-                                    sessionNumber: workout.sessionNumber,
-                                    date: workout.date
-                                )
-                            }
-                        }
-                    }
-
+  
                     // Cardio subsection
                     if !upcomingCardioSessions.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
@@ -232,7 +170,7 @@ struct MainView: View {
                                     .foregroundColor(.secondary)
                             }
                             .padding(.horizontal)
-                            .padding(.top, (upcomingStrengthSessions.isEmpty && upcomingProgramWorkouts.isEmpty) ? 0 : 8)
+                            .padding(.top, upcomingStrengthSessions.isEmpty ? 0 : 8)
 
                             ForEach(upcomingCardioSessions, id: \.id) { session in
                                 UpcomingCardioSessionRow(session: session)
@@ -241,7 +179,7 @@ struct MainView: View {
                     }
 
                     // Empty state
-                    if upcomingStrengthSessions.isEmpty && upcomingCardioSessions.isEmpty && upcomingProgramWorkouts.isEmpty {
+                    if upcomingStrengthSessions.isEmpty && upcomingCardioSessions.isEmpty {
                         VStack(spacing: 12) {
                             Image(systemName: "calendar")
                                 .font(.system(size: 40))
@@ -600,70 +538,7 @@ struct UpcomingCardioSessionRow: View {
     }
 }
 
-struct UpcomingProgramWorkoutRow: View {
-    let program: Program
-    let trainingDay: TrainingDay
-    let weekNumber: Int
-    let sessionNumber: Int
-    let date: Date
-    @State private var showProgramWorkout = false
 
-    var body: some View {
-        Button(action: { showProgramWorkout = true }) {
-            HStack(spacing: 12) {
-                VStack(spacing: 2) {
-                    Text("W\(weekNumber)")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                    Text("#\(sessionNumber)")
-                        .font(.caption2)
-                }
-                .frame(width: 40)
-                .padding(.vertical, 8)
-                .background(Color.purple.opacity(0.1))
-                .foregroundColor(.purple)
-                .cornerRadius(8)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(program.name)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            Text(trainingDay.name)
-                                .font(.caption2)
-                                .foregroundColor(.purple)
-                        }
-
-                        Spacer()
-
-                        Text(date.formatted(date: .abbreviated, time: .omitted))
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Text("\(trainingDay.exercises.count) exercises")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
-            .padding(.horizontal)
-        }
-        .buttonStyle(.plain)
-        .sheet(isPresented: $showProgramWorkout) {
-            NavigationView {
-                ProgramWorkoutView(program: program, trainingDay: trainingDay)
-            }
-        }
-    }
-}
 
 // MARK: - Preview
 

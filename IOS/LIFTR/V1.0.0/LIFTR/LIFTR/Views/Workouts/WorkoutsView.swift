@@ -7,12 +7,10 @@ struct WorkoutsView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \Progression.startDate) private var allProgressions: [Progression]
     @Query(sort: \CardioProgression.startDate) private var allCardioProgressions: [CardioProgression]
-    @Query(sort: \Program.startDate) private var allPrograms: [Program]
     
     @State private var selectedCategory: WorkoutCategory = .strength
     @State private var showNewProgression = false
     @State private var showNewCardioProgression = false
-    @State private var showNewProgram = false
     
     enum WorkoutCategory: String, CaseIterable {
         case strength = "Strength"
@@ -32,9 +30,6 @@ struct WorkoutsView: View {
     
     var activeCardioProgressions: [CardioProgression] {
         allCardioProgressions.filter { $0.status == .active }
-    }
-    var activePrograms: [Program] {
-        allPrograms.filter { $0.status == .active }
     }
     
     var body: some View {
@@ -66,9 +61,6 @@ struct WorkoutsView: View {
                                 }
                             }
                             
-                            ForEach(activePrograms) { program in
-                                ProgramCard(program: program)
-                            }
                             // Create New Strength Progression Button
                             Button(action: { showNewProgression = true }) {
                                 HStack {
@@ -80,21 +72,6 @@ struct WorkoutsView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                            }
-                            .padding(.horizontal)
-                            
-                            Button(action: { showNewProgram = true }) {
-                                HStack {
-                                    Image(systemName: "plus.circle.fill")
-                                        .font(.title2)
-                                    Text("Create New Strength Program")
-                                        .font(.headline)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.purple)
                                 .foregroundColor(.white)
                                 .cornerRadius(12)
                             }
@@ -139,9 +116,6 @@ struct WorkoutsView: View {
             .sheet(isPresented: $showNewCardioProgression) {
                 CreateCardioProgressionView()
                 
-            }
-            .sheet(isPresented: $showNewProgram) {
-                CreateProgramView()
             }
         }
     }
@@ -615,204 +589,3 @@ struct ProgressionCard: View {
         }
     }
 }
-// MARK: - Program Card
-
-struct ProgramCard: View {
-    @Environment(\.modelContext) private var context
-    @Bindable var program: Program
-    @State private var showWorkout = false  // Simple boolean, not optional
-    @State private var showDeleteConfirmation = false
-    
-    var nextTrainingDay: TrainingDay? {
-        // Find the training day containing the session with the lowest sessionNumber
-        var lowestSessionNumber = Int.max
-        var nextDay: TrainingDay? = nil
-        
-        for day in program.trainingDays {
-            if let firstIncomplete = day.sessions.filter({ !$0.completed }).min(by: { $0.sessionNumber < $1.sessionNumber }) {
-                if firstIncomplete.sessionNumber < lowestSessionNumber {
-                    lowestSessionNumber = firstIncomplete.sessionNumber
-                    nextDay = day
-                }
-            }
-        }
-        
-        return nextDay
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(program.name)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    
-                    HStack(spacing: 12) {
-                        Label(program.templateType.rawValue, systemImage: "book.fill")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Spacer()
-                
-                // Status Badge
-                Text(program.status.rawValue)
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(statusColor.opacity(0.2))
-                    .foregroundColor(statusColor)
-                    .cornerRadius(6)
-                
-                // Delete Button
-                Button(action: { showDeleteConfirmation = true }) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                        .padding(8)
-                        .background(Color.red.opacity(0.1))
-                        .clipShape(Circle())
-                }
-            }
-            
-            Divider()
-            
-            // Progress Info
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Week \(program.currentWeek) of \(program.totalWeeks)")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    
-                    ProgressView(value: Double(program.currentWeek), total: Double(program.totalWeeks))
-                        .tint(.purple)
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("Progress")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text("\(Int(program.progressPercentage))%")
-                        .font(.headline)
-                        .foregroundColor(.purple)
-                }
-            }
-            
-            // Next Workout Info
-            if let nextDay = nextTrainingDay {
-                Divider()
-                
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Next Workout")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(nextDay.name)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                        
-                        // Show exercise preview
-                        if let firstExercise = nextDay.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }).first {
-                            Text("\(nextDay.exercises.count) exercises • starts with \(firstExercise.exerciseName)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: { showWorkout = true }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "play.fill")
-                            Text("Start")
-                        }
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color.purple)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                    }
-                }
-            }
-            
-            // Action Buttons
-            HStack(spacing: 12) {
-                NavigationLink(destination: ProgramDetailView(program: program)) {
-                    HStack {
-                        Image(systemName: "chart.xyaxis.line")
-                        Text("View Progress")
-                    }
-                    .font(.subheadline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(Color(.systemGray6))
-                    .foregroundColor(.primary)
-                    .cornerRadius(8)
-                }
-                
-                NavigationLink(destination: EditProgramView(program: program)) {
-                    HStack {
-                        Image(systemName: "pencil")
-                        Text("Edit")
-                    }
-                    .font(.subheadline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(Color(.systemGray6))
-                    .foregroundColor(.primary)
-                    .cornerRadius(8)
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-        .padding(.horizontal)
-        .sheet(isPresented: $showWorkout) {
-            // SIMPLIFIED: Use nextTrainingDay directly
-            if let day = nextTrainingDay {
-                NavigationView {
-                    ProgramWorkoutView(program: program, trainingDay: day)
-                }
-            }
-        }
-        .confirmationDialog(
-            "Delete Program",
-            isPresented: $showDeleteConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Delete", role: .destructive) {
-                deleteProgram()
-            }
-            Button("Cancel", role: .cancel) { }
-        } message: {
-            Text("Are you sure you want to delete '\(program.name)'? This will remove all workout history and cannot be undone.")
-        }
-    }
-    
-    private var statusColor: Color {
-        switch program.status {
-        case .active: return .green
-        case .paused: return .orange
-        case .completed: return .blue
-        }
-    }
-    
-    private func deleteProgram() {
-        withAnimation {
-            context.delete(program)
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            try? context.save()
-        }
-    }
-}
-
-

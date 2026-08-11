@@ -1,23 +1,21 @@
 import Foundation
 import SwiftData
 
-// MARK: - Program Models
-
 @Model
-class Program {
+class Workout {
     var id: UUID
     var name: String
     var templateType: TemplateType
     var status: ProgressionStatus
-    
+
     var totalWeeks: Int
     var currentWeek: Int
     var startDate: Date
-    
-    @Relationship(deleteRule: .cascade) var trainingDays: [TrainingDay]
-    
+
+    @Relationship(deleteRule: .cascade) var days: [WorkoutDay]
+
     var notes: String?
-    
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -35,26 +33,29 @@ class Program {
         self.totalWeeks = totalWeeks
         self.currentWeek = currentWeek
         self.startDate = startDate
-        self.trainingDays = []
+        self.days = []
         self.notes = notes
     }
-    
+
     var progressPercentage: Double {
         return Double(currentWeek) / Double(totalWeeks) * 100
+    }
+
+    var isActive: Bool {
+        return status == .active
     }
 }
 
 @Model
-class TrainingDay {
+class WorkoutDay {
     var id: UUID
     var name: String
     var dayNumber: Int
-    
-    @Relationship(deleteRule: .cascade) var exercises: [ProgramExercise]
-    @Relationship(deleteRule: .cascade) var sessions: [ExerciseSession]
-    
-    var program: Program?
-    
+
+    @Relationship(deleteRule: .cascade) var exercises: [WorkoutExercise]
+
+    var workout: Workout?
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -64,31 +65,30 @@ class TrainingDay {
         self.name = name
         self.dayNumber = dayNumber
         self.exercises = []
-        self.sessions = []
     }
 }
 
 @Model
-class ProgramExercise {
+class WorkoutExercise {
     var id: UUID
-    var exerciseName: String
-    var exercise: Exercise?
+    var exercise: Exercise
     var orderIndex: Int
-    
+
     var startingWeight: Double
     var currentWeight: Double
     var targetSets: Int
     var targetReps: Int
     var increment: Double
-    
-    var trainingDay: TrainingDay?
-    
+
+    @Relationship(deleteRule: .cascade) var sessions: [ExerciseSession]
+
+    var day: WorkoutDay?
+
     var notes: String?
-    
+
     init(
         id: UUID = UUID(),
-        exerciseName: String,
-        exercise: Exercise? = nil,
+        exercise: Exercise,
         orderIndex: Int,
         startingWeight: Double,
         currentWeight: Double? = nil,
@@ -98,7 +98,6 @@ class ProgramExercise {
         notes: String? = nil
     ) {
         self.id = id
-        self.exerciseName = exerciseName
         self.exercise = exercise
         self.orderIndex = orderIndex
         self.startingWeight = startingWeight
@@ -106,6 +105,7 @@ class ProgramExercise {
         self.targetSets = targetSets
         self.targetReps = targetReps
         self.increment = increment
+        self.sessions = []
         self.notes = notes
     }
 }
@@ -116,21 +116,23 @@ class ExerciseSession {
     var date: Date
     var weekNumber: Int
     var sessionNumber: Int
-    
+
     var plannedWeight: Double
     var plannedSets: Int
     var plannedReps: Int
-    
+
     var completed: Bool
     var completedDate: Date?
-    
+
+    var wasDeload: Bool
+    var deloadPercent: Double?
+
     @Relationship(deleteRule: .cascade) var sets: [WorkoutSet]
-    
-    var exercise: ProgramExercise?
-    var trainingDay: TrainingDay?
-    
+
+    var workoutExercise: WorkoutExercise?
+
     var notes: String?
-    
+
     init(
         id: UUID = UUID(),
         date: Date = Date(),
@@ -141,6 +143,8 @@ class ExerciseSession {
         plannedReps: Int,
         completed: Bool = false,
         completedDate: Date? = nil,
+        wasDeload: Bool = false,
+        deloadPercent: Double? = nil,
         notes: String? = nil
     ) {
         self.id = id
@@ -152,18 +156,20 @@ class ExerciseSession {
         self.plannedReps = plannedReps
         self.completed = completed
         self.completedDate = completedDate
+        self.wasDeload = wasDeload
+        self.deloadPercent = deloadPercent
         self.sets = []
         self.notes = notes
     }
-    
+
     var totalPlannedReps: Int {
         return plannedSets * plannedReps
     }
-    
+
     var totalCompletedReps: Int {
         return sets.reduce(0) { $0 + ($1.actualReps ?? 0) }
     }
-    
+
     var performancePercentage: Double {
         guard totalPlannedReps > 0 else { return 0 }
         return Double(totalCompletedReps) / Double(totalPlannedReps) * 100
