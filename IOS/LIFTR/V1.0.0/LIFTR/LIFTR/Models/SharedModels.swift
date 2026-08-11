@@ -62,7 +62,7 @@ class WorkoutSet {
 }
 @Model
 class Exercise {
-    var id: UUID
+    var id: UUID = UUID()
     var name: String
     var coreType: ExerciseCoreType?
 

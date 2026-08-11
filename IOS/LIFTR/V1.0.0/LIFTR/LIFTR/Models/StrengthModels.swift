@@ -32,25 +32,7 @@ enum TemplateType: String, Codable, CaseIterable {
 
 
 
-enum ProgressionAdjustment: Equatable {
-    case continueAsPlanned
-    case repeatWeight
-    case reduceBy(percent: Double)
-    case deload(percent: Double)
-    
-    var message: String {
-        switch self {
-        case .continueAsPlanned:
-            return "Great work! Continue with your planned progression."
-        case .repeatWeight:
-            return "You completed most reps but not all. Repeat this weight next session."
-        case .reduceBy(let percent):
-            return "Performance below target. Reduce future weights by \(String(format: "%.1f", percent))%?"
-        case .deload(let percent):
-            return "Significant performance drop. Deload by \(String(format: "%.1f", percent))% for recovery?"
-        }
-    }
-}
+
 
 // MARK: - Models
 

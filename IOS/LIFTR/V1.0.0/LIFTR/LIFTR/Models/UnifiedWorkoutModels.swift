@@ -16,14 +16,14 @@ enum ProgressionStyle: String, Codable, CaseIterable {
 }
 @Model
 class Workout {
-    var id: UUID
+    var id: UUID = UUID()
     var name: String
     var templateType: TemplateType
-    var status: ProgressionStatus
+    var status: ProgressionStatus = ProgressionStatus.active
 
     var totalWeeks: Int
-    var currentWeek: Int
-    var startDate: Date
+    var currentWeek: Int = 1
+    var startDate: Date = Date()
 
     @Relationship(deleteRule: .cascade) var days: [WorkoutDay]
 
@@ -61,7 +61,7 @@ class Workout {
 
 @Model
 class WorkoutDay {
-    var id: UUID
+    var id: UUID = UUID()
     var name: String
     var dayNumber: Int
 
@@ -91,7 +91,7 @@ class WorkoutExercise {
     var currentWeight: Double
     var targetSets: Int
     var targetReps: Int
-    var increment: Double
+    var increment: Double = 5.0
 
     @Relationship(deleteRule: .cascade) var sessions: [ExerciseSession]
 
@@ -127,8 +127,8 @@ class WorkoutExercise {
 
 @Model
 class ExerciseSession {
-    var id: UUID
-    var date: Date
+    var id: UUID = UUID()
+    var date: Date = Date()
     var weekNumber: Int
     var sessionNumber: Int
 
@@ -136,10 +136,10 @@ class ExerciseSession {
     var plannedSets: Int
     var plannedReps: Int
 
-    var completed: Bool
+    var completed: Bool = false
     var completedDate: Date?
-
-    var wasDeload: Bool
+    var paused: Bool = false
+    var wasDeload: Bool = false
     var deloadPercent: Double?
 
     @Relationship(deleteRule: .cascade) var sets: [WorkoutSet]
@@ -158,6 +158,7 @@ class ExerciseSession {
         plannedReps: Int,
         completed: Bool = false,
         completedDate: Date? = nil,
+        paused: Bool = false,
         wasDeload: Bool = false,
         deloadPercent: Double? = nil,
         notes: String? = nil
@@ -171,6 +172,7 @@ class ExerciseSession {
         self.plannedReps = plannedReps
         self.completed = completed
         self.completedDate = completedDate
+        self.paused = paused
         self.wasDeload = wasDeload
         self.deloadPercent = deloadPercent
         self.sets = []
