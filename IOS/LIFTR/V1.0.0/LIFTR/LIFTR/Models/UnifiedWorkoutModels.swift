@@ -1,6 +1,19 @@
 import Foundation
 import SwiftData
 
+enum ProgressionStyle: String, Codable, CaseIterable {
+    case linear = "Linear"
+    case periodization = "Periodization"
+
+    var description: String {
+        switch self {
+        case .linear:
+            return "Consistent weight increases each session/week"
+        case .periodization:
+            return "Wave-like progression with planned variation (light/medium/heavy weeks)"
+        }
+    }
+}
 @Model
 class Workout {
     var id: UUID
@@ -73,7 +86,7 @@ class WorkoutExercise {
     var id: UUID
     var exercise: Exercise
     var orderIndex: Int
-
+    var progressionStyle: ProgressionStyle
     var startingWeight: Double
     var currentWeight: Double
     var targetSets: Int
@@ -90,6 +103,7 @@ class WorkoutExercise {
         id: UUID = UUID(),
         exercise: Exercise,
         orderIndex: Int,
+        progressionStyle: ProgressionStyle,
         startingWeight: Double,
         currentWeight: Double? = nil,
         targetSets: Int,
@@ -100,6 +114,7 @@ class WorkoutExercise {
         self.id = id
         self.exercise = exercise
         self.orderIndex = orderIndex
+        self.progressionStyle = progressionStyle
         self.startingWeight = startingWeight
         self.currentWeight = currentWeight ?? startingWeight
         self.targetSets = targetSets

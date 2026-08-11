@@ -29,25 +29,6 @@ enum TemplateType: String, Codable, CaseIterable {
     }
 }
 
-enum ProgressionStyle: String, Codable, CaseIterable {
-    case linear = "Linear"
-    case periodization = "Periodization"
-    case rpe = "RPE-Based"
-    case percentage = "Percentage-Based"
-    
-    var description: String {
-        switch self {
-        case .linear:
-            return "Consistent weight increases each session/week"
-        case .periodization:
-            return "Wave-like progression with planned variation"
-        case .rpe:
-            return "Based on Rate of Perceived Exertion"
-        case .percentage:
-            return "Based on percentage of max"
-        }
-    }
-}
 
 
 

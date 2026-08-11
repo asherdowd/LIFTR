@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct StartWorkoutView: View {
+    @Environment(\.dismiss) var dismiss
     var body: some View {
         NavigationView {
             VStack(spacing: 24) {
@@ -9,7 +10,7 @@ struct StartWorkoutView: View {
                     .fontWeight(.bold)
                     .padding(.top, 40)
 
-                NavigationLink(destination: Text("Single Workout flow - coming in step 2")) {
+                NavigationLink(destination: CreateSingleWorkoutView(onComplete: { dismiss() })) {
                     HStack {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.title2)

@@ -14,6 +14,7 @@
 		EC0D7B142F1C18A000596B36 /* WorkoutSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0D7B0F2F1C18A000596B36 /* WorkoutSessionView.swift */; };
 		EC177323302AAC4800BE96BB /* UnifiedWorkoutModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC177322302AAC3C00BE96BB /* UnifiedWorkoutModels.swift */; };
 		EC177327302ABCB700BE96BB /* StartWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC177325302ABCB200BE96BB /* StartWorkoutView.swift */; };
+		EC177329302AC3DD00BE96BB /* CreateSingleWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC177328302AC3D600BE96BB /* CreateSingleWorkoutView.swift */; };
 		EC4DC0D42E91C24600340825 /* CardioSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D32E91C23A00340825 /* CardioSessionView.swift */; };
 		EC4DC0D62E91C26000340825 /* EditCardioProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D52E91C25900340825 /* EditCardioProgressionView.swift */; };
 		EC4DC0D82E91C3FB00340825 /* CardioProgressionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D72E91C3DD00340825 /* CardioProgressionDetailView.swift */; };
@@ -46,7 +47,6 @@
 		ECC8E9D22E8E300300E76F7D /* PlateCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D12E8E300300E76F7D /* PlateCalculator.swift */; };
 		ECC8E9D42E8E37C900E76F7D /* BarVisualizerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D32E8E37C900E76F7D /* BarVisualizerView.swift */; };
 		ECC8E9D62E8ED29000E76F7D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D52E8ED29000E76F7D /* SettingsView.swift */; };
-		ECC8E9D82E8F7A8800E76F7D /* CreateProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9D72E8F7A8800E76F7D /* CreateProgressionView.swift */; };
 		ECC8E9DC2E8F84B600E76F7D /* ProgressionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DB2E8F84B600E76F7D /* ProgressionDetailView.swift */; };
 		ECC8E9DE2E8F852E00E76F7D /* EditProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DD2E8F852D00E76F7D /* EditProgressionView.swift */; };
 		ECC8E9E02E8F8BB000E76F7D /* CreateCardioProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9DF2E8F8BB000E76F7D /* CreateCardioProgressionView.swift */; };
@@ -104,6 +104,7 @@
 		EC0D7B0F2F1C18A000596B36 /* WorkoutSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSessionView.swift; sourceTree = "<group>"; };
 		EC177322302AAC3C00BE96BB /* UnifiedWorkoutModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedWorkoutModels.swift; sourceTree = "<group>"; };
 		EC177325302ABCB200BE96BB /* StartWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartWorkoutView.swift; sourceTree = "<group>"; };
+		EC177328302AC3D600BE96BB /* CreateSingleWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateSingleWorkoutView.swift; sourceTree = "<group>"; };
 		EC4DC0D32E91C23A00340825 /* CardioSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioSessionView.swift; sourceTree = "<group>"; };
 		EC4DC0D52E91C25900340825 /* EditCardioProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCardioProgressionView.swift; sourceTree = "<group>"; };
 		EC4DC0D72E91C3DD00340825 /* CardioProgressionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioProgressionDetailView.swift; sourceTree = "<group>"; };
@@ -141,7 +142,6 @@
 		ECC8E9D12E8E300300E76F7D /* PlateCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlateCalculator.swift; sourceTree = "<group>"; };
 		ECC8E9D32E8E37C900E76F7D /* BarVisualizerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarVisualizerView.swift; sourceTree = "<group>"; };
 		ECC8E9D52E8ED29000E76F7D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		ECC8E9D72E8F7A8800E76F7D /* CreateProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateProgressionView.swift; sourceTree = "<group>"; };
 		ECC8E9DB2E8F84B600E76F7D /* ProgressionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionDetailView.swift; sourceTree = "<group>"; };
 		ECC8E9DD2E8F852D00E76F7D /* EditProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProgressionView.swift; sourceTree = "<group>"; };
 		ECC8E9DF2E8F8BB000E76F7D /* CreateCardioProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCardioProgressionView.swift; sourceTree = "<group>"; };
@@ -225,7 +225,6 @@
 		EC0D7B1F2F1CA70B00596B36 /* Progression */ = {
 			isa = PBXGroup;
 			children = (
-				ECC8E9D72E8F7A8800E76F7D /* CreateProgressionView.swift */,
 				ECC8E9DD2E8F852D00E76F7D /* EditProgressionView.swift */,
 				ECC8E9DB2E8F84B600E76F7D /* ProgressionDetailView.swift */,
 			);
@@ -245,6 +244,7 @@
 		EC0D7B222F1CA78C00596B36 /* Workouts */ = {
 			isa = PBXGroup;
 			children = (
+				EC177328302AC3D600BE96BB /* CreateSingleWorkoutView.swift */,
 				EC0D7B0C2F1C18A000596B36 /* LogSetView.swift */,
 				EC0D7B0D2F1C18A000596B36 /* PerformanceSummaryView.swift */,
 				EC0D7B0E2F1C18A000596B36 /* SetRowView.swift */,
@@ -596,7 +596,6 @@
 				ECC8E9D42E8E37C900E76F7D /* BarVisualizerView.swift in Sources */,
 				ECC8E9E42E8F8CD500E76F7D /* InventoryModels.swift in Sources */,
 				ECC8E9932E6B56F000E76F7D /* ContentView.swift in Sources */,
-				ECC8E9D82E8F7A8800E76F7D /* CreateProgressionView.swift in Sources */,
 				EC4DC0DA2E91C91700340825 /* SupportView.swift in Sources */,
 				ECC8E9EA2E8F8D0300E76F7D /* CardioModels.swift in Sources */,
 				ECC8E9CC2E6B5F1A00E76F7D /* AnalyticsView.swift in Sources */,
@@ -624,6 +623,7 @@
 				EC4DC0D42E91C24600340825 /* CardioSessionView.swift in Sources */,
 				EC88A8B42F2854470005A456 /* RestTimerSettingsView.swift in Sources */,
 				ECC8E9EC2E8F8D1100E76F7D /* Extensions.swift in Sources */,
+				EC177329302AC3DD00BE96BB /* CreateSingleWorkoutView.swift in Sources */,
 				ECC8E9D62E8ED29000E76F7D /* SettingsView.swift in Sources */,
 				ECC8E9DC2E8F84B600E76F7D /* ProgressionDetailView.swift in Sources */,
 				EC902E0E2F15F1F300A666C2 /* SharedModels.swift in Sources */,
