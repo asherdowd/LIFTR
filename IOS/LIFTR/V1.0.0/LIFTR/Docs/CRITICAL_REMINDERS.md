@@ -199,7 +199,12 @@ static func performStartupChecks(context: ModelContext) {
 
 ## 📝 CURRENT SCHEMA VERSION
 
-**As of July 6, 2026:**
+**As of October 11, 2026:**
+- **Version:** V4
+- **Changes from V3:** Added `exerciseSession: ExerciseSession?` to `WorkoutSet` as the inverse relationship for the new Workout system. Legacy `session: WorkoutSession?` retained.
+- **Migration:** No repair function — `nil` default is correct for all existing records. Lightweight migration handles automatically.
+
+**Previously, as of July 6, 2026:**
 - **Version:** V3
 - **Changes from V2:** Added `exercise: Exercise?` relationship to Progression, ProgramExercise, ExerciseProgressionSettings, CardioProgression
 - **Migration:** Handled by interactive resolution (`RootView` + `ExerciseReconciliationView`), NOT a MigrationService repair function — see "Step 2 (alternative)" above
@@ -304,11 +309,12 @@ Before committing ANY model changes:
 **Implemented:**
 - ✅ V1→V2: Rest timer properties (handled by `repairRestTimerDefaults()`)
 - ✅ V2→V3: Exercise identity relationships (handled by interactive resolution — `RootView` + `ExerciseReconciliationView`, NOT a repair function). Tested on device: fresh install (no reconciliation screen shown, as expected) and upgrade over existing real data (screen appeared with correct names, resolved correctly, did not reappear on relaunch).
+- ✅ V3→V4: Added `exerciseSession: ExerciseSession?` inverse to `WorkoutSet` for new Workout system. No repair function — nil default is correct for all existing records. Lightweight migration handles automatically.
 
 **Planned:**
-- ⏳ V3→V4: Strava integration (startTime, endTime, totalDuration, stravaActivityId)
-- ⏳ V4→V5: User profile expansion (age, weight, height, etc.)
-- ⏳ V5→V6: Apple Health sync properties
+- ⏳ V4→V5: Strava integration (startTime, endTime, totalDuration, stravaActivityId)
+- ⏳ V5→V6: User profile expansion (age, weight, height, etc.)
+- ⏳ V6→V7: Apple Health sync properties
 
 **Testing Status:**
 - ⚠️ V1→V2 migration tested: PENDING (lightweight migration + repair function)

@@ -29,7 +29,8 @@ class WorkoutSet {
     var rpe: Int?
     var completed: Bool
     
-    var session: WorkoutSession?  // Legacy - used by old Progression system
+    var session: WorkoutSession?          // Legacy — old Progression system
+    var exerciseSession: ExerciseSession? // New — Workout system
     
     var notes: String?
     

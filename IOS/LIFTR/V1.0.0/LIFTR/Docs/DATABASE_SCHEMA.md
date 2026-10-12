@@ -156,7 +156,8 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `notes` | String? | nil | Optional notes |
 
 **Relationships:**
-- `session`: WorkoutSession? (parent - legacy)
+- `session`: WorkoutSession? (parent — legacy, old Progression system)
+- `exerciseSession`: ExerciseSession? (parent — new Workout system) ⚠️ V4
 
 **Computed Properties:**
 - `wasSuccessful`: actualReps >= targetReps
@@ -546,7 +547,15 @@ ExerciseProgressionSettings (independent, 0:many)
 - Set `restTimerHaptic = true`
 - (Exercise model addition required no migration steps)
 
-### V3 (Exercise Identity Relationships) ⚠️ CURRENT
+### V4 (WorkoutSet inverse for new Workout system) ⚠️ CURRENT
+**Date:** 2026-10-11
+**Changes:**
+- Added `exerciseSession: ExerciseSession?` to `WorkoutSet` — inverse relationship for the new Workout system. The existing `session: WorkoutSession?` is retained as the legacy inverse for the old Progression system.
+
+**Migration V3→V4:**
+- No repair function needed. `exerciseSession` is optional and defaults to `nil`, which is correct for all existing `WorkoutSet` records (all attached to the old system). SwiftData lightweight migration handles this automatically via the optional type's nil default.
+
+### V3 (Exercise Identity Relationships) 
 **Date:** July 6, 2026  
 **Changes:**
 - Added `exercise: Exercise?` relationship to Progression, ProgramExercise, ExerciseProgressionSettings, CardioProgression
