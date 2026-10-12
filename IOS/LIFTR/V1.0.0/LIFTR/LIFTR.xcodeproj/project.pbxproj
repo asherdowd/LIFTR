@@ -18,6 +18,7 @@
 		EC17732B302ACA5200BE96BB /* DeloadAdjustmentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC17732A302ACA4500BE96BB /* DeloadAdjustmentService.swift */; };
 		EC17732D302ACA8D00BE96BB /* ExercisePerformanceSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC17732C302ACA8300BE96BB /* ExercisePerformanceSummaryView.swift */; };
 		EC17732F302ACAAC00BE96BB /* ExerciseSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC17732E302ACAA600BE96BB /* ExerciseSessionView.swift */; };
+		EC177331302AD24F00BE96BB /* SingleWorkoutCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC177330302AD24100BE96BB /* SingleWorkoutCategoryView.swift */; };
 		EC4DC0D42E91C24600340825 /* CardioSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D32E91C23A00340825 /* CardioSessionView.swift */; };
 		EC4DC0D62E91C26000340825 /* EditCardioProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D52E91C25900340825 /* EditCardioProgressionView.swift */; };
 		EC4DC0D82E91C3FB00340825 /* CardioProgressionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4DC0D72E91C3DD00340825 /* CardioProgressionDetailView.swift */; };
@@ -111,6 +112,7 @@
 		EC17732A302ACA4500BE96BB /* DeloadAdjustmentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeloadAdjustmentService.swift; sourceTree = "<group>"; };
 		EC17732C302ACA8300BE96BB /* ExercisePerformanceSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExercisePerformanceSummaryView.swift; sourceTree = "<group>"; };
 		EC17732E302ACAA600BE96BB /* ExerciseSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseSessionView.swift; sourceTree = "<group>"; };
+		EC177330302AD24100BE96BB /* SingleWorkoutCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleWorkoutCategoryView.swift; sourceTree = "<group>"; };
 		EC4DC0D32E91C23A00340825 /* CardioSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioSessionView.swift; sourceTree = "<group>"; };
 		EC4DC0D52E91C25900340825 /* EditCardioProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCardioProgressionView.swift; sourceTree = "<group>"; };
 		EC4DC0D72E91C3DD00340825 /* CardioProgressionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioProgressionDetailView.swift; sourceTree = "<group>"; };
@@ -157,6 +159,11 @@
 		ECC8E9E72E8F8CF500E76F7D /* StrengthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthModels.swift; sourceTree = "<group>"; };
 		ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioModels.swift; sourceTree = "<group>"; };
 		ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		ECF263BF307C815100777448 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = CHANGELOG.md; path = /Users/sethdowd/Documents/GitHub/LIFTRSwift/CHANGELOG.md; sourceTree = "<absolute>"; };
+		ECF263C0307C815100777448 /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = CLAUDE.md; path = /Users/sethdowd/Documents/GitHub/LIFTRSwift/CLAUDE.md; sourceTree = "<absolute>"; };
+		ECF263C1307C815100777448 /* HANDOFF.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = HANDOFF.md; path = /Users/sethdowd/Documents/GitHub/LIFTRSwift/HANDOFF.md; sourceTree = "<absolute>"; };
+		ECF263C2307C815100777448 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = /Users/sethdowd/Documents/GitHub/LIFTRSwift/README.md; sourceTree = "<absolute>"; };
+		ECF263C3307C815100777448 /* RELEASE_CHECKLIST.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = RELEASE_CHECKLIST.md; path = /Users/sethdowd/Documents/GitHub/LIFTRSwift/RELEASE_CHECKLIST.md; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -250,6 +257,7 @@
 		EC0D7B222F1CA78C00596B36 /* Workouts */ = {
 			isa = PBXGroup;
 			children = (
+				EC177330302AD24100BE96BB /* SingleWorkoutCategoryView.swift */,
 				EC17732E302ACAA600BE96BB /* ExerciseSessionView.swift */,
 				EC17732C302ACA8300BE96BB /* ExercisePerformanceSummaryView.swift */,
 				EC177328302AC3D600BE96BB /* CreateSingleWorkoutView.swift */,
@@ -319,6 +327,11 @@
 		ECC8E9842E6B56F000E76F7D = {
 			isa = PBXGroup;
 			children = (
+				ECF263BF307C815100777448 /* CHANGELOG.md */,
+				ECF263C0307C815100777448 /* CLAUDE.md */,
+				ECF263C1307C815100777448 /* HANDOFF.md */,
+				ECF263C2307C815100777448 /* README.md */,
+				ECF263C3307C815100777448 /* RELEASE_CHECKLIST.md */,
 				EC6274032F3052A300AF0B30 /* RestTimerWidgetExtension.entitlements */,
 				EC88A8BB2F2859950005A456 /* Docs */,
 				ECC8E98F2E6B56F000E76F7D /* LIFTR */,
@@ -625,6 +638,7 @@
 				ECC8E9912E6B56F000E76F7D /* LIFTRApp.swift in Sources */,
 				EC88A8BA2F2854A00005A456 /* ProgressionSettingsSections.swift in Sources */,
 				ECC8E9DE2E8F852E00E76F7D /* EditProgressionView.swift in Sources */,
+				EC177331302AD24F00BE96BB /* SingleWorkoutCategoryView.swift in Sources */,
 				EC177323302AAC4800BE96BB /* UnifiedWorkoutModels.swift in Sources */,
 				EC88A8B02F27BA620005A456 /* RestTimer.swift in Sources */,
 				EC88A8C22F28647A0005A456 /* MigrationService.swift in Sources */,

@@ -10,7 +10,7 @@ struct StartWorkoutView: View {
                     .fontWeight(.bold)
                     .padding(.top, 40)
 
-                NavigationLink(destination: CreateSingleWorkoutView(onComplete: { dismiss() })) {
+                NavigationLink(destination: SingleWorkoutCategoryView(onComplete: { dismiss() })) {
                     HStack {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.title2)

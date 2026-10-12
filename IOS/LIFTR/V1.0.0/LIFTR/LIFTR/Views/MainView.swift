@@ -188,7 +188,7 @@ struct MainView: View {
                                 .foregroundColor(.secondary)
 
                             NavigationLink(destination: WorkoutsView()) {
-                                Text("Create a Progression")
+                                Text("Start a Workout")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                     .padding(.horizontal, 16)

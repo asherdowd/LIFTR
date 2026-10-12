@@ -5,6 +5,7 @@ struct CreateCardioProgressionView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) var dismiss
     @Query private var globalSettings: [GlobalProgressionSettings]
+    var onComplete: () -> Void = {}
     
     @State private var progressionName: String = ""
     @State private var selectedType: CardioType = .running
@@ -235,7 +236,7 @@ struct CreateCardioProgressionView: View {
         
         do {
             try context.save()
-            dismiss()
+            onComplete()
         } catch {
             showErrorMessage(message: "Failed to save progression: \(error.localizedDescription)")
         }
