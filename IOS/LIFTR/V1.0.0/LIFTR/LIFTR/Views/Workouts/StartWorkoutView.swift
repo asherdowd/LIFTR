@@ -2,6 +2,9 @@ import SwiftUI
 
 struct StartWorkoutView: View {
     @Environment(\.dismiss) var dismiss
+    
+    private var onComplete: () -> Void { { dismiss() } }
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 24) {
@@ -25,7 +28,7 @@ struct StartWorkoutView: View {
                 }
                 .padding(.horizontal)
 
-                NavigationLink(destination: Text("Program flow - coming in step 5")) {
+                NavigationLink(destination: ProgramTemplatePickerView(onComplete: onComplete)) {
                     HStack {
                         Image(systemName: "calendar.badge.clock")
                             .font(.title2)

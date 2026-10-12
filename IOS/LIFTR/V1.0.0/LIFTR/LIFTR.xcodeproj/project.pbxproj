@@ -60,6 +60,12 @@
 		ECC8E9E82E8F8CF500E76F7D /* StrengthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E72E8F8CF500E76F7D /* StrengthModels.swift */; };
 		ECC8E9EA2E8F8D0300E76F7D /* CardioModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */; };
 		ECC8E9EC2E8F8D1100E76F7D /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */; };
+		ECF263C7307C8EAC00777448 /* HANDOFF.md in Resources */ = {isa = PBXBuildFile; fileRef = ECF263C6307C8EAC00777448 /* HANDOFF.md */; };
+		ECF263CF307C907700777448 /* ProgramTemplatePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263CE307C907700777448 /* ProgramTemplatePickerView.swift */; };
+		ECF263D1307C90AD00777448 /* StartingStrengthSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263D0307C90AD00777448 /* StartingStrengthSetupView.swift */; };
+		ECF263D3307C90C000777448 /* MadcowSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263D2307C90C000777448 /* MadcowSetupView.swift */; };
+		ECF263D7307C915D00777448 /* StartingStrengthSetupView 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263D6307C915D00777448 /* StartingStrengthSetupView 2.swift */; };
+		ECF263D9307C919B00777448 /* MadcowSetupView 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263D8307C919B00777448 /* MadcowSetupView 2.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -164,6 +170,12 @@
 		ECF263C1307C815100777448 /* HANDOFF.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = HANDOFF.md; path = /Users/sethdowd/Documents/GitHub/LIFTRSwift/HANDOFF.md; sourceTree = "<absolute>"; };
 		ECF263C2307C815100777448 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = /Users/sethdowd/Documents/GitHub/LIFTRSwift/README.md; sourceTree = "<absolute>"; };
 		ECF263C3307C815100777448 /* RELEASE_CHECKLIST.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = RELEASE_CHECKLIST.md; path = /Users/sethdowd/Documents/GitHub/LIFTRSwift/RELEASE_CHECKLIST.md; sourceTree = "<absolute>"; };
+		ECF263C6307C8EAC00777448 /* HANDOFF.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HANDOFF.md; sourceTree = "<group>"; };
+		ECF263CE307C907700777448 /* ProgramTemplatePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramTemplatePickerView.swift; sourceTree = "<group>"; };
+		ECF263D0307C90AD00777448 /* StartingStrengthSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartingStrengthSetupView.swift; sourceTree = "<group>"; };
+		ECF263D2307C90C000777448 /* MadcowSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MadcowSetupView.swift; sourceTree = "<group>"; };
+		ECF263D6307C915D00777448 /* StartingStrengthSetupView 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StartingStrengthSetupView 2.swift"; sourceTree = "<group>"; };
+		ECF263D8307C919B00777448 /* MadcowSetupView 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MadcowSetupView 2.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -267,6 +279,11 @@
 				EC0D7B0F2F1C18A000596B36 /* WorkoutSessionView.swift */,
 				ECC8E9CF2E6B64B300E76F7D /* WorkoutsView.swift */,
 				EC177325302ABCB200BE96BB /* StartWorkoutView.swift */,
+				ECF263CE307C907700777448 /* ProgramTemplatePickerView.swift */,
+				ECF263D0307C90AD00777448 /* StartingStrengthSetupView.swift */,
+				ECF263D2307C90C000777448 /* MadcowSetupView.swift */,
+				ECF263D6307C915D00777448 /* StartingStrengthSetupView 2.swift */,
+				ECF263D8307C919B00777448 /* MadcowSetupView 2.swift */,
 			);
 			path = Workouts;
 			sourceTree = "<group>";
@@ -406,6 +423,7 @@
 				ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */,
 				ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */,
 				EC902E0D2F15F1F300A666C2 /* SharedModels.swift */,
+				ECF263C6307C8EAC00777448 /* HANDOFF.md */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -580,6 +598,7 @@
 			files = (
 				ECC8E99B2E6B56F100E76F7D /* Preview Assets.xcassets in Resources */,
 				ECC8E9972E6B56F100E76F7D /* Assets.xcassets in Resources */,
+				ECF263C7307C8EAC00777448 /* HANDOFF.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -616,6 +635,7 @@
 				ECC8E9E62E8F8CE500E76F7D /* SettingsModels.swift in Sources */,
 				EC88A8B62F2854730005A456 /* BasicProgressionSettingsView.swift in Sources */,
 				EC17732D302ACA8D00BE96BB /* ExercisePerformanceSummaryView.swift in Sources */,
+				ECF263D1307C90AD00777448 /* StartingStrengthSetupView.swift in Sources */,
 				ECC8E9D42E8E37C900E76F7D /* BarVisualizerView.swift in Sources */,
 				ECC8E9E42E8F8CD500E76F7D /* InventoryModels.swift in Sources */,
 				ECC8E9932E6B56F000E76F7D /* ContentView.swift in Sources */,
@@ -623,16 +643,20 @@
 				ECC8E9EA2E8F8D0300E76F7D /* CardioModels.swift in Sources */,
 				ECC8E9CC2E6B5F1A00E76F7D /* AnalyticsView.swift in Sources */,
 				EC17732B302ACA5200BE96BB /* DeloadAdjustmentService.swift in Sources */,
+				ECF263D3307C90C000777448 /* MadcowSetupView.swift in Sources */,
 				ECC8E9CA2E6B5F0600E76F7D /* CalculatorView.swift in Sources */,
 				EC0D7B102F1C18A000596B36 /* CalculatorViewWrapper.swift in Sources */,
+				ECF263D7307C915D00777448 /* StartingStrengthSetupView 2.swift in Sources */,
 				EC177327302ABCB700BE96BB /* StartWorkoutView.swift in Sources */,
 				EC0D7B112F1C18A000596B36 /* LogSetView.swift in Sources */,
+				ECF263D9307C919B00777448 /* MadcowSetupView 2.swift in Sources */,
 				EC0D7B122F1C18A000596B36 /* PerformanceSummaryView.swift in Sources */,
 				EC0D7B132F1C18A000596B36 /* SetRowView.swift in Sources */,
 				EC0D7B142F1C18A000596B36 /* WorkoutSessionView.swift in Sources */,
 				ECC8E9C82E6B5EE000E76F7D /* MainView.swift in Sources */,
 				EC4DC0D82E91C3FB00340825 /* CardioProgressionDetailView.swift in Sources */,
 				ECC8E9E82E8F8CF500E76F7D /* StrengthModels.swift in Sources */,
+				ECF263CF307C907700777448 /* ProgramTemplatePickerView.swift in Sources */,
 				EC4DC0D62E91C26000340825 /* EditCardioProgressionView.swift in Sources */,
 				ECC8E9952E6B56F000E76F7D /* Item.swift in Sources */,
 				ECC8E9912E6B56F000E76F7D /* LIFTRApp.swift in Sources */,
