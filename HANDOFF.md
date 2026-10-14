@@ -47,6 +47,9 @@ Start Workout button (WorkoutsView) -> `StartWorkoutView` sheet
 
 Places step 8 touches (candidate list, owner must confirm): `WorkoutsView` (add `@Query Workout`, new card, continue/paused logic, delete), `MainView` (upcoming/recent/PR for Workout; fix the Upcoming filter `date >= now` that can hide a same-day session dated at start of day; empty-state nav #31), new day-level view, `ExerciseSessionView` / `LiveSingleWorkoutView` completion + `onComplete` chain, `DeloadAdjustmentService` (completion/status), `LogSingleStrengthView` (cancel cleanup), `MigrationService` / `LIFTRApp` (only if the model changes), `RestTimerWidget` (verify), docs (CHANGELOG, README, DATABASE_SCHEMA if the model changes).
 
+## Cardio parity (owner direction, 2026-10-14)
+Strength design changes (skip, any-order days, substitution, edit levels, week-advance rules) should be slated for cardio too, at least as planning input for the cardio rework (#33). Owner goal for cardio: mirror Strava and Garmin at a base level for tracking TRAIL RUNS. Cardio stays a separate path from the Workout model until that rework; nothing for cardio is built in step 8. Related: #33, #15 (Strava), #10 (HealthKit, blocked). When #33 is scoped, start by listing which strength decisions carry over (skipped sessions, one-off activity substitution, editable planned values, completion/week-advance).
+
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
 2. DONE: Single-lift progression creation (`CreateSingleWorkoutView`).
