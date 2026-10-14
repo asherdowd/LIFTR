@@ -1,50 +1,62 @@
-# LIFTR Handoff — as of 2026-10-11
+LIFTR Handoff — updated 2026-10-13
 
-Verified against GitHub on this date (origin/main and origin/feature/program-progression-merge). Local uncommitted work on the owner's Mac is NOT visible to GitHub; check `git status` first.
+Read this at the start of every session, together with CLAUDE.md. Update it after every milestone: propose the change and wait for OK before writing. Before ending a session, confirm this file is current. The repo is the source of truth. Verify every statement here with git status, git log and the code before relying on it.
 
-## Branches
-| Branch | HEAD | Notes |
-|---|---|---|
-| `main` | `91ad216` | Build 38, tag `v1.2.1-build38`. Last shipped/TestFlight baseline. Still contains old Program + Progression code and `ExerciseReconciliationView`/`RootView`. |
-| `feature/program-progression-merge` | `e978d29` | Active merge work (steps 1-3). |
-| `archive/healthkit-and-schema-attempt` | `e0fca6f` | Abandoned unified-architecture/HealthKit attempt. Preserved, do not merge. |
+Branches (as of 2026-10-13)
+Branch    Notes
+main    91ad216, Build 38, tag v1.2.1-build38. Shipped baseline. Still has the old Program code.
+feature/program-progression-merge    Active merge branch. Should be fast-forwarded to the cleaned wip/xcode-agent-changes snapshot (see "Git state").
+wip/xcode-agent-changes    Snapshot 796de0a of everything from the Xcode-agent sessions, on GitHub as a backup. Contains 5 dead duplicate files under LIFTR.xcodeproj/ that are being removed.
+archive/healthkit-and-schema-attempt    Abandoned attempt. Preserved, do not merge.
+feature/settings-redesign (local only)    Stale at e6e7e17.
+Design decisions (confirmed by owner)
+Single Workout = quick start. A casual user starts working out fast. Strength and Cardio each log ONE session. No plan or progression.
+Programs live under Programs. Starting Strength, Madcow 5x5, Custom, and the 12-session single-lift progression (CreateSingleWorkoutView) are reached from Start Workout -> Program -> ProgramTemplatePickerView.
+Cardio stays on the old CardioProgression model for now. It is a separate path from the unified Workout model.
+PR Totals count only exercises with non-nil Exercise.coreType.
+Navigation as built (verified in code on the snapshot)
 
-Tags: v1.2.1, v1.2.1-build7, -build8, -build9, -build38.
+Start Workout button (WorkoutsView) -> StartWorkoutView sheet
 
-## Local-only (uncommitted) work on the Mac at last report
-- `SingleWorkoutCategoryView.swift` (renamed from `SingleWorkoutTypeView`), `CardioTypeView.swift` (to be DELETED), `StartWorkoutView` and `MainView` edits.
-- Confirm with `git status`, then commit to the feature branch.
+Single Workout -> SingleWorkoutCategoryView
+Strength -> LogSingleStrengthView -> creates a Workout (1 day, 1 exercise, 1 session) -> LiveSingleWorkoutView
+Cardio -> LogSingleCardioView -> creates a CardioProgression + one CardioSession -> onComplete()
+Program -> ProgramTemplatePickerView -> Starting Strength / Madcow 5x5 / single-lift progression (CreateSingleWorkoutView) / Custom Program onComplete closures are passed down so the whole sheet closes (dismiss() pops only one level).
+Merge steps (Issue #4)
+DONE: universal Start Workout entry.
+DONE: Single-lift progression creation (CreateSingleWorkoutView).
+DONE: ExerciseSessionView, ExercisePerformanceSummaryView, DeloadAdjustmentService.
+DONE then SUPERSEDED: cardio entry (commit 8551b4a wired CreateCardioProgressionView(onComplete:)). Single Workout now goes through LogSingleStrengthView / LogSingleCardioView instead. CreateCardioProgressionView keeps its onComplete parameter; confirm where it is still reached.
+DONE (commit f9a61ae): Starting Strength (A/B alternation, 3x/week) and Madcow 5x5 (Mon/Wed/Fri, ramping sets, weekly % progression) setup views. Owner tested both create and close the sheet.
+CODE PRESENT, UNTESTED: CustomProgramSetupView (day picker, per-day exercises, weeks, start/goal weights, increment). Build succeeded. No test result recorded.
+NOT STARTED: A/B/A auto-plot.
+NOT STARTED: repoint MainView and WorkoutsView (PR totals via coreType != nil, upcoming workouts, continue/paused logic) to Workout. Until then, Workout objects (strength quick workouts and all programs) do NOT appear in WorkoutsView or MainView. Cardio quick workouts do, because they use the old model.
+NOT STARTED: delete old Progression, WorkoutSession, WorkoutSessionView, old views, and WorkoutSet.session. Testers' old Progression data will be wiped: put a note in the TestFlight comments for that build.
+Schema
+V3 (build 38): Exercise identity, Exercise.coreType optional.
+V4 (this branch): WorkoutSet.exerciseSession: ExerciseSession? added, legacy session kept. Docs updated: DATABASE_SCHEMA.md, CRITICAL_REMINDERS.md.
+UNVERIFIED: ExerciseSession.sets declares @Relationship(deleteRule: .cascade) with no explicit inverse:, and WorkoutSet now has two optional parents. A clean build does not prove SwiftData pairs them correctly. Test: create a workout, log sets, relaunch, confirm the sets persist; delete the workout, confirm its sets are removed.
+NOT DONE: migration test from the build 38 store to this branch (install 38, add data, install new, verify data preserved), per DATA_MIGRATION_POLICY.md.
+Git state / pending housekeeping
+5 local commits (step 4, two HANDOFF moves, V4, step 5) exist on the wip/xcode-agent-changes snapshot on GitHub.
+Dead files deleted locally, not yet committed: LIFTR.xcodeproj/{CustomProgramSetupView,LogSingleCardioView,LogSingleStrengthView,ProgramTemplatePickerView}.swift, LIFTR.xcodeproj/HANDOFF.md, LIFTR/Models/HANDOFF.md (it had also been added to the app's Resources). The project file already has the references removed.
+Plan: commit the cleanup, fast-forward feature/program-progression-merge to it, push, keep the wip branch as backup.
+project.pbxproj has five absolute-path references to /Users/sethdowd/Documents/GitHub/LIFTRSwift/*.md. Harmless but not portable.
+Open items
+The finished-quick-strength-workout visibility problem (see step 8).
+CreateCardioProgressionView has its own NavigationView, so it can show a doubled nav bar when pushed.
+MainView empty-state button still pushes a duplicate WorkoutsView instead of switching tabs (issue #31). Text changed to "Start a Workout".
+Docs stale: CHANGELOG, README, RELEASE_CHECKLIST, PLACEHOLDER_FEATURES.
+Verify RestTimerWidget still works after the merge.
+Next build number: verify in App Store Connect (38 is the last known used; at least 39). Must match on the app and RestTimerWidgetExtension.
+Issues (last verified 2026-10-11, recheck before relying)
 
-## The merge (Issue #4): Program + Progression -> one Workout hierarchy
-Hierarchy (`Models/UnifiedWorkoutModels.swift`): `Workout` -> `WorkoutDay` -> `WorkoutExercise` -> `ExerciseSession` -> `WorkoutSet`. `Exercise` (SharedModels) has optional `coreType`.
-Deload logic: `Services/DeloadAdjustmentService.swift` (static funcs; not yet wired into reachable UI beyond ExerciseSessionView).
+Open: #3 PR totals, #4 merge, #5/#6 deload on Program/Cardio, #7 plate calculator de-dup, #8 settings redesign, #9 schema versioning, #10 HealthKit (blocked), #11 orphan files, #12 exercise seed/picker, #15 Strava, #16 progression recalculation, #17 profile, #18 support backend, #19 templates, #20 metric, #21 analytics, #22 social, #23 sheet dismissal bug, #24/#25 tests, #26 docs, #27 App Store prep, #28 Upcoming Workouts empty, #29 possible data loss (unconfirmed), #30 reconciliation (resolved by retirement, close it), #31 MainView nav bug. Closed: #1, #2. Not filed: ad-hoc sets during a workout (#32, script file_adhoc_sets.sh never run). Strava cardio-type expansion note belongs as a comment on #15.
 
-Steps:
-1. DONE: universal "Start Workout" button -> `StartWorkoutView` (Single Workout / Program).
-2. DONE: Single Workout creation (`CreateSingleWorkoutView`, calls `onComplete()` not `dismiss()`).
-3. DONE: `ExerciseSessionView`, `ExercisePerformanceSummaryView`, `DeloadAdjustmentService` (not reachable yet).
-4. IN PROGRESS: Cardio entry. Change Cardio link in `SingleWorkoutCategoryView` to `CreateCardioProgressionView()` (existing flow); delete `CardioTypeView.swift`; check whether `CreateCardioProgressionView` uses plain `dismiss()` and needs an `onComplete` (open question). Build, test, commit.
-5. Program -> Starting Strength and Madcow templates.
-6. Program -> Custom (day picker, per-day exercises, weeks, per-lift start/goal weight, increment).
-7. A/B/A auto-plot.
-8. Repoint `MainView` and `WorkoutsView` (PR totals via `coreType != nil`, upcoming workouts, continue/paused logic) to `Workout`.
-9. Delete old `Progression`, `WorkoutSession`, `WorkoutSessionView`, old views, and `WorkoutSet.session` (legacy write-only back-pointer). Data wipe for testers: add a note in the TestFlight build comments.
-Then: update docs, bump build (verify in ASC; >= 39) on both targets.
+Release status
 
-Notes: `Workout` tab "Start Workout" button is universal; active `Progression`/`CardioProgression` cards and continue behavior are still the OLD model until step 8. Quick-start cardio timer was dropped (no live timer view exists). Per owner: also verify RestTimerWidget is implemented correctly during the merge. MigrationService will likely flag the model change.
+Build 38 archived/uploaded; TestFlight processing and export compliance for builds 35-37 unconfirmed. Xcode Cloud auto-upload is disabled. Archive and upload manually.
 
-## Open issues (GitHub, verified)
-Bugs: #3 PR totals (largely superseded by step 8), #5/#6 deload on Program/Cardio paths, #16 progression recalculation, #23 sheet dismissal bug, #28 Upcoming Workouts empty, #29 possible data loss (unconfirmed), #30 reconciliation reappears (effectively resolved: reconciliation retired), #31 MainView empty-state button pushes duplicate WorkoutsView (filed).
-Features/other: #4 merge, #7 plate calc de-dup, #8 settings redesign (per-exercise overrides are dead code), #9 schema versioning, #10 HealthKit (blocked), #11 orphan files, #12 exercise seed/picker (overlaps new flow), #15 Strava, #17 profile, #18 support backend, #19 templates, #20 metric, #21 analytics, #22 social, #24/#25 tests, #26 docs, #27 App Store prep.
-Closed: #1, #2.
-NOT YET FILED: ad-hoc sets during a workout (script `file_adhoc_sets.sh` written, #32 expected, not on GitHub). Strava cardio-type expansion note belongs as a comment on #15 (not yet added). Also the stale MainView empty-state text "Create a Progression" (owner said they'd fix).
-Deferred until after merge: #28, #29.
+Rules summary (full rules in CLAUDE.md)
 
-## Known stale docs (update at merge landing)
-`Docs/DATABASE_SCHEMA.md`, `CRITICAL_REMINDERS.md`, `DATA_MIGRATION_POLICY.md`, `CHANGELOG.md`, `README.md`, `RELEASE_CHECKLIST.md` describe Build 38 / Schema V3 and still mention the reconciliation flow, forced coreType, and Programs. Check `PLACEHOLDER_FEATURES.md` too.
-
-## Release status
-Build 38 archived/uploaded; TestFlight processing and export compliance for builds 35-37 unconfirmed. Release notes for 38 may still be unpasted.
-
-## Other
-Gh helper scripts (setup_tracker.sh, file_*.sh etc.) live in `/Users/sethdowd/Scripts`, outside the repo.
+Prompt before any change not explicitly discussed. No refactoring unless discussed. Before writing code list every place it must go and wait for confirmation. Verify against the repo. No flattery. Exact commands, one step at a time. Single-line git commit messages.
