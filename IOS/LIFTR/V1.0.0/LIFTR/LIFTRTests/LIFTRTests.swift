@@ -531,4 +531,60 @@ final class LiftrTests: XCTestCase {
         )
         XCTAssertEqual(limited.count, 2)
     }
+
+    // MARK: - Manual edits (WorkoutEditService)
+
+    @MainActor func testManualCompleteStampsDateClearsSkippedAndAdvancesWeek() throws {
+        let context = container.mainContext
+        let (workout, _, sessions) = makeWorkout(in: context, totalWeeks: 3, sessionCount: 3)
+        sessions[0].skipped = true
+        sessions[0].paused = true
+
+        WorkoutEditService.setCompleted(true, session: sessions[0])
+
+        XCTAssertTrue(sessions[0].completed)
+        XCTAssertFalse(sessions[0].skipped)
+        XCTAssertFalse(sessions[0].paused)
+        XCTAssertNotNil(sessions[0].completedDate)
+        XCTAssertEqual(workout.currentWeek, 2, "Only session of week 1 is done, so the week advances")
+    }
+
+    @MainActor func testManualSkipClearsCompleted() throws {
+        let context = container.mainContext
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 3, sessionCount: 3)
+        sessions[0].completed = true
+        sessions[0].completedDate = Date()
+
+        WorkoutEditService.setSkipped(true, session: sessions[0])
+
+        XCTAssertTrue(sessions[0].skipped)
+        XCTAssertFalse(sessions[0].completed)
+        XCTAssertNil(sessions[0].completedDate)
+    }
+
+    @MainActor func testUncompletingReopensCompletedWorkoutButKeepsWeek() throws {
+        let context = container.mainContext
+        let (workout, _, sessions) = makeWorkout(in: context, totalWeeks: 2, sessionCount: 2)
+        WorkoutEditService.setCompleted(true, session: sessions[0])
+        WorkoutEditService.setCompleted(true, session: sessions[1])
+        XCTAssertEqual(workout.status, .completed)
+        XCTAssertEqual(workout.currentWeek, 2)
+
+        WorkoutEditService.setCompleted(false, session: sessions[1])
+
+        XCTAssertEqual(workout.status, .active, "A finished workout with an open session is active again")
+        XCTAssertEqual(workout.currentWeek, 2, "Week is never moved back automatically")
+        XCTAssertNil(sessions[1].completedDate)
+    }
+
+    @MainActor func testSetCurrentWeekIsClamped() throws {
+        let context = container.mainContext
+        let (workout, _, _) = makeWorkout(in: context, totalWeeks: 4, sessionCount: 4)
+        WorkoutEditService.setCurrentWeek(9, workout: workout)
+        XCTAssertEqual(workout.currentWeek, 4)
+        WorkoutEditService.setCurrentWeek(0, workout: workout)
+        XCTAssertEqual(workout.currentWeek, 1)
+        WorkoutEditService.setCurrentWeek(3, workout: workout)
+        XCTAssertEqual(workout.currentWeek, 3)
+    }
 }

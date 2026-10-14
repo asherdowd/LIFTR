@@ -11,6 +11,7 @@ struct WorkoutCardView: View {
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
     @State private var dayTarget: DayTarget?
+    @State private var showDetail = false
 
     /// Day and week are captured when Start is tapped so the sheet keeps showing the same
     /// week even if finishing exercises advances `workout.currentWeek` while it is open.
@@ -40,6 +41,17 @@ struct WorkoutCardView: View {
         .sheet(item: $dayTarget) { target in
             NavigationStack {
                 WorkoutDayView(workout: workout, day: target.day, week: target.week)
+            }
+        }
+        .sheet(isPresented: $showDetail) {
+            NavigationStack {
+                WorkoutDetailView(workout: workout, onDelete: {
+                    // Close the sheet first, then delete once it is gone.
+                    showDetail = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        deleteWorkout()
+                    }
+                })
             }
         }
         .confirmationDialog(
@@ -79,6 +91,15 @@ struct WorkoutCardView: View {
                 .background(statusColor.opacity(0.2))
                 .foregroundColor(statusColor)
                 .cornerRadius(6)
+
+            Button(action: { showDetail = true }) {
+                Image(systemName: "pencil")
+                    .foregroundColor(.blue)
+                    .padding(8)
+                    .background(Color.blue.opacity(0.1))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
 
             Button(action: { showDeleteConfirmation = true }) {
                 Image(systemName: "trash")
