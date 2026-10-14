@@ -37,7 +37,6 @@
 		EC902E0E2F15F1F300A666C2 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC902E0D2F15F1F300A666C2 /* SharedModels.swift */; };
 		ECC8E9912E6B56F000E76F7D /* LIFTRApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9902E6B56F000E76F7D /* LIFTRApp.swift */; };
 		ECC8E9932E6B56F000E76F7D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9922E6B56F000E76F7D /* ContentView.swift */; };
-		ECC8E9952E6B56F000E76F7D /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9942E6B56F000E76F7D /* Item.swift */; };
 		ECC8E9972E6B56F100E76F7D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ECC8E9962E6B56F100E76F7D /* Assets.xcassets */; };
 		ECC8E99B2E6B56F100E76F7D /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ECC8E99A2E6B56F100E76F7D /* Preview Assets.xcassets */; };
 		ECC8E9A62E6B56F100E76F7D /* LIFTRTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9A52E6B56F100E76F7D /* LIFTRTests.swift */; };
@@ -139,7 +138,6 @@
 		ECC8E98D2E6B56F000E76F7D /* LIFTR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LIFTR.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECC8E9902E6B56F000E76F7D /* LIFTRApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFTRApp.swift; sourceTree = "<group>"; };
 		ECC8E9922E6B56F000E76F7D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		ECC8E9942E6B56F000E76F7D /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		ECC8E9962E6B56F100E76F7D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ECC8E9982E6B56F100E76F7D /* LIFTR.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LIFTR.entitlements; sourceTree = "<group>"; };
 		ECC8E99A2E6B56F100E76F7D /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -308,13 +306,6 @@
 			path = Inventory;
 			sourceTree = "<group>";
 		};
-		EC0D7B272F1CA87B00596B36 /* Tests */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Tests;
-			sourceTree = "<group>";
-		};
 		EC6273E82F2EEDE700AF0B30 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -382,7 +373,6 @@
 				ECC8E9BE2E6B5A0200E76F7D /* Models */,
 				ECC8E9BF2E6B5C6900E76F7D /* Views */,
 				ECC8E9902E6B56F000E76F7D /* LIFTRApp.swift */,
-				ECC8E9942E6B56F000E76F7D /* Item.swift */,
 				ECC8E9962E6B56F100E76F7D /* Assets.xcassets */,
 				ECC8E9982E6B56F100E76F7D /* LIFTR.entitlements */,
 				ECC8E99C2E6B56F100E76F7D /* Info.plist */,
@@ -441,7 +431,6 @@
 				EC0D7B1D2F1CA69500596B36 /* Cardio */,
 				EC0D7B242F1CA7F200596B36 /* Inventory */,
 				EC0D7B1F2F1CA70B00596B36 /* Progression */,
-				EC0D7B272F1CA87B00596B36 /* Tests */,
 				EC0D7B222F1CA78C00596B36 /* Workouts */,
 				ECC8E9922E6B56F000E76F7D /* ContentView.swift */,
 				ECC8E9C72E6B5EE000E76F7D /* MainView.swift */,
@@ -657,7 +646,6 @@
 				EC4DC0D82E91C3FB00340825 /* CardioProgressionDetailView.swift in Sources */,
 				ECC8E9E82E8F8CF500E76F7D /* StrengthModels.swift in Sources */,
 				EC4DC0D62E91C26000340825 /* EditCardioProgressionView.swift in Sources */,
-				ECC8E9952E6B56F000E76F7D /* Item.swift in Sources */,
 				ECF263EA307EE81800777448 /* LiveSingleWorkoutView.swift in Sources */,
 				ECC8E9912E6B56F000E76F7D /* LIFTRApp.swift in Sources */,
 				EC88A8BA2F2854A00005A456 /* ProgressionSettingsSections.swift in Sources */,
