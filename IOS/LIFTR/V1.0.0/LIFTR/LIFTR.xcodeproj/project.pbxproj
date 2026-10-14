@@ -61,11 +61,13 @@
 		ECC8E9EA2E8F8D0300E76F7D /* CardioModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9E92E8F8D0300E76F7D /* CardioModels.swift */; };
 		ECC8E9EC2E8F8D1100E76F7D /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECC8E9EB2E8F8D1100E76F7D /* Extensions.swift */; };
 		ECF263C7307C8EAC00777448 /* HANDOFF.md in Resources */ = {isa = PBXBuildFile; fileRef = ECF263C6307C8EAC00777448 /* HANDOFF.md */; };
-		ECF263CF307C907700777448 /* ProgramTemplatePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263CE307C907700777448 /* ProgramTemplatePickerView.swift */; };
 		ECF263D1307C90AD00777448 /* StartingStrengthSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263D0307C90AD00777448 /* StartingStrengthSetupView.swift */; };
 		ECF263D3307C90C000777448 /* MadcowSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263D2307C90C000777448 /* MadcowSetupView.swift */; };
-		ECF263D7307C915D00777448 /* StartingStrengthSetupView 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263D6307C915D00777448 /* StartingStrengthSetupView 2.swift */; };
-		ECF263D9307C919B00777448 /* MadcowSetupView 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263D8307C919B00777448 /* MadcowSetupView 2.swift */; };
+		ECF263DD307DD87100777448 /* LogSingleStrengthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263DA307DD87100777448 /* LogSingleStrengthView.swift */; };
+		ECF263DE307DD87100777448 /* LogSingleCardioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263DB307DD87100777448 /* LogSingleCardioView.swift */; };
+		ECF263DF307DD87100777448 /* CustomProgramSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263DC307DD87100777448 /* CustomProgramSetupView.swift */; };
+		ECF263E6307DDBB500777448 /* ProgramTemplatePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263E5307DDBB500777448 /* ProgramTemplatePickerView.swift */; };
+		ECF263EA307EE81800777448 /* LiveSingleWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF263E9307EE81800777448 /* LiveSingleWorkoutView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -171,11 +173,13 @@
 		ECF263C2307C815100777448 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = /Users/sethdowd/Documents/GitHub/LIFTRSwift/README.md; sourceTree = "<absolute>"; };
 		ECF263C3307C815100777448 /* RELEASE_CHECKLIST.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = RELEASE_CHECKLIST.md; path = /Users/sethdowd/Documents/GitHub/LIFTRSwift/RELEASE_CHECKLIST.md; sourceTree = "<absolute>"; };
 		ECF263C6307C8EAC00777448 /* HANDOFF.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = HANDOFF.md; sourceTree = "<group>"; };
-		ECF263CE307C907700777448 /* ProgramTemplatePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramTemplatePickerView.swift; sourceTree = "<group>"; };
 		ECF263D0307C90AD00777448 /* StartingStrengthSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartingStrengthSetupView.swift; sourceTree = "<group>"; };
 		ECF263D2307C90C000777448 /* MadcowSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MadcowSetupView.swift; sourceTree = "<group>"; };
-		ECF263D6307C915D00777448 /* StartingStrengthSetupView 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StartingStrengthSetupView 2.swift"; sourceTree = "<group>"; };
-		ECF263D8307C919B00777448 /* MadcowSetupView 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MadcowSetupView 2.swift"; sourceTree = "<group>"; };
+		ECF263DA307DD87100777448 /* LogSingleStrengthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogSingleStrengthView.swift; sourceTree = "<group>"; };
+		ECF263DB307DD87100777448 /* LogSingleCardioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogSingleCardioView.swift; sourceTree = "<group>"; };
+		ECF263DC307DD87100777448 /* CustomProgramSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomProgramSetupView.swift; sourceTree = "<group>"; };
+		ECF263E5307DDBB500777448 /* ProgramTemplatePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramTemplatePickerView.swift; sourceTree = "<group>"; };
+		ECF263E9307EE81800777448 /* LiveSingleWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSingleWorkoutView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -279,11 +283,13 @@
 				EC0D7B0F2F1C18A000596B36 /* WorkoutSessionView.swift */,
 				ECC8E9CF2E6B64B300E76F7D /* WorkoutsView.swift */,
 				EC177325302ABCB200BE96BB /* StartWorkoutView.swift */,
-				ECF263CE307C907700777448 /* ProgramTemplatePickerView.swift */,
 				ECF263D0307C90AD00777448 /* StartingStrengthSetupView.swift */,
 				ECF263D2307C90C000777448 /* MadcowSetupView.swift */,
-				ECF263D6307C915D00777448 /* StartingStrengthSetupView 2.swift */,
-				ECF263D8307C919B00777448 /* MadcowSetupView 2.swift */,
+				ECF263DA307DD87100777448 /* LogSingleStrengthView.swift */,
+				ECF263DB307DD87100777448 /* LogSingleCardioView.swift */,
+				ECF263DC307DD87100777448 /* CustomProgramSetupView.swift */,
+				ECF263E5307DDBB500777448 /* ProgramTemplatePickerView.swift */,
+				ECF263E9307EE81800777448 /* LiveSingleWorkoutView.swift */,
 			);
 			path = Workouts;
 			sourceTree = "<group>";
@@ -646,19 +652,17 @@
 				ECF263D3307C90C000777448 /* MadcowSetupView.swift in Sources */,
 				ECC8E9CA2E6B5F0600E76F7D /* CalculatorView.swift in Sources */,
 				EC0D7B102F1C18A000596B36 /* CalculatorViewWrapper.swift in Sources */,
-				ECF263D7307C915D00777448 /* StartingStrengthSetupView 2.swift in Sources */,
 				EC177327302ABCB700BE96BB /* StartWorkoutView.swift in Sources */,
 				EC0D7B112F1C18A000596B36 /* LogSetView.swift in Sources */,
-				ECF263D9307C919B00777448 /* MadcowSetupView 2.swift in Sources */,
 				EC0D7B122F1C18A000596B36 /* PerformanceSummaryView.swift in Sources */,
 				EC0D7B132F1C18A000596B36 /* SetRowView.swift in Sources */,
 				EC0D7B142F1C18A000596B36 /* WorkoutSessionView.swift in Sources */,
 				ECC8E9C82E6B5EE000E76F7D /* MainView.swift in Sources */,
 				EC4DC0D82E91C3FB00340825 /* CardioProgressionDetailView.swift in Sources */,
 				ECC8E9E82E8F8CF500E76F7D /* StrengthModels.swift in Sources */,
-				ECF263CF307C907700777448 /* ProgramTemplatePickerView.swift in Sources */,
 				EC4DC0D62E91C26000340825 /* EditCardioProgressionView.swift in Sources */,
 				ECC8E9952E6B56F000E76F7D /* Item.swift in Sources */,
+				ECF263EA307EE81800777448 /* LiveSingleWorkoutView.swift in Sources */,
 				ECC8E9912E6B56F000E76F7D /* LIFTRApp.swift in Sources */,
 				EC88A8BA2F2854A00005A456 /* ProgressionSettingsSections.swift in Sources */,
 				ECC8E9DE2E8F852E00E76F7D /* EditProgressionView.swift in Sources */,
@@ -677,7 +681,11 @@
 				ECC8E9D62E8ED29000E76F7D /* SettingsView.swift in Sources */,
 				ECC8E9DC2E8F84B600E76F7D /* ProgressionDetailView.swift in Sources */,
 				EC902E0E2F15F1F300A666C2 /* SharedModels.swift in Sources */,
+				ECF263E6307DDBB500777448 /* ProgramTemplatePickerView.swift in Sources */,
 				ECC8E9E22E8F8CB200E76F7D /* User.swift in Sources */,
+				ECF263DD307DD87100777448 /* LogSingleStrengthView.swift in Sources */,
+				ECF263DE307DD87100777448 /* LogSingleCardioView.swift in Sources */,
+				ECF263DF307DD87100777448 /* CustomProgramSetupView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

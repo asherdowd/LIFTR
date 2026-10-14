@@ -9,11 +9,11 @@ struct SingleWorkoutCategoryView: View {
                 .fontWeight(.bold)
                 .padding(.top, 40)
 
-            NavigationLink(destination: CreateSingleWorkoutView(onComplete: onComplete)) {
+            NavigationLink(destination: LogSingleStrengthView(onComplete: onComplete)) {
                 HStack {
                     Image(systemName: "dumbbell.fill")
                         .font(.title2)
-                    Text("Weights")
+                    Text("Strength")
                         .font(.headline)
                 }
                 .frame(maxWidth: .infinity)
@@ -24,7 +24,7 @@ struct SingleWorkoutCategoryView: View {
             }
             .padding(.horizontal)
 
-            NavigationLink(destination: CreateCardioProgressionView(onComplete: onComplete)) {
+            NavigationLink(destination: LogSingleCardioView(onComplete: onComplete)) {
                 HStack {
                     Image(systemName: "figure.run")
                         .font(.title2)

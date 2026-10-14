@@ -2,8 +2,8 @@
 
 **Branch:** feature/program-progression-merge
 **Last updated:** 2026-10-11
-**Current HEAD:** 99b0a94 (last commit — step 5 uncommitted, ready to commit)
-**Uncommitted changes:** ProgramTemplatePickerView.swift, StartingStrengthSetupView.swift, MadcowSetupView.swift, StartWorkoutView.swift
+**Current HEAD:** f9a61ae (step 5 committed)
+**Uncommitted changes:** none
 
 ---
 
@@ -56,7 +56,7 @@ Docs updated: DATABASE_SCHEMA.md, CRITICAL_REMINDERS.md.
 ---
 
 ## Step 5: Starting Strength / Madcow templates — COMPLETE ✅
-**Commit:** (pending — commit before next session)
+**Commit:** f9a61ae
 
 New files:
 - ProgramTemplatePickerView.swift — template picker with two options

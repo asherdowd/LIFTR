@@ -315,11 +315,11 @@ struct EmptyProgressionsView: View {
                 .font(.system(size: 60))
                 .foregroundColor(.blue)
             
-            Text("No Active \(type) Progressions")
+            Text("No Active \(type) Workouts")
                 .font(.title2)
                 .fontWeight(.bold)
             
-            Text("Tap 'Create New \(type) Progression' below to start tracking your workouts")
+            Text("Tap 'Start Workout' below to get started")
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)

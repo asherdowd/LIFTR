@@ -4,44 +4,66 @@ struct ProgramTemplatePickerView: View {
     var onComplete: () -> Void = {}
 
     var body: some View {
-        VStack(spacing: 24) {
-            Text("Choose a Program")
-                .font(.title2)
-                .fontWeight(.bold)
-                .padding(.top, 40)
+        ScrollView {
+            VStack(spacing: 16) {
+                Text("Choose a Program")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .padding(.top, 40)
 
-            NavigationLink(destination: StartingStrengthSetupView(onComplete: onComplete)) {
-                ProgramTemplateRow(
-                    title: "Starting Strength",
-                    subtitle: "Mark Rippetoe's beginner linear progression",
-                    detail: "Squat, Bench, Deadlift, OHP · 3 days/week · A/B alternating",
-                    color: .blue,
-                    icon: "figure.strengthtraining.traditional"
-                )
+                NavigationLink(destination: StartingStrengthSetupView(onComplete: onComplete)) {
+                    ProgramTemplateRow(
+                        title: "Starting Strength",
+                        subtitle: "Mark Rippetoe's beginner linear progression",
+                        detail: "Squat, Bench, Deadlift, OHP · 3 days/week · A/B alternating",
+                        color: .blue,
+                        icon: "figure.strengthtraining.traditional"
+                    )
+                }
+                .padding(.horizontal)
+
+                NavigationLink(destination: MadcowSetupView(onComplete: onComplete)) {
+                    ProgramTemplateRow(
+                        title: "Madcow 5×5",
+                        subtitle: "Bill Starr's intermediate 5×5 program",
+                        detail: "Squat, Bench, Row, OHP, Deadlift · 3 days/week · ramping sets",
+                        color: .purple,
+                        icon: "chart.line.uptrend.xyaxis"
+                    )
+                }
+                .padding(.horizontal)
+
+                NavigationLink(destination: CreateSingleWorkoutView(onComplete: onComplete)) {
+                    ProgramTemplateRow(
+                        title: "Simple Progression",
+                        subtitle: "Single exercise, linear weight increase",
+                        detail: "Pick one lift · set your starting and target weight · done",
+                        color: .orange,
+                        icon: "arrow.up.right"
+                    )
+                }
+                .padding(.horizontal)
+
+                NavigationLink(destination: CustomProgramSetupView(onComplete: onComplete)) {
+                    ProgramTemplateRow(
+                        title: "Custom Program",
+                        subtitle: "Build your own multi-day program",
+                        detail: "Any exercises · any days · your increments",
+                        color: .green,
+                        icon: "slider.horizontal.3"
+                    )
+                }
+                .padding(.horizontal)
+
+                Spacer(minLength: 40)
             }
-            .padding(.horizontal)
-
-            NavigationLink(destination: MadcowSetupView(onComplete: onComplete)) {
-                ProgramTemplateRow(
-                    title: "Madcow 5×5",
-                    subtitle: "Bill Starr's intermediate 5×5 program",
-                    detail: "Squat, Bench, Row, OHP, Deadlift · 3 days/week · ramping sets",
-                    color: .purple,
-                    icon: "chart.line.uptrend.xyaxis"
-                )
-            }
-            .padding(.horizontal)
-
-            Spacer()
         }
         .navigationTitle("Program")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
 
-// MARK: - Template Row
-
-private struct ProgramTemplateRow: View {
+struct ProgramTemplateRow: View {
     let title: String
     let subtitle: String
     let detail: String

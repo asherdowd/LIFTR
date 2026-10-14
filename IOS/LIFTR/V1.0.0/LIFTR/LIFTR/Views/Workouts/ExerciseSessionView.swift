@@ -8,6 +8,7 @@ struct ExerciseSessionView: View {
 
     @Bindable var session: ExerciseSession
     @Bindable var workoutExercise: WorkoutExercise
+    var onComplete: () -> Void = {}
 
     @State private var showCalculator = false
     @State private var showAdjustmentPrompt = false
@@ -155,6 +156,7 @@ struct ExerciseSessionView: View {
                     DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
                     DeloadAdjustmentService.applyAdjustment(adjustment, session: session, workoutExercise: workoutExercise, settings: currentSettings)
                     try? context.save()
+                    onComplete()
                     dismiss()
                 }
                 Button("Keep Original Plan") {
@@ -163,6 +165,7 @@ struct ExerciseSessionView: View {
                     session.paused = false
                     DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
                     try? context.save()
+                    onComplete()
                     dismiss()
                 }
                 Button("Manual Adjustment") {
@@ -171,6 +174,7 @@ struct ExerciseSessionView: View {
                     session.paused = false
                     DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
                     try? context.save()
+                    onComplete()
                     dismiss()
                 }
             }
@@ -202,6 +206,7 @@ struct ExerciseSessionView: View {
                 DeloadAdjustmentService.applyAdjustment(performance, session: session, workoutExercise: workoutExercise, settings: currentSettings)
             }
             try? context.save()
+            onComplete()
             dismiss()
         }
     }
