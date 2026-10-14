@@ -65,7 +65,13 @@ Screening of the app source (line counts and greps, NOT a full audit): about 12,
 - DEPENDENCY (owner, 2026-10-14): cardio design planning (#33; Strava/Garmin trail-run baseline) BLOCKS the program-building service design, so the service's requirements include cardio before it is designed. Planning/mapping only, not the cardio build itself.
 - APPROVED DIRECTION: extract ONE program-building service that the setup views call. It must be designed carefully to handle dynamic scenarios (all templates, custom programs, quick workouts, future A/B/A, substitution, cardio parity). Needs its own planning discussion and owner OK before any code; it is a refactor and not part of step 8.
 - Other notes: data writes are spread across 16 view files and there are 17 private logic helpers inside views (acceptable for simple saves). Large files (`AnalyticsView` 754, `WorkoutsView` 569, `MainView` 549) hold several subviews; step 8 grows the last two. Splitting card/row subviews into their own files is optional and needs owner OK.
-- Proposed timing: (1) dead-code removal (owner deleted `Item.swift` and `Views/Tests/` locally on 2026-10-14; confirm committed and pbxproj clean); (2) step 8; (3) step 9 deletes the old models; (4) program-building service BEFORE step 7; (5) before production build: split oversized views and a full dead-code pass.
+- Proposed timing: (1) DONE 2026-10-14 (fe3958f, build passed): `Item.swift` and `Views/Tests/` removed, pbxproj clean; (2) step 8; (3) step 9 deletes the old models; (4) program-building service BEFORE step 7; (5) before production build: split oversized views and a full dead-code pass.
+
+## Step 8a findings (code, 2026-10-14, before any 8a code)
+- `LIFTRTests/LIFTRTests.swift` (44 lines, XCTest) tests `PlateInventoryItem`, a type that does not exist in the app (grep found no definition; the container uses `PlateItem`). The existing test target is stale and probably does not compile. The V4 persistence/cascade test needs a working test target first; replacing or fixing that stale file needs owner OK.
+- `MigrationService.swift` names a commented-out `repairV3toV4_UserProfileExpansion`: that "V4" is a different, unreleased profile-expansion idea. The Workout `WorkoutSet.exerciseSession` change is called V4 only in the Docs. Naming collision to keep in mind when documenting the `skipped` field.
+- `ExerciseSession` already registered in `LIFTRApp.swift`; adding `var skipped: Bool = false` needs no registration change and no MigrationService repair (inline default covers existing rows).
+- `Workout.status` is `ProgressionStatus` (`.active`, `.paused`, `.completed`) from `SharedModels.swift`.
 
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
