@@ -404,4 +404,131 @@ final class LiftrTests: XCTestCase {
         XCTAssertTrue(quick.isFreeform)
         XCTAssertFalse(planned.isFreeform)
     }
+
+    // MARK: - Home tab summary (WorkoutSummaryService)
+
+    @MainActor
+    private func addSet(
+        to session: ExerciseSession, number: Int,
+        reps: Int?, weight: Double?, completed: Bool = true,
+        in context: ModelContext
+    ) {
+        let set = WorkoutSet(
+            setNumber: number, targetReps: 5, targetWeight: 100,
+            actualReps: reps, actualWeight: weight, completed: completed
+        )
+        set.exerciseSession = session
+        session.sets.append(set)
+        context.insert(set)
+    }
+
+    @MainActor func testPRCountsOnlyQualifyingSets() throws {
+        let context = container.mainContext
+        let (workout, workoutExercise, sessions) = makeWorkout(in: context, totalWeeks: 3, sessionCount: 3)
+
+        // Qualifying: completed, reps > 0, weight logged -> 200
+        addSet(to: sessions[0], number: 1, reps: 5, weight: 200, in: context)
+        // Ignored: zero reps, not completed, no weight
+        addSet(to: sessions[0], number: 2, reps: 0, weight: 400, in: context)
+        addSet(to: sessions[0], number: 3, reps: 5, weight: 500, completed: false, in: context)
+        addSet(to: sessions[0], number: 4, reps: 5, weight: nil, in: context)
+        // Ignored: skipped session
+        sessions[1].skipped = true
+        addSet(to: sessions[1], number: 1, reps: 5, weight: 600, in: context)
+
+        XCTAssertEqual(WorkoutSummaryService.maxWeight(for: .squat, in: [workout]), 200)
+        XCTAssertEqual(WorkoutSummaryService.maxWeight(for: .deadlift, in: [workout]), 0, "Other core lifts are unaffected")
+
+        // Finished programs still count
+        workout.status = .completed
+        XCTAssertEqual(WorkoutSummaryService.maxWeight(for: .squat, in: [workout]), 200)
+
+        // Exercises without a core type are excluded
+        workoutExercise.exercise.coreType = nil
+        XCTAssertEqual(WorkoutSummaryService.maxWeight(for: .squat, in: [workout]), 0)
+    }
+
+    @MainActor func testUpcomingDaysSelection() throws {
+        let context = container.mainContext
+        let now = Date()
+        let cal = Calendar.current
+
+        // Active workout: week 1 today, week 2 in 3 days, week 3 in 30 days (outside window)
+        let (active, _, sessions) = makeWorkout(in: context, totalWeeks: 3, sessionCount: 3)
+        sessions[0].date = now
+        sessions[1].date = cal.date(byAdding: .day, value: 3, to: now)!
+        sessions[2].date = cal.date(byAdding: .day, value: 30, to: now)!
+
+        let result = WorkoutSummaryService.upcomingDays(in: [active], now: now, withinDays: 7)
+        XCTAssertEqual(result.map { $0.week }, [1, 2], "Window is today through N days, one row per day and week")
+        XCTAssertEqual(result.first?.pendingCount, 1)
+
+        // Done sessions are excluded
+        sessions[0].completed = true
+        sessions[1].skipped = true
+        XCTAssertTrue(WorkoutSummaryService.upcomingDays(in: [active], now: now, withinDays: 7).isEmpty)
+
+        // Overdue (before today) is not shown
+        sessions[0].completed = false
+        sessions[0].date = cal.date(byAdding: .day, value: -2, to: cal.startOfDay(for: now))!
+        XCTAssertTrue(WorkoutSummaryService.upcomingDays(in: [active], now: now, withinDays: 7).isEmpty)
+
+        // Non-active workouts are excluded
+        sessions[0].date = now
+        active.status = .paused
+        XCTAssertTrue(WorkoutSummaryService.upcomingDays(in: [active], now: now, withinDays: 7).isEmpty)
+    }
+
+    @MainActor func testRecentSessionsOrderAndQuickWorkoutLabel() throws {
+        let context = container.mainContext
+        let now = Date()
+
+        let (programWorkout, _, programSessions) = makeWorkout(in: context, totalWeeks: 3, sessionCount: 3)
+        programSessions[0].completed = true
+        programSessions[0].completedDate = now.addingTimeInterval(-3 * 86_400)
+        programSessions[1].completed = true
+        programSessions[1].completedDate = now.addingTimeInterval(-1 * 86_400)
+        // Finished program still contributes
+        programWorkout.status = .completed
+
+        // Quick workout (freeform), newest
+        let curl = Exercise(name: "Curl")
+        context.insert(curl)
+        let quick = Workout(name: "Quick", templateType: .custom, totalWeeks: 1)
+        context.insert(quick)
+        let quickDay = WorkoutDay(name: "Workout", dayNumber: 1)
+        quickDay.workout = quick
+        quick.days.append(quickDay)
+        context.insert(quickDay)
+        let quickExercise = WorkoutExercise(
+            exercise: curl, orderIndex: 0, progressionStyle: .linear,
+            startingWeight: 0, targetSets: 0, targetReps: 0
+        )
+        quickExercise.day = quickDay
+        quickDay.exercises.append(quickExercise)
+        context.insert(quickExercise)
+        let quickSession = ExerciseSession(
+            weekNumber: 1, sessionNumber: 1, plannedWeight: 0, plannedSets: 0, plannedReps: 0,
+            completed: true, completedDate: now
+        )
+        quickSession.workoutExercise = quickExercise
+        quickExercise.sessions.append(quickSession)
+        context.insert(quickSession)
+        addSet(to: quickSession, number: 1, reps: 10, weight: 30, in: context)
+        addSet(to: quickSession, number: 2, reps: 10, weight: 30, in: context)
+
+        let entries = WorkoutSummaryService.recentEntries(
+            workouts: [programWorkout, quick], legacySessions: [], limit: 5
+        )
+        XCTAssertEqual(entries.count, 3, "Uncompleted sessions are not listed")
+        XCTAssertEqual(entries.first?.name, "Curl", "Newest first")
+        XCTAssertEqual(entries.first?.detail, "2 sets")
+        XCTAssertNil(entries.first?.percentage, "Quick workouts show no percentage")
+        XCTAssertNotNil(entries.last?.percentage)
+
+        let limited = WorkoutSummaryService.recentEntries(
+            workouts: [programWorkout, quick], legacySessions: [], limit: 2
+        )
+        XCTAssertEqual(limited.count, 2)
+    }
 }

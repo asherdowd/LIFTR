@@ -9,6 +9,10 @@ struct MainView: View {
     @Query(sort: \Progression.startDate) private var allProgressions: [Progression]
     @Query(sort: \CardioProgression.startDate) private var allCardioProgressions: [CardioProgression]
     @Query private var globalSettings: [GlobalProgressionSettings]
+    @Query(sort: \Workout.startDate) private var allWorkouts: [Workout]
+
+    /// Called by the empty-state "Start a Workout" button. ContentView uses it to switch tabs.
+    var onStartWorkout: (() -> Void)? = nil
 
     var currentSettings: GlobalProgressionSettings {
         globalSettings.first ?? GlobalProgressionSettings()
@@ -23,13 +27,20 @@ struct MainView: View {
     }
 
 
-    var recentStrengthSessions: [WorkoutSession] {
-        let allSessions = activeProgressions.flatMap { $0.sessions }
-        return allSessions
-            .filter { $0.completed }
-            .sorted { $0.completedDate ?? $0.date > $1.completedDate ?? $1.date }
-            .prefix(5)
-            .map { $0 }
+    /// New Workout sessions (any status) and legacy sessions mixed, newest first.
+    var recentStrengthEntries: [RecentStrengthEntry] {
+        WorkoutSummaryService.recentEntries(
+            workouts: allWorkouts,
+            legacySessions: activeProgressions.flatMap { $0.sessions },
+            limit: 5
+        )
+    }
+
+    var upcomingWorkoutDays: [UpcomingWorkoutDay] {
+        WorkoutSummaryService.upcomingDays(
+            in: allWorkouts,
+            withinDays: currentSettings.upcomingWorkoutsDays
+        )
     }
 
     var recentCardioSessions: [CardioSession] {
@@ -84,6 +95,12 @@ struct MainView: View {
         return maxWeight ?? 0
     }
 
+    /// PR for a core lift: the larger of the legacy Progression number and the new Workout number.
+    func prWeight(name: String, coreType: ExerciseCoreType) -> Double {
+        max(getMaxWeight(for: name),
+            WorkoutSummaryService.maxWeight(for: coreType, in: allWorkouts))
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -111,13 +128,13 @@ struct MainView: View {
                     }
 
                     VStack(spacing: 0) {
-                        PRRow(exercise: "Deadlift", weight: getMaxWeight(for: "Deadlift"))
+                        PRRow(exercise: "Deadlift", weight: prWeight(name: "Deadlift", coreType: .deadlift))
                         Divider()
-                        PRRow(exercise: "Squat", weight: getMaxWeight(for: "Squat"))
+                        PRRow(exercise: "Squat", weight: prWeight(name: "Squat", coreType: .squat))
                         Divider()
-                        PRRow(exercise: "Bench", weight: getMaxWeight(for: "Bench"))
+                        PRRow(exercise: "Bench", weight: prWeight(name: "Bench", coreType: .benchPress))
                         Divider()
-                        PRRow(exercise: "Overhead", weight: getMaxWeight(for: "Overhead"))
+                        PRRow(exercise: "Overhead", weight: prWeight(name: "Overhead", coreType: .overheadPress))
                     }
                     .background(Color(.systemBackground))
                     .cornerRadius(8)
@@ -139,7 +156,7 @@ struct MainView: View {
                     .padding(.horizontal)
 
                     // Strength subsection
-                    if !upcomingStrengthSessions.isEmpty {
+                    if !upcomingStrengthSessions.isEmpty || !upcomingWorkoutDays.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Image(systemName: "dumbbell.fill")
@@ -150,6 +167,10 @@ struct MainView: View {
                                     .foregroundColor(.secondary)
                             }
                             .padding(.horizontal)
+
+                            ForEach(upcomingWorkoutDays) { item in
+                                UpcomingWorkoutDayRow(item: item)
+                            }
 
                             ForEach(upcomingStrengthSessions, id: \.id) { session in
                                 UpcomingStrengthSessionRow(session: session)
@@ -170,7 +191,7 @@ struct MainView: View {
                                     .foregroundColor(.secondary)
                             }
                             .padding(.horizontal)
-                            .padding(.top, upcomingStrengthSessions.isEmpty ? 0 : 8)
+                            .padding(.top, (upcomingStrengthSessions.isEmpty && upcomingWorkoutDays.isEmpty) ? 0 : 8)
 
                             ForEach(upcomingCardioSessions, id: \.id) { session in
                                 UpcomingCardioSessionRow(session: session)
@@ -179,7 +200,7 @@ struct MainView: View {
                     }
 
                     // Empty state
-                    if upcomingStrengthSessions.isEmpty && upcomingCardioSessions.isEmpty {
+                    if upcomingStrengthSessions.isEmpty && upcomingWorkoutDays.isEmpty && upcomingCardioSessions.isEmpty {
                         VStack(spacing: 12) {
                             Image(systemName: "calendar")
                                 .font(.system(size: 40))
@@ -187,7 +208,7 @@ struct MainView: View {
                             Text("No upcoming workouts scheduled")
                                 .foregroundColor(.secondary)
 
-                            NavigationLink(destination: WorkoutsView()) {
+                            Button(action: { onStartWorkout?() }) {
                                 Text("Start a Workout")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
@@ -219,7 +240,7 @@ struct MainView: View {
                     .padding(.horizontal)
 
                     // Strength subsection
-                    if !recentStrengthSessions.isEmpty {
+                    if !recentStrengthEntries.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Image(systemName: "dumbbell.fill")
@@ -231,8 +252,8 @@ struct MainView: View {
                             }
                             .padding(.horizontal)
 
-                            ForEach(recentStrengthSessions, id: \.id) { session in
-                                RecentStrengthSessionRow(session: session)
+                            ForEach(recentStrengthEntries) { entry in
+                                RecentStrengthSessionRow(entry: entry)
                             }
                         }
                     }
@@ -258,7 +279,7 @@ struct MainView: View {
                     }
 
                     // Empty state
-                    if recentStrengthSessions.isEmpty && recentCardioSessions.isEmpty {
+                    if recentStrengthEntries.isEmpty && recentCardioSessions.isEmpty {
                         VStack(spacing: 12) {
                             Image(systemName: "calendar.badge.clock")
                                 .font(.system(size: 40))
@@ -313,7 +334,7 @@ struct PRRow: View {
 // MARK: - Recent Session Rows
 
 struct RecentStrengthSessionRow: View {
-    let session: WorkoutSession
+    let entry: RecentStrengthEntry
 
     var body: some View {
         HStack(spacing: 12) {
@@ -322,31 +343,31 @@ struct RecentStrengthSessionRow: View {
                 .font(.title3)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(session.progression?.exerciseName ?? "Unknown Exercise")
+                Text(entry.name)
                     .font(.subheadline)
                     .fontWeight(.semibold)
 
                 HStack(spacing: 8) {
-                    Text("\(Int(session.plannedWeight)) lbs × \(session.plannedSets)×\(session.plannedReps)")
+                    Text(entry.detail)
                         .font(.caption)
                         .foregroundColor(.secondary)
 
-                    Text("•")
-                        .foregroundColor(.secondary)
+                    if let percentage = entry.percentage {
+                        Text("•")
+                            .foregroundColor(.secondary)
 
-                    Text("\(Int(session.performancePercentage))% complete")
-                        .font(.caption)
-                        .foregroundColor(performanceColor(session.performancePercentage))
+                        Text("\(Int(percentage))% complete")
+                            .font(.caption)
+                            .foregroundColor(performanceColor(percentage))
+                    }
                 }
             }
 
             Spacer()
 
-            if let date = session.completedDate {
-                Text(date.formatted(date: .abbreviated, time: .omitted))
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
+            Text(entry.date.formatted(date: .abbreviated, time: .omitted))
+                .font(.caption2)
+                .foregroundColor(.secondary)
         }
         .padding()
         .background(Color(.systemGray6))
@@ -469,6 +490,64 @@ struct UpcomingStrengthSessionRow: View {
                 NavigationView {
                     WorkoutSessionView(session: session, progression: progression)
                 }
+            }
+        }
+    }
+}
+
+/// Upcoming day of a new-model Workout. Opens the day screen in a sheet with its own
+/// NavigationStack (same pattern as WorkoutCardView).
+struct UpcomingWorkoutDayRow: View {
+    let item: UpcomingWorkoutDay
+    @State private var showDay = false
+
+    var body: some View {
+        Button(action: { showDay = true }) {
+            HStack(spacing: 12) {
+                VStack(spacing: 2) {
+                    Text("W\(item.week)")
+                        .font(.caption2)
+                        .fontWeight(.bold)
+                    Text("D\(item.day.dayNumber)")
+                        .font(.caption2)
+                }
+                .frame(width: 40)
+                .padding(.vertical, 8)
+                .background(Color.blue.opacity(0.1))
+                .foregroundColor(.blue)
+                .cornerRadius(8)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(item.workout.name)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+
+                        Spacer()
+
+                        Text(item.date.formatted(date: .abbreviated, time: .omitted))
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Text("\(item.day.name) · \(item.pendingCount) exercise\(item.pendingCount == 1 ? "" : "s")")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(10)
+            .padding(.horizontal)
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showDay) {
+            NavigationStack {
+                WorkoutDayView(workout: item.workout, day: item.day, week: item.week)
             }
         }
     }
