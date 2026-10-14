@@ -12,7 +12,7 @@ For current state, branches, open work and next steps read **`HANDOFF.md`** (rep
 - When discussing implementation of phases, verify the git repo first and ask me to confirm we are covering all necessary places.
 - Answer questions directly. No flattery or enthusiastic padding.
 - When troubleshooting, stay objective until the solution is confirmed. State hypotheses as hypotheses.
-- I am not comfortable in the terminal: give exact commands, one step at a time, and wait for confirmation. Prefer doing file/git work yourself when you have direct access.
+- I am not comfortable in the terminal: for git, always give me the full command sequence as one copy-paste block starting with `cd /Users/sethdowd/Documents/GitHub/LIFTRSwift` (changed 2026-10-14), then wait for my output. Prefer doing file/git work yourself when you have direct access.
 - Commit messages: single-line `-m` (multi-line heredocs have hung my shell twice). `git config --global core.pager cat` is set to avoid the `less` trap.
 - You may commit and push to the feature branch using your judgment (changed 2026-10-14); tell me what you committed and give me the pull command. Never touch `main` directly without asking.
 
