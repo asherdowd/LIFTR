@@ -5,6 +5,7 @@ import SwiftData
 // Lists one program day's exercises for a given week. Exercises can be done in any order,
 // skipped individually (swipe left), or the whole day can be finished at any time.
 // Reuses ExerciseSessionView (programs) and LiveSingleWorkoutView (quick/freeform workouts).
+// Presented as a sheet with its own NavigationStack (see WorkoutCardView).
 
 struct WorkoutDayView: View {
     @Environment(\.modelContext) private var context
@@ -18,6 +19,14 @@ struct WorkoutDayView: View {
 
     @State private var selectedDay: WorkoutDay
     @State private var showFinishConfirmation = false
+    @State private var activeExercise: ActiveExercise?
+
+    /// Which exercise screen is pushed. Held in state (not in a list-row link) so a redraw
+    /// of the list, for example when a set is saved, cannot pop the screen.
+    private struct ActiveExercise: Hashable {
+        let session: ExerciseSession
+        let exercise: WorkoutExercise
+    }
 
     init(workout: Workout, day: WorkoutDay, week: Int) {
         self.workout = workout
@@ -84,6 +93,14 @@ struct WorkoutDayView: View {
         }
         .navigationTitle(workout.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Close") { dismiss() }
+            }
+        }
+        .navigationDestination(item: $activeExercise) { item in
+            destination(session: item.session, exercise: item.exercise)
+        }
         .confirmationDialog(
             "Finish Day?",
             isPresented: $showFinishConfirmation,
@@ -108,15 +125,21 @@ struct WorkoutDayView: View {
                 status: .done
             )
         } else {
-            NavigationLink {
-                destination(session: session, exercise: exercise)
+            Button {
+                activeExercise = ActiveExercise(session: session, exercise: exercise)
             } label: {
-                ExerciseRow(
-                    name: exercise.exercise.name,
-                    detail: detail(session: session, exercise: exercise),
-                    status: status(for: session)
-                )
+                HStack {
+                    ExerciseRow(
+                        name: exercise.exercise.name,
+                        detail: detail(session: session, exercise: exercise),
+                        status: status(for: session)
+                    )
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
+            .buttonStyle(.plain)
             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                 if !session.skipped {
                     Button {
