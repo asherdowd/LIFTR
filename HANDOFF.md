@@ -1,4 +1,4 @@
-# LIFTR Handoff — updated 2026-10-13
+# LIFTR Handoff — updated 2026-10-14
 
 Read this at the start of every session, together with CLAUDE.md. Update it after every milestone: propose the change and wait for OK before writing. Before ending a session, confirm this file is current.
 The repo is the source of truth. Verify every statement here with `git status`, `git log` and the code before relying on it.
@@ -26,10 +26,21 @@ Start Workout button (WorkoutsView) -> `StartWorkoutView` sheet
 - Program -> `ProgramTemplatePickerView` -> Starting Strength / Madcow 5x5 / single-lift progression (`CreateSingleWorkoutView`) / Custom Program
 `onComplete` closures are passed down so the whole sheet closes (`dismiss()` pops only one level).
 
-## START HERE TOMORROW
+## START HERE
 1. `git fetch`, `git status`, `git log --oneline -3` on `feature/program-progression-merge`. Confirm the tree is clean and HEAD matches GitHub.
-2. Begin **step 8** (repoint WorkoutsView and MainView to the new Workout model). Per CLAUDE.md, FIRST list every place it must change and wait for owner confirmation before any code. Known places to check: the `@Query`s in WorkoutsView and MainView, PR Totals (`getMaxWeight`, substring matching, issue #3), Upcoming workouts, Recent, continue/paused logic, `ExerciseSessionView` / `LiveSingleWorkoutView` entry points, MigrationService, RestTimerWidget, docs.
-3. Decision (2026-10-13): step 8 goes BEFORE step 7 (A/B/A), because everything created by the new flow is invisible until step 8.
+2. Current task: **step 8 planning** (repoint WorkoutsView and MainView to the new Workout model). Decisions below are agreed. The day-level screen design (decision 4) is still being discussed. NO CODE until the owner confirms the design and the full list of places (CLAUDE.md rule).
+3. Step 8 goes BEFORE step 7 (A/B/A), because everything created by the new flow is invisible until step 8.
+
+## Step 8 decisions (owner answers, 2026-10-14)
+1. YES: show both old Progression cards and new Workout cards in WorkoutsView until step 9 deletes the old model.
+2. YES: auto-mark a Workout `.completed` when its last session completes. Nothing in the code does this today (verify: grep for `.completed` assignments on `Workout.status`, `DeloadAdjustmentService.checkAndAdvanceWeek`). This is a small change to the completion logic.
+3. YES: in the quick strength flow, Cancel with no set logged deletes the Workout (today Cancel only dismisses and leaves an empty saved Workout).
+4. YES, design still under discussion: add a day-level screen listing a program day's exercises; each row opens the existing `ExerciseSessionView` (reuse, do not duplicate). Quick workouts skip it and go straight to `LiveSingleWorkoutView`. Open design questions: exercise order (free vs guided), whether a skipped exercise can still let the day finish, where deload prompt / week advance fires, whether a read-only past-day view is needed.
+5. PENDING owner answer: ship the new Workout card with Continue/Resume + Delete only, and file Detail/Edit for Workout as a separate follow-up (suggested), or build Detail/Edit in step 8. Old `ProgressionDetailView` / `EditProgressionView` understand only the old model. Original requirement: everything editable.
+6. Agreed in principle: PR Totals read BOTH old Progression data (current substring match in `MainView.getMaxWeight(for:)`) and new `WorkoutSet`s matched by non-nil `Exercise.coreType`; count only completed sets with reps > 0 and a logged weight (so #36 zero-rep sets never become PRs); take the max of both; remove the old half at step 9. Related: #3.
+7. YES: Analytics (`AnalyticsView` queries only old Progression/CardioProgression) is its OWN later step, before step 9.
+
+Places step 8 touches (candidate list, owner must confirm): `WorkoutsView` (add `@Query Workout`, new card, continue/paused logic, delete), `MainView` (upcoming/recent/PR for Workout; fix the Upcoming filter `date >= now` that can hide a same-day session dated at start of day; empty-state nav #31), new day-level view, `ExerciseSessionView` / `LiveSingleWorkoutView` completion + `onComplete` chain, `DeloadAdjustmentService` (completion/status), `LogSingleStrengthView` (cancel cleanup), `MigrationService` / `LIFTRApp` (only if the model changes), `RestTimerWidget` (verify), docs (CHANGELOG, README, DATABASE_SCHEMA if the model changes).
 
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
@@ -78,6 +89,28 @@ Not filed: ad-hoc sets during a workout (script `file_adhoc_sets.sh` hard-codes 
 
 ## Release status
 Build 38 archived/uploaded; TestFlight processing and export compliance for builds 35-37 unconfirmed. Xcode Cloud auto-upload is disabled. Archive and upload manually.
+
+## Working context for a new agent
+- **Where work happens:** this chat (Claude Code session with the repo clone) is the primary place. The Xcode agent cannot see git/GitHub, creates duplicate files and left dead files in the project before. Use it only to validate an open file. Do not move planning into it.
+- **Owner:** Seth Dowd. Not comfortable in the terminal: give exact commands one at a time and wait for confirmation; do git/file work yourself when you have access. Direct answers, no flattery.
+- **Git:** do not commit or push unless asked. Never touch `main`. Single-line `-m` commit messages (multi-line heredocs hung his shell). His Mac clone: `/Users/sethdowd/Documents/GitHub/LIFTRSwift`; `git pull` there needs upstream set (`git branch --set-upstream-to=origin/feature/program-progression-merge`). A shallow cloud clone needs a fetch refspec plus `--set-upstream-to` or the stop hook gives false "unpushed commits" warnings.
+- **GitHub CLI:** `gh issue list/create` uses GraphQL, which is blocked. Use REST: `gh api repos/asherdowd/LIFTR/issues ...` (always `--repo asherdowd/LIFTR` for other gh calls). Milestone Backlog = number 1. Tracker uses `initiative:*` labels.
+- **Xcode:** deleting a file in Finder leaves it red in Xcode; quit Xcode normally (Cmd+Q) to clear stale entries. Check `project.pbxproj` for stray references after the Xcode agent works.
+- **Test results:** the private test-run artifact (link above, `capabilities: {db: {}}`) holds 25 tests (A1-A8, B1-B8, C1-C4, D1-D5) in collection `tests`; read them with ArtifactData `list`. A draft `TEST_FLOW.md` exists only in the cloud session scratchpad, not in the repo; decide whether to commit it as `Docs/TEST_FLOW.md`.
+- **Model chain:** Workout -> WorkoutDay -> WorkoutExercise -> ExerciseSession -> WorkoutSet (`Models/UnifiedWorkoutModels.swift`). Old models (`Progression`, `WorkoutSession`, `CardioProgression`) live until step 9. Old-model references: WorkoutsView, MainView, AnalyticsView, EditProgressionView, ProgressionDetailView, WorkoutSessionView, PerformanceSummaryView, SettingsView (text), StrengthModels.swift, MigrationService, LIFTRApp, Test1_MinimalView.
+- **Reuse** `SetRowView`, `LogSetView`, `CalculatorViewWrapper`. `LogSetView` allows 0 reps (#36).
+- **Still owed (not done):** file ad-hoc sets issue; comment on #15 (Strava) and #24 (unit-test production gate); close #30; V4 persistence/cascade test; build-38 migration test; tests C2/C3/D1; verify next build number in App Store Connect; tester note about data wipe for the step 9 build; delete `wip/xcode-agent-changes` once trusted; stale docs.
+- **Open decisions:** #36 zero-rep set storage; step 5 Detail/Edit scope; step 8 day-screen design; steps 7 and 9 timing.
+
+## Local environment and terminal commands (Seth's Mac)
+- Git root: `/Users/sethdowd/Documents/GitHub/LIFTRSwift`. It holds CLAUDE.md, HANDOFF.md, README.md, CHANGELOG.md, RELEASE_CHECKLIST.md and `IOS/`. These root .md files do NOT show in Xcode unless added manually.
+- Xcode project folder: `<root>/IOS/LIFTR/V1.0.0/LIFTR` containing `LIFTR.xcodeproj` (open this), `Docs/`, `LIFTR/` (app source: Models, Views, Services, LIFTRApp.swift, Assets.xcassets), `RestTimerWidget/`, `LIFTRTests/`, `LIFTRUITests/`.
+- GitHub: `asherdowd/LIFTR` (the cloud clone's remote URL is lowercase `liftr`; GitHub treats them as the same repo).
+- Every terminal command given to Seth starts with `cd /Users/sethdowd/Documents/GitHub/LIFTRSwift`. One command per message, then wait for output. Say which branch the command runs on. Never run anything on `main` without asking.
+- Single-line commit messages only (`git commit -m "..."`). No heredocs, no interactive editors, no `rebase -i` / `add -i`. Pager is disabled (`core.pager cat`).
+- Pull a new branch: `git fetch origin`, `git checkout <branch>`, `git branch --set-upstream-to=origin/<branch>`. Update: `git pull`. Check: `git status`, `git log --oneline -3`.
+- If Xcode shows red files after on-disk changes, quit with Cmd+Q and reopen.
+- **Commit/push policy (changed 2026-10-14):** Seth trusts Claude's judgment. Claude may commit and push to the feature branch (never `main`) and must tell Seth what was committed and give the pull command for his Mac.
 
 ## Rules summary (full rules in CLAUDE.md)
 Prompt before any change not explicitly discussed. No refactoring unless discussed. Before writing code list every place it must go and wait for confirmation. Verify against the repo. No flattery. Exact commands, one step at a time. Single-line git commit messages.

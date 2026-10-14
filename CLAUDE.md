@@ -14,7 +14,7 @@ For current state, branches, open work and next steps read **`HANDOFF.md`** (rep
 - When troubleshooting, stay objective until the solution is confirmed. State hypotheses as hypotheses.
 - I am not comfortable in the terminal: give exact commands, one step at a time, and wait for confirmation. Prefer doing file/git work yourself when you have direct access.
 - Commit messages: single-line `-m` (multi-line heredocs have hung my shell twice). `git config --global core.pager cat` is set to avoid the `less` trap.
-- Don't commit or push unless I ask. Never touch `main` directly without asking.
+- You may commit and push to the feature branch using your judgment (changed 2026-10-14); tell me what you committed and give me the pull command. Never touch `main` directly without asking.
 
 ## Architecture rules
 - **SwiftData lightweight migration** only reads defaults from the property declaration (`var x: Bool = false`), NOT init defaults. Every new non-optional stored property needs an inline default, or existing stores crash on load ("missing attribute values on mandatory destination attribute"). Enum defaults must be fully qualified (`ProgressionStatus.active`).
