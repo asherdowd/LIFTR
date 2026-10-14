@@ -5,6 +5,7 @@ import SwiftData
 
 struct WorkoutsView: View {
     @Environment(\.modelContext) private var context
+    @Query(sort: \Workout.startDate) private var allWorkouts: [Workout]
     @Query(sort: \Progression.startDate) private var allProgressions: [Progression]
     @Query(sort: \CardioProgression.startDate) private var allCardioProgressions: [CardioProgression]
     
@@ -21,6 +22,10 @@ struct WorkoutsView: View {
             case .cardio: return "figure.run"
             }
         }
+    }
+    
+    var activeWorkouts: [Workout] {
+        allWorkouts.filter { $0.status == .active }
     }
     
     var activeProgressions: [Progression] {
@@ -49,12 +54,15 @@ struct WorkoutsView: View {
                         VStack(spacing: 16) {
                             switch selectedCategory {
                             case .strength:
-                                if activeProgressions.isEmpty {
+                                if activeProgressions.isEmpty && activeWorkouts.isEmpty {
                                     EmptyProgressionsView(
                                         type: "Strength",
                                         onCreateNew: { showStartWorkout = true }
                                     )
                                 } else {
+                                    ForEach(activeWorkouts) { workout in
+                                        WorkoutCardView(workout: workout)
+                                    }
                                     ForEach(activeProgressions) { progression in
                                         ProgressionCard(progression: progression)
                                     }

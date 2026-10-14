@@ -82,6 +82,19 @@ WRITTEN, NOT YET BUILT OR RUN (the cloud environment cannot compile Swift; nothi
 - KNOWN GAP for 8c: `LiveSingleWorkoutView` (quick workouts) sets `session.completed` itself and does not call `checkAndAdvanceWeek`, so quick workouts will not be marked `.completed` until that view is updated in 8c.
 - RESULT 2026-10-14 12:23: owner built and ran tests in Xcode: build succeeded, 13 of 13 tests passed, 0 failures. This verifies, in an in-memory store: ExerciseSession.sets pairs with WorkoutSet.exerciseSession (and not the legacy session), cascade delete from Workout and from ExerciseSession, `skipped` default/persistence, skip-aware week advance and Workout completion. NOT covered: on-disk persistence across app relaunch, migration from a build 38 store (still owed), the unit tests have not run on device.
 
+## Step 8b+8c status (2026-10-14, merged because the card's Continue needs the day screen)
+WRITTEN, NOT YET BUILT OR RUN (cloud cannot compile Swift). Owner must add the two NEW files to the Xcode app target (classic groups, not synchronized): `Views/Workouts/WorkoutCardView.swift` and `Views/Workouts/WorkoutDayView.swift`.
+- `WorkoutCardView`: card for active `Workout`s (name, template, status, week progress when totalWeeks > 1, Next/Paused workout + Start/Resume link to the day screen, Delete with confirmation, same delayed-save delete pattern as ProgressionCard). No Detail/Edit yet (8e).
+- `WorkoutDayView`: day screen for a fixed week. Rows in any order; swipe-left Skip; "Choose a different day" menu when the workout has more than one day; Finish Day (confirms, marks unfinished sessions skipped, one `checkAndAdvanceWeek`). Freeform (quick) exercises open `LiveSingleWorkoutView`, planned ones open `ExerciseSessionView`. Completed rows are not tappable; skipped rows can be tapped to do them anyway.
+- `UnifiedWorkoutModels.swift`: computed-only helpers (`isDone`, `hasLoggedSets`, `isFreeform` = targetSets == 0, `session(forWeek:)`, `sortedExercises`, `sessions(forWeek:)`, `isFinished(forWeek:)`, `sortedDays`, `nextDay`, `hasPausedSession(forWeek:)`). No schema change.
+- `DeloadAdjustmentService.checkAndAdvanceWeek`: (a) completing a skipped session clears `skipped`; (b) only the CURRENT week can advance the workout (bug guard so a repeated check on an earlier week cannot advance twice). These two were not in the original 8a list; flagged to owner.
+- `WorkoutsView`: `@Query Workout`; Strength section shows active Workout cards above the legacy Progression cards; empty state only when both are empty.
+- `LiveSingleWorkoutView`: Complete now calls `checkAndAdvanceWeek` so quick workouts become `.completed`.
+- `LogSingleStrengthView`: when the live screen is left (Cancel or Back) with nothing logged and not completed, the empty Workout is deleted after 0.4 s (delay avoids reading deleted objects during the pop). Workouts with logged sets stay active and resumable from the card.
+- Tests added (5): skip cleared on completion, earlier-week check does not re-advance, nextDay selection, session(forWeek:) with several sessions per week, freeform flag.
+- Known limits: an app killed before any set is logged leaves an empty active quick Workout on the card (delete it from the card). In a single-lift progression with several sessions per week all sessions sit under one day, so Finish Day / Skip act on the next pending session only.
+- Not touched yet: `MainView` (8d), Detail/Edit (8e), `ExerciseSessionView` (not changed).
+
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
 2. DONE: Single-lift progression creation (`CreateSingleWorkoutView`).

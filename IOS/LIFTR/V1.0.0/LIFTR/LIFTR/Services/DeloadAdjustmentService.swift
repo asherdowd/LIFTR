@@ -114,6 +114,9 @@ enum DeloadAdjustmentService {
     static func checkAndAdvanceWeek(session: ExerciseSession, workoutExercise: WorkoutExercise) {
         guard let workout = workoutExercise.day?.workout else { return }
 
+        // Doing a session that was skipped means it is no longer skipped.
+        if session.completed { session.skipped = false }
+
         let allSessions = workout.days
             .flatMap { $0.exercises }
             .flatMap { $0.sessions }
@@ -123,7 +126,11 @@ enum DeloadAdjustmentService {
         // It stays recorded as skipped, never as completed.
         let doneThisWeek = sessionsThisWeek.filter { $0.completed || $0.skipped }.count
 
-        if doneThisWeek >= sessionsThisWeek.count && workout.currentWeek < workout.totalWeeks {
+        // Only finishing the CURRENT week advances it, so re-skipping or re-completing
+        // a session from an earlier week can never advance the workout twice.
+        if session.weekNumber == workout.currentWeek
+            && doneThisWeek >= sessionsThisWeek.count
+            && workout.currentWeek < workout.totalWeeks {
             workout.currentWeek += 1
         }
 

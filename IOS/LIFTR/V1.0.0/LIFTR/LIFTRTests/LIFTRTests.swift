@@ -304,4 +304,104 @@ final class LiftrTests: XCTestCase {
 
         XCTAssertEqual(workout.status, .completed)
     }
+
+    // MARK: - Skip rules and day/week helpers (8b + 8c)
+
+    @MainActor func testCompletingASkippedSessionClearsSkipped() throws {
+        let context = container.mainContext
+        let (_, workoutExercise, sessions) = makeWorkout(in: context, totalWeeks: 2, sessionCount: 2)
+
+        sessions[0].skipped = true
+        sessions[0].completed = true
+        DeloadAdjustmentService.checkAndAdvanceWeek(session: sessions[0], workoutExercise: workoutExercise)
+
+        XCTAssertTrue(sessions[0].completed)
+        XCTAssertFalse(sessions[0].skipped, "A session that was done after being skipped must not stay skipped")
+    }
+
+    @MainActor func testCheckingAnEarlierWeekNeverAdvancesTheWorkoutAgain() throws {
+        let context = container.mainContext
+        let (workout, workoutExercise, sessions) = makeWorkout(in: context, totalWeeks: 3, sessionCount: 3)
+
+        sessions[0].skipped = true
+        DeloadAdjustmentService.checkAndAdvanceWeek(session: sessions[0], workoutExercise: workoutExercise)
+        XCTAssertEqual(workout.currentWeek, 2)
+
+        // Same week-1 session checked again (for example skipped, undone, skipped again).
+        DeloadAdjustmentService.checkAndAdvanceWeek(session: sessions[0], workoutExercise: workoutExercise)
+        XCTAssertEqual(workout.currentWeek, 2, "Only the current week may advance the workout")
+    }
+
+    @MainActor func testNextDayPicksFirstUnfinishedDay() throws {
+        let context = container.mainContext
+        let (workout, _, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        let dayA = try XCTUnwrap(workout.days.first)
+
+        let exercise2 = Exercise(name: "Bench Press", coreType: .benchPress)
+        context.insert(exercise2)
+        let dayB = WorkoutDay(name: "Day B", dayNumber: 2)
+        dayB.workout = workout
+        workout.days.append(dayB)
+        context.insert(dayB)
+        let workoutExercise2 = WorkoutExercise(
+            exercise: exercise2, orderIndex: 0, progressionStyle: .linear,
+            startingWeight: 80, targetSets: 3, targetReps: 5
+        )
+        workoutExercise2.day = dayB
+        dayB.exercises.append(workoutExercise2)
+        context.insert(workoutExercise2)
+        let sessionB = ExerciseSession(weekNumber: 1, sessionNumber: 1, plannedWeight: 80, plannedSets: 3, plannedReps: 5)
+        sessionB.workoutExercise = workoutExercise2
+        workoutExercise2.sessions.append(sessionB)
+        context.insert(sessionB)
+
+        XCTAssertTrue(workout.nextDay === dayA)
+
+        sessions[0].completed = true
+        XCTAssertTrue(workout.nextDay === dayB)
+
+        sessionB.skipped = true
+        XCTAssertNil(workout.nextDay, "Skipped counts as done when picking the next day")
+    }
+
+    @MainActor func testSessionForWeekPicksFirstNotDoneThenLast() throws {
+        let context = container.mainContext
+        let (_, workoutExercise, _) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+
+        // Single-lift progressions can have several sessions in the same week.
+        let extra1 = ExerciseSession(weekNumber: 1, sessionNumber: 2, plannedWeight: 100, plannedSets: 3, plannedReps: 5)
+        let extra2 = ExerciseSession(weekNumber: 1, sessionNumber: 3, plannedWeight: 100, plannedSets: 3, plannedReps: 5)
+        for extra in [extra1, extra2] {
+            extra.workoutExercise = workoutExercise
+            workoutExercise.sessions.append(extra)
+            context.insert(extra)
+        }
+        let first = try XCTUnwrap(workoutExercise.sessions.first { $0.sessionNumber == 1 })
+
+        XCTAssertTrue(workoutExercise.session(forWeek: 1) === first)
+
+        first.completed = true
+        XCTAssertTrue(workoutExercise.session(forWeek: 1) === extra1)
+
+        extra1.skipped = true
+        extra2.completed = true
+        XCTAssertTrue(workoutExercise.session(forWeek: 1) === extra2, "All done: the last session is returned")
+    }
+
+    @MainActor func testFreeformFlagMatchesQuickWorkoutShape() throws {
+        let context = container.mainContext
+        let exercise = Exercise(name: "Curl")
+        context.insert(exercise)
+
+        let quick = WorkoutExercise(
+            exercise: exercise, orderIndex: 0, progressionStyle: .linear,
+            startingWeight: 30, targetSets: 0, targetReps: 0
+        )
+        let planned = WorkoutExercise(
+            exercise: exercise, orderIndex: 1, progressionStyle: .linear,
+            startingWeight: 30, targetSets: 3, targetReps: 10
+        )
+        XCTAssertTrue(quick.isFreeform)
+        XCTAssertFalse(planned.isFreeform)
+    }
 }

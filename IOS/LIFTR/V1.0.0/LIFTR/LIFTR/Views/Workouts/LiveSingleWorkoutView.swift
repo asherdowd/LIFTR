@@ -157,6 +157,7 @@ struct LiveSingleWorkoutView: View {
         session.completed = true
         session.completedDate = Date()
         session.plannedSets = completedSetsCount
+        DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
         try? context.save()
         onComplete()
         dismiss()

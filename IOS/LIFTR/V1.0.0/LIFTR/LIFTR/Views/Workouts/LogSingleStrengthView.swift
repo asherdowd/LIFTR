@@ -112,6 +112,9 @@ struct LogSingleStrengthView: View {
                     )
                 }
             }
+            .onChange(of: navigateToLiveWorkout) { _, isShowing in
+                if !isShowing { removeWorkoutIfNothingLogged() }
+            }
             .alert("Error", isPresented: $showError) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -171,6 +174,29 @@ struct LogSingleStrengthView: View {
         } catch {
             errorMessage = "Failed to start workout: \(error.localizedDescription)"
             showError = true
+        }
+    }
+
+    /// Runs when the live workout screen is left (Cancel or Back). If no set was completed,
+    /// the empty Workout created for it is deleted. A workout with logged sets is kept.
+    /// Deletion is delayed until the pop animation has finished so the leaving screen never
+    /// reads a deleted object.
+    private func removeWorkoutIfNothingLogged() {
+        guard let session = createdSession, let workoutExercise = createdWorkoutExercise else { return }
+        guard !session.completed, !session.hasLoggedSets else {
+            createdSession = nil
+            createdWorkoutExercise = nil
+            return
+        }
+        let workout = workoutExercise.day?.workout
+        let modelContext = context
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            if let workout {
+                modelContext.delete(workout)
+                try? modelContext.save()
+            }
+            createdSession = nil
+            createdWorkoutExercise = nil
         }
     }
 

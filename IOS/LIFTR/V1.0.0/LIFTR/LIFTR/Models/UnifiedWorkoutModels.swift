@@ -195,3 +195,63 @@ class ExerciseSession {
         return Double(totalCompletedReps) / Double(totalPlannedReps) * 100
     }
 }
+
+// MARK: - Derived helpers (computed only, nothing stored: no schema impact)
+
+extension ExerciseSession {
+    /// Finished for scheduling purposes: completed or skipped.
+    var isDone: Bool { completed || skipped }
+
+    /// At least one set has been logged as completed.
+    var hasLoggedSets: Bool { sets.contains { $0.completed } }
+}
+
+extension WorkoutExercise {
+    /// Quick (freeform) workouts are created with no planned sets or reps and log sets as they go.
+    var isFreeform: Bool { targetSets == 0 }
+
+    /// The session to show for a week: the first one not done yet, otherwise the last one.
+    /// Most exercises have one session per week; single-lift progressions can have several.
+    func session(forWeek week: Int) -> ExerciseSession? {
+        let inWeek = sessions
+            .filter { $0.weekNumber == week }
+            .sorted { $0.sessionNumber < $1.sessionNumber }
+        return inWeek.first(where: { !$0.isDone }) ?? inWeek.last
+    }
+}
+
+extension WorkoutDay {
+    var sortedExercises: [WorkoutExercise] {
+        exercises.sorted { $0.orderIndex < $1.orderIndex }
+    }
+
+    /// One session per exercise (see `WorkoutExercise.session(forWeek:)`).
+    func sessions(forWeek week: Int) -> [ExerciseSession] {
+        exercises.compactMap { $0.session(forWeek: week) }
+    }
+
+    func isFinished(forWeek week: Int) -> Bool {
+        sessions(forWeek: week).allSatisfy { $0.isDone }
+    }
+}
+
+extension Workout {
+    var sortedDays: [WorkoutDay] {
+        days.sorted { $0.dayNumber < $1.dayNumber }
+    }
+
+    /// First day (by day number) that has sessions this week and is not finished.
+    func nextDay(forWeek week: Int) -> WorkoutDay? {
+        sortedDays.first { day in
+            !day.sessions(forWeek: week).isEmpty && !day.isFinished(forWeek: week)
+        }
+    }
+
+    var nextDay: WorkoutDay? { nextDay(forWeek: currentWeek) }
+
+    func hasPausedSession(forWeek week: Int) -> Bool {
+        days.contains { day in
+            day.sessions(forWeek: week).contains { $0.paused && !$0.isDone }
+        }
+    }
+}
