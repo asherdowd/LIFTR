@@ -80,7 +80,7 @@ WRITTEN, NOT YET BUILT OR RUN (the cloud environment cannot compile Swift; nothi
 - `LIFTRTests/LIFTRTests.swift` replaced (old file tested non-existent `PlateInventoryItem`). New XCTest cases: PlateItem add/delete, skipped default + persistence, WorkoutSet/ExerciseSession pairing (both directions), cascade delete (Workout and ExerciseSession), week-advance and completion logic. Uses an in-memory container with the same model list as `LIFTRApp.swift`; keep the two lists in sync.
 - Docs updated: DATABASE_SCHEMA.md, CRITICAL_REMINDERS.md, DATA_MIGRATION_POLICY.md (its older "planned" version numbers are stale).
 - KNOWN GAP for 8c: `LiveSingleWorkoutView` (quick workouts) sets `session.completed` itself and does not call `checkAndAdvanceWeek`, so quick workouts will not be marked `.completed` until that view is updated in 8c.
-- Next: owner runs tests (Cmd+U). If a pairing/cascade test fails, that is the V4 relationship risk showing up; fix before 8b.
+- RESULT 2026-10-14 12:23: owner built and ran tests in Xcode: build succeeded, 13 of 13 tests passed, 0 failures. This verifies, in an in-memory store: ExerciseSession.sets pairs with WorkoutSet.exerciseSession (and not the legacy session), cascade delete from Workout and from ExerciseSession, `skipped` default/persistence, skip-aware week advance and Workout completion. NOT covered: on-disk persistence across app relaunch, migration from a build 38 store (still owed), the unit tests have not run on device.
 
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
@@ -96,7 +96,7 @@ WRITTEN, NOT YET BUILT OR RUN (the cloud environment cannot compile Swift; nothi
 ## Schema
 - V3 (build 38): Exercise identity, `Exercise.coreType` optional.
 - V4 (this branch): `WorkoutSet.exerciseSession: ExerciseSession?` added, legacy `session` kept. Docs updated: DATABASE_SCHEMA.md, CRITICAL_REMINDERS.md.
-- **UNVERIFIED:** `ExerciseSession.sets` declares `@Relationship(deleteRule: .cascade)` with no explicit `inverse:`, and `WorkoutSet` now has two optional parents. A clean build does not prove SwiftData pairs them correctly. Test: create a workout, log sets, relaunch, confirm the sets persist; delete the workout, confirm its sets are removed.
+- **PARTLY VERIFIED 2026-10-14 (13/13 in-memory unit tests, see Step 8a status):** `ExerciseSession.sets` declares `@Relationship(deleteRule: .cascade)` with no explicit `inverse:`, and `WorkoutSet` now has two optional parents. A clean build does not prove SwiftData pairs them correctly. Test: create a workout, log sets, relaunch, confirm the sets persist; delete the workout, confirm its sets are removed.
 - **NOT DONE:** migration test from the build 38 store to this branch (install 38, add data, install new, verify data preserved), per DATA_MIGRATION_POLICY.md.
 
 ## Git state
