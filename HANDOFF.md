@@ -57,6 +57,15 @@ PROPOSED step 8 scope, awaiting owner confirmation (2026-10-14). Proposed sub-or
 ## Cardio parity (owner direction, 2026-10-14)
 Strength design changes (skip, any-order days, substitution, edit levels, week-advance rules) should be slated for cardio too, at least as planning input for the cardio rework (#33). Owner goal for cardio: mirror Strava and Garmin at a base level for tracking TRAIL RUNS. Cardio stays a separate path from the Workout model until that rework; nothing for cardio is built in step 8. Related: #33, #15 (Strava), #10 (HealthKit, blocked). When #33 is scoped, start by listing which strength decisions carry over (skipped sessions, one-off activity substitution, editable planned values, completion/week-advance).
 
+## Clean-code plan (owner approved direction, 2026-10-14)
+Screening of the app source (line counts and greps, NOT a full audit): about 12,700 lines in 50 Swift files (Models 930, Services 517, Views 11,194). Structure is sound; problems are mostly temporary or dead code.
+- Temporary: old model stack (`WorkoutSessionView` 329, `EditProgressionView` 454, `ProgressionDetailView` 430, `PerformanceSummaryView`, old models) goes at step 9; cardio views (~1,700 lines) go in the #33 rework.
+- Dead code (not yet removed, owner has not decided): `Item.swift` (Xcode template leftover, unused, not in the model container) and `Views/Tests/` (`TestView`, `Test1_MinimalView`, ~800 lines, referenced only by each other).
+- Real design smell: five views each build the Workout/Day/Exercise/Session hierarchy inline with their own `ExerciseSession(` loop: `CreateSingleWorkoutView`, `CustomProgramSetupView`, `StartingStrengthSetupView`, `MadcowSetupView`, `LogSingleStrengthView`. A new field default or rule must be changed in five places; A/B/A (step 7) would add a sixth.
+- APPROVED DIRECTION: extract ONE program-building service that the setup views call. It must be designed carefully to handle dynamic scenarios (all templates, custom programs, quick workouts, future A/B/A, substitution, cardio parity). Needs its own planning discussion and owner OK before any code; it is a refactor and not part of step 8.
+- Other notes: data writes are spread across 16 view files and there are 17 private logic helpers inside views (acceptable for simple saves). Large files (`AnalyticsView` 754, `WorkoutsView` 569, `MainView` 549) hold several subviews; step 8 grows the last two. Splitting card/row subviews into their own files is optional and needs owner OK.
+- Proposed timing: (1) optional dead-code removal now; (2) step 8; (3) step 9 deletes the old models; (4) program-building service BEFORE step 7; (5) before production build: split oversized views and a full dead-code pass.
+
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
 2. DONE: Single-lift progression creation (`CreateSingleWorkoutView`).
