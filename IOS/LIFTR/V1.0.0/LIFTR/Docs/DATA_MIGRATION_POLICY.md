@@ -170,7 +170,9 @@ When a new required property/relationship has no single correct value for existi
 
 **Previous Version:** V2 (as of January 27, 2026) — Added rest timer properties to GlobalProgressionSettings (`defaultRestTime`, `autoStartRestTimer`, `restTimerSound`, `restTimerHaptic`), plus the independent `Exercise` model itself (no relationships yet, no migration required at that point).
 
-**Next Version Will Be:** V4
+**Current branch schema:** V4 (WorkoutSet.exerciseSession inverse, ExerciseSession.skipped). See DATABASE_SCHEMA.md. The older "planned" version numbers further down this file (Strava, profile expansion) predate V4 and are stale; renumber them before using them.
+
+**Next Version Will Be:** V5
 
 ---
 

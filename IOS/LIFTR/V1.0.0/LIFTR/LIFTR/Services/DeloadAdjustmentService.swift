@@ -114,16 +114,22 @@ enum DeloadAdjustmentService {
     static func checkAndAdvanceWeek(session: ExerciseSession, workoutExercise: WorkoutExercise) {
         guard let workout = workoutExercise.day?.workout else { return }
 
-        let allSessionsThisWeek = workout.days
+        let allSessions = workout.days
             .flatMap { $0.exercises }
             .flatMap { $0.sessions }
-            .filter { $0.weekNumber == session.weekNumber }
+        let sessionsThisWeek = allSessions.filter { $0.weekNumber == session.weekNumber }
 
-        let completedThisWeek = allSessionsThisWeek.filter { $0.completed }.count
-        let totalThisWeek = allSessionsThisWeek.count
+        // A skipped session counts as done for week advance only.
+        // It stays recorded as skipped, never as completed.
+        let doneThisWeek = sessionsThisWeek.filter { $0.completed || $0.skipped }.count
 
-        if completedThisWeek >= totalThisWeek && workout.currentWeek < workout.totalWeeks {
+        if doneThisWeek >= sessionsThisWeek.count && workout.currentWeek < workout.totalWeeks {
             workout.currentWeek += 1
+        }
+
+        // Every session in the whole workout is completed or skipped.
+        if !allSessions.isEmpty && allSessions.allSatisfy({ $0.completed || $0.skipped }) {
+            workout.status = .completed
         }
     }
 }

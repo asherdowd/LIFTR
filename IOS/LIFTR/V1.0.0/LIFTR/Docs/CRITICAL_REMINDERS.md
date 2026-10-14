@@ -203,6 +203,7 @@ static func performStartupChecks(context: ModelContext) {
 - **Version:** V4
 - **Changes from V3:** Added `exerciseSession: ExerciseSession?` to `WorkoutSet` as the inverse relationship for the new Workout system. Legacy `session: WorkoutSession?` retained.
 - **Migration:** No repair function — `nil` default is correct for all existing records. Lightweight migration handles automatically.
+- **Also in V4 (added October 14, 2026, V4 not yet released):** `ExerciseSession.skipped: Bool = false` (inline default). A skipped session counts as done for week advance but is never counted as completed. No repair function needed.
 
 **Previously, as of July 6, 2026:**
 - **Version:** V3
@@ -218,7 +219,7 @@ static func performStartupChecks(context: ModelContext) {
   - `restTimerHaptic: Bool`
 - **Migration:** Handled by `repairRestTimerDefaults()` in MigrationService.swift
 
-**Next Version Will Be:** V4
+**Next Version Will Be:** V5
 
 ---
 
@@ -309,7 +310,7 @@ Before committing ANY model changes:
 **Implemented:**
 - ✅ V1→V2: Rest timer properties (handled by `repairRestTimerDefaults()`)
 - ✅ V2→V3: Exercise identity relationships (handled by interactive resolution — `RootView` + `ExerciseReconciliationView`, NOT a repair function). Tested on device: fresh install (no reconciliation screen shown, as expected) and upgrade over existing real data (screen appeared with correct names, resolved correctly, did not reappear on relaunch).
-- ✅ V3→V4: Added `exerciseSession: ExerciseSession?` inverse to `WorkoutSet` for new Workout system. No repair function — nil default is correct for all existing records. Lightweight migration handles automatically.
+- ✅ V3→V4: Added `exerciseSession: ExerciseSession?` inverse to `WorkoutSet` for new Workout system. No repair function — nil default is correct for all existing records. Lightweight migration handles automatically. Also added `ExerciseSession.skipped: Bool = false` (2026-10-14, folded into V4). Not yet tested against a build 38 store.
 
 **Planned:**
 - ⏳ V4→V5: Strava integration (startTime, endTime, totalDuration, stravaActivityId)

@@ -139,6 +139,7 @@ class ExerciseSession {
     var completed: Bool = false
     var completedDate: Date?
     var paused: Bool = false
+    var skipped: Bool = false
     var wasDeload: Bool = false
     var deloadPercent: Double?
 
@@ -159,6 +160,7 @@ class ExerciseSession {
         completed: Bool = false,
         completedDate: Date? = nil,
         paused: Bool = false,
+        skipped: Bool = false,
         wasDeload: Bool = false,
         deloadPercent: Double? = nil,
         notes: String? = nil
@@ -173,6 +175,7 @@ class ExerciseSession {
         self.completed = completed
         self.completedDate = completedDate
         self.paused = paused
+        self.skipped = skipped
         self.wasDeload = wasDeload
         self.deloadPercent = deloadPercent
         self.sets = []

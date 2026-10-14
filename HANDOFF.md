@@ -73,6 +73,15 @@ Screening of the app source (line counts and greps, NOT a full audit): about 12,
 - `ExerciseSession` already registered in `LIFTRApp.swift`; adding `var skipped: Bool = false` needs no registration change and no MigrationService repair (inline default covers existing rows).
 - `Workout.status` is `ProgressionStatus` (`.active`, `.paused`, `.completed`) from `SharedModels.swift`.
 
+## Step 8a status (2026-10-14)
+WRITTEN, NOT YET BUILT OR RUN (the cloud environment cannot compile Swift; nothing here is verified until the owner builds and runs tests in Xcode):
+- `ExerciseSession.skipped: Bool = false` added (declaration + init), folded into V4.
+- `DeloadAdjustmentService.checkAndAdvanceWeek`: week advance counts completed OR skipped; sets `Workout.status = .completed` when every session in the workout is completed or skipped.
+- `LIFTRTests/LIFTRTests.swift` replaced (old file tested non-existent `PlateInventoryItem`). New XCTest cases: PlateItem add/delete, skipped default + persistence, WorkoutSet/ExerciseSession pairing (both directions), cascade delete (Workout and ExerciseSession), week-advance and completion logic. Uses an in-memory container with the same model list as `LIFTRApp.swift`; keep the two lists in sync.
+- Docs updated: DATABASE_SCHEMA.md, CRITICAL_REMINDERS.md, DATA_MIGRATION_POLICY.md (its older "planned" version numbers are stale).
+- KNOWN GAP for 8c: `LiveSingleWorkoutView` (quick workouts) sets `session.completed` itself and does not call `checkAndAdvanceWeek`, so quick workouts will not be marked `.completed` until that view is updated in 8c.
+- Next: owner runs tests (Cmd+U). If a pairing/cascade test fails, that is the V4 relationship risk showing up; fix before 8b.
+
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
 2. DONE: Single-lift progression creation (`CreateSingleWorkoutView`).

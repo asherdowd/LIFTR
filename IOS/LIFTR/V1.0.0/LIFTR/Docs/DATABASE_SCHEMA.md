@@ -265,6 +265,7 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `plannedReps` | Int | - | Planned reps |
 | `completed` | Bool | false | Completion status |
 | `completedDate` | Date? | nil | Actual completion date |
+| `skipped` | Bool | false | Session skipped by the user ⚠️ V4. Counts as done for week advance only; never counted as completed (no PRs/history) |
 | `notes` | String? | nil | Optional notes |
 
 **Relationships:**
@@ -552,8 +553,12 @@ ExerciseProgressionSettings (independent, 0:many)
 **Changes:**
 - Added `exerciseSession: ExerciseSession?` to `WorkoutSet` — inverse relationship for the new Workout system. The existing `session: WorkoutSession?` is retained as the legacy inverse for the old Progression system.
 
+- Added `skipped: Bool = false` to `ExerciseSession` (2026-10-14, folded into V4 because V4 has not been released to testers). Marks a session the user skipped.
+
 **Migration V3→V4:**
 - No repair function needed. `exerciseSession` is optional and defaults to `nil`, which is correct for all existing `WorkoutSet` records (all attached to the old system). SwiftData lightweight migration handles this automatically via the optional type's nil default.
+- `skipped` has an inline default of `false` on the property declaration, so existing `ExerciseSession` rows load as not skipped. No repair function needed.
+- NOT YET VERIFIED on device: migration from build 38 with existing data. Unit tests for relationship pairing and cascade delete are in `LIFTRTests/LIFTRTests.swift`.
 
 ### V3 (Exercise Identity Relationships) 
 **Date:** July 6, 2026  
