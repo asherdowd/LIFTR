@@ -140,6 +140,8 @@ HealthKit exploration 2026-10-14 23:30 (planning only): CORRECTION: issue #10 "b
 
 DECISION 2026-10-14 23:40 (owner, cardio direction): integrate with HealthKit NOW and capture everything available for a single activity, without GPS; in-app GPS tracking is the very next integration after that, to build a fuller workout data picture. Strava import is dropped, Strava push comes after GPS, FIT import is not planned for now (may return if Health data proves too thin). Still to settle before any code: which direction (read runs from Health, write LIFTR workouts to Health, or both), where an imported activity is stored while cardio is still on the old models, the schema fields (see #10), and the confirmed list of places to change. Not decided or built.
 
+DECISION 2026-10-14 23:50 (owner, H-1): HealthKit direction = READ now (pull in what Health has), WRITE LIFTR workouts to Health later and incrementally. Verified in code: existing `CardioSession` has no start/end time, elevation, heart rate, calories or external id, and needs a `CardioProgression` parent. Open: H-2 where an imported activity is stored (options: new standalone activity model, extend CardioSession, or the unified Workout model).
+
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
 2. DONE: Single-lift progression creation (`CreateSingleWorkoutView`).
