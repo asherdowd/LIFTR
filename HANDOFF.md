@@ -121,6 +121,8 @@ Decision 2026-10-14 (owner, 8e-5): Paused is not needed. Only requirement: start
 
 Decision 2026-10-14 (owner, 8e-4, replaces the 8d rule "no overdue section"): Home Upcoming now follows "what do I still have to do". Rows: In progress (any day with logged sets or a paused session, any date) first, then Overdue (the workout's next unfinished day of the current week when dated before today, max one per workout so old weeks do not pile up), then Scheduled (today through the upcoming-days window). Overdue rows are muted gray, not red; In progress is orange. Built in `WorkoutSummaryService.upcomingDays` (new `status`) and `UpcomingWorkoutDayRow`; tests updated plus `testUpcomingInProgressAndOverdueRules`. Not yet built or tested by owner. Known side effect: an abandoned quick workout with no sets would show as Overdue until it is opened and finished or skipped.
 
+Owner results 2026-10-14 22:45 (8e-4 Upcoming): In-progress row shown first (pass); finish/skip removes the row (pass); Overdue label not yet seen on screen (needs a day to pass, owner will report if it fails). Owner decision: keep this design. The test log supplied was the UI test run (6 of 6 pass); the unit-test count (expected 26) was not shown.
+
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
 2. DONE: Single-lift progression creation (`CreateSingleWorkoutView`).
