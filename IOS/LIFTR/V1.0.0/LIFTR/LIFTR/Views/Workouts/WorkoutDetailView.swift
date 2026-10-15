@@ -123,7 +123,11 @@ struct EditWorkoutView: View {
             Section {
                 Picker("Status", selection: $workout.status) {
                     Text(ProgressionStatus.active.rawValue).tag(ProgressionStatus.active)
-                    Text(ProgressionStatus.paused.rawValue).tag(ProgressionStatus.paused)
+                    // Paused has no behavior in the app yet (decision 2026-10-14), so it is only
+                    // listed for a workout that already has it, keeping the picker valid.
+                    if workout.status == .paused {
+                        Text(ProgressionStatus.paused.rawValue).tag(ProgressionStatus.paused)
+                    }
                     Text(ProgressionStatus.completed.rawValue).tag(ProgressionStatus.completed)
                 }
 

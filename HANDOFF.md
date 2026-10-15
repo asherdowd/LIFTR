@@ -117,6 +117,8 @@ Scope confirmed by owner 2026-10-14 ("I think thats fine for now"): detail and e
 
 Owner results 2026-10-14 (8e): tests 25/25 pass. Manual checks all pass: detail sheet lists days and exercises; planned weight edit shows on the day screen; completing the last open session of a week advances the card's week; rename shows on the card; delete from the edit screen closes the sheet and removes the card. OPEN (question 8e-3, unanswered): which statuses the Workouts tab lists. Owner's leaning 2026-10-14: Completed should not appear as active; Paused arguably should stay visible. Nothing changed in code yet. Current behavior: only Active workouts are listed, so Paused/Completed workouts cannot be opened or edited.
 
+Decision 2026-10-14 (owner, 8e-5): Paused is not needed. Only requirement: start a workout in the morning, log some sets, and finish it that day or the next. That already works through the Workouts tab card ("Resume") because the Workout stays Active. Code review found nothing in the app ever sets a Workout/Progression to Paused (only my edit picker could); the Paused option is now removed from the edit screen status picker (it is shown only if a workout already has that status). The enum case stays. Workouts tab keeps listing Active only, so 8e-3 is closed. Open: Home Upcoming drops a partly done day once its date is before today (question 8e-4); Completed workouts have no screen to open them until a history view exists.
+
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
 2. DONE: Single-lift progression creation (`CreateSingleWorkoutView`).
