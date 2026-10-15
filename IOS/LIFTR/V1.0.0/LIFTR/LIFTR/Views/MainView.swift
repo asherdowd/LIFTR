@@ -525,9 +525,10 @@ struct UpcomingWorkoutDayRow: View {
 
                         Spacer()
 
-                        Text(item.date.formatted(date: .abbreviated, time: .omitted))
+                        Text(dateText)
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .fontWeight(item.status == .scheduled ? .regular : .semibold)
+                            .foregroundColor(dateColor)
                     }
 
                     Text("\(item.day.name) · \(item.pendingCount) exercise\(item.pendingCount == 1 ? "" : "s")")
@@ -549,6 +550,23 @@ struct UpcomingWorkoutDayRow: View {
             NavigationStack {
                 WorkoutDayView(workout: item.workout, day: item.day, week: item.week)
             }
+        }
+    }
+
+    private var dateText: String {
+        let date = item.date.formatted(date: .abbreviated, time: .omitted)
+        switch item.status {
+        case .inProgress: return "In progress"
+        case .overdue: return "Overdue · \(date)"
+        case .scheduled: return date
+        }
+    }
+
+    private var dateColor: Color {
+        switch item.status {
+        case .inProgress: return .orange
+        case .overdue: return .gray
+        case .scheduled: return .secondary
         }
     }
 }

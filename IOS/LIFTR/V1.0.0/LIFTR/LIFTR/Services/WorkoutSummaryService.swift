@@ -7,6 +7,13 @@ import Foundation
 
 /// One row in "Upcoming Workouts": a day of a Workout for a given week that still has work to do.
 struct UpcomingWorkoutDay: Identifiable {
+    /// Why the row is listed. Rows sort in this order: in progress, overdue, scheduled.
+    enum Status: Int {
+        case inProgress   // sets already logged (or paused), listed whatever its date
+        case overdue      // the workout's next unfinished day, dated before today
+        case scheduled    // dated today through the upcoming window
+    }
+
     let workout: Workout
     let day: WorkoutDay
     let week: Int
@@ -14,6 +21,7 @@ struct UpcomingWorkoutDay: Identifiable {
     let date: Date
     /// Number of not-done sessions (one per exercise in the usual case).
     let pendingCount: Int
+    let status: Status
 
     var id: String { "\(workout.id.uuidString)-\(day.id.uuidString)-\(week)" }
 }
@@ -55,9 +63,12 @@ enum WorkoutSummaryService {
 
     // MARK: Upcoming
 
-    /// One entry per (workout, day, week) that has not-done sessions dated from the start of
-    /// today through `withinDays` days from `now`. Active Workouts only. Overdue sessions
-    /// (dated before today) are not shown.
+    /// Rows for Active Workouts only, one per (workout, day, week) with not-done sessions:
+    /// - in progress: any day that already has logged sets or a paused session, whatever its date;
+    /// - overdue: the workout's next unfinished day (current week) when it is dated before today,
+    ///   at most one per workout so old weeks never pile up;
+    /// - scheduled: days dated from the start of today through `withinDays` days from `now`.
+    /// Sorted: in progress, overdue, scheduled; each group by date, then week, then day.
     static func upcomingDays(
         in workouts: [Workout],
         now: Date = Date(),
@@ -70,27 +81,40 @@ enum WorkoutSummaryService {
         var result: [UpcomingWorkoutDay] = []
 
         for workout in workouts where workout.status == .active {
-            for day in workout.days {
-                let pending = day.exercises
-                    .flatMap { $0.sessions }
-                    .filter { !$0.isDone && $0.date >= startOfToday && $0.date <= end }
+            let nextDayID = workout.nextDay?.id
+            var listed: [UpcomingWorkoutDay] = []
 
-                let weeks = Set(pending.map { $0.weekNumber })
-                for week in weeks {
+            for day in workout.days {
+                let pending = day.exercises.flatMap { $0.sessions }.filter { !$0.isDone }
+
+                for week in Set(pending.map { $0.weekNumber }) {
                     let inWeek = pending.filter { $0.weekNumber == week }
                     guard let earliest = inWeek.map({ $0.date }).min() else { continue }
-                    result.append(UpcomingWorkoutDay(
-                        workout: workout,
-                        day: day,
-                        week: week,
-                        date: earliest,
-                        pendingCount: inWeek.count
-                    ))
+
+                    let status: UpcomingWorkoutDay.Status?
+                    if inWeek.contains(where: { $0.hasLoggedSets || $0.paused }) {
+                        status = .inProgress
+                    } else if earliest < startOfToday {
+                        status = (day.id == nextDayID && week == workout.currentWeek) ? .overdue : nil
+                    } else if earliest <= end {
+                        status = .scheduled
+                    } else {
+                        status = nil
+                    }
+
+                    if let status {
+                        listed.append(UpcomingWorkoutDay(
+                            workout: workout, day: day, week: week,
+                            date: earliest, pendingCount: inWeek.count, status: status
+                        ))
+                    }
                 }
             }
+            result.append(contentsOf: listed)
         }
 
         return result.sorted {
+            if $0.status != $1.status { return $0.status.rawValue < $1.status.rawValue }
             if $0.date != $1.date { return $0.date < $1.date }
             if $0.week != $1.week { return $0.week < $1.week }
             return $0.day.dayNumber < $1.day.dayNumber

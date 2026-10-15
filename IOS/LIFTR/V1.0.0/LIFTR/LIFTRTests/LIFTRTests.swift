@@ -468,10 +468,12 @@ final class LiftrTests: XCTestCase {
         sessions[1].skipped = true
         XCTAssertTrue(WorkoutSummaryService.upcomingDays(in: [active], now: now, withinDays: 7).isEmpty)
 
-        // Overdue (before today) is not shown
+        // Overdue: the next unfinished day of the current week is shown, marked overdue
         sessions[0].completed = false
         sessions[0].date = cal.date(byAdding: .day, value: -2, to: cal.startOfDay(for: now))!
-        XCTAssertTrue(WorkoutSummaryService.upcomingDays(in: [active], now: now, withinDays: 7).isEmpty)
+        let overdue = WorkoutSummaryService.upcomingDays(in: [active], now: now, withinDays: 7)
+        XCTAssertEqual(overdue.count, 1)
+        XCTAssertEqual(overdue.first?.status, .overdue)
 
         // Non-active workouts are excluded
         sessions[0].date = now
@@ -586,5 +588,39 @@ final class LiftrTests: XCTestCase {
         XCTAssertEqual(workout.currentWeek, 1)
         WorkoutEditService.setCurrentWeek(3, workout: workout)
         XCTAssertEqual(workout.currentWeek, 3)
+    }
+
+    @MainActor func testUpcomingInProgressAndOverdueRules() throws {
+        let context = container.mainContext
+        let now = Date()
+        let cal = Calendar.current
+        let twoDaysAgo = cal.date(byAdding: .day, value: -2, to: cal.startOfDay(for: now))!
+
+        // Three weeks, everything in the past and nothing done: only ONE overdue row (current week).
+        let (workout, _, sessions) = makeWorkout(in: context, totalWeeks: 3, sessionCount: 3)
+        for session in sessions { session.date = twoDaysAgo }
+        let overdue = WorkoutSummaryService.upcomingDays(in: [workout], now: now, withinDays: 7)
+        XCTAssertEqual(overdue.map { $0.week }, [1], "Old weeks do not pile up")
+        XCTAssertEqual(overdue.first?.status, .overdue)
+
+        // A day with logged sets is in progress whatever its date, and is not listed twice.
+        addSet(to: sessions[0], number: 1, reps: 5, weight: 100, in: context)
+        let started = WorkoutSummaryService.upcomingDays(in: [workout], now: now, withinDays: 7)
+        XCTAssertEqual(started.count, 1)
+        XCTAssertEqual(started.first?.status, .inProgress)
+
+        // Order: in progress, then overdue, then scheduled.
+        let (second, _, secondSessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        secondSessions[0].date = now
+        let (third, _, thirdSessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        thirdSessions[0].date = twoDaysAgo
+        let ordered = WorkoutSummaryService.upcomingDays(in: [second, third, workout], now: now, withinDays: 7)
+        XCTAssertEqual(ordered.map { $0.status }, [.inProgress, .overdue, .scheduled])
+
+        // Finished or skipped removes it.
+        sessions[0].skipped = true
+        sessions[1].skipped = true
+        sessions[2].skipped = true
+        XCTAssertTrue(WorkoutSummaryService.upcomingDays(in: [workout], now: now, withinDays: 7).isEmpty)
     }
 }
