@@ -142,6 +142,8 @@ DECISION 2026-10-14 23:40 (owner, cardio direction): integrate with HealthKit NO
 
 DECISION 2026-10-14 23:50 (owner, H-1): HealthKit direction = READ now (pull in what Health has), WRITE LIFTR workouts to Health later and incrementally. Verified in code: existing `CardioSession` has no start/end time, elevation, heart rate, calories or external id, and needs a `CardioProgression` parent. Open: H-2 where an imported activity is stored (options: new standalone activity model, extend CardioSession, or the unified Workout model).
 
+MUST-DO PLANNING TOPIC (owner reminder 2026-10-14 23:19): data model for strength inside cardio programs. A run plan day can hold a run plus a strength/calisthenics block, and cross-training days. Questions to settle before the program-building service: does cardio join the unified Workout model (Workout -> Day -> Exercise -> Session) with a run/cardio exercise kind, or do cardio and strength stay separate models with a shared "plan day" that references both; how a planned run links to a recorded activity (a Health import, later GPS) and marks itself done; what a run session plans (distance, duration, pace or effort, run type); skip/edit/week-advance rules shared with strength. Separable from H-2: the activity record stores what HAPPENED, the program model stores what is PLANNED.
+
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
 2. DONE: Single-lift progression creation (`CreateSingleWorkoutView`).
