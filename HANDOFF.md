@@ -123,6 +123,8 @@ Decision 2026-10-14 (owner, 8e-4, replaces the 8d rule "no overdue section"): Ho
 
 Owner results 2026-10-14 22:45 (8e-4 Upcoming): In-progress row shown first (pass); finish/skip removes the row (pass); Overdue label not yet seen on screen (needs a day to pass, owner will report if it fails). Owner decision: keep this design. The test log supplied was the UI test run (6 of 6 pass); the unit-test count (expected 26) was not shown.
 
+Decision 2026-10-14 22:47 (owner): NEW ORDER after step 8: (1) cardio design planning (#33, planning only; Strava/Garmin trail-run baseline), (2) Analytics repoint, (3) program-building service (blocked by cardio planning), then (4) step 7 program A/B/A. Step 7 is moved AFTER the service so A/B/A is built once, not as a sixth copy of the hierarchy-building code. Step 7 scope is still undefined (open question 7-1: auto-alternate A/B days in custom programs, choose weekdays, or something else); today only Starting Strength alternates A/B, hard-coded on 0/2/4-day offsets.
+
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
 2. DONE: Single-lift progression creation (`CreateSingleWorkoutView`).
