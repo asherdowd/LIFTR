@@ -707,12 +707,14 @@ final class LiftrTests: XCTestCase {
         let strength = WorkoutSummaryService.recentEntries(workouts: workouts, legacySessions: [], limit: 5)
         XCTAssertEqual(strength.count, 1)
         XCTAssertFalse(strength[0].isCardio)
+        XCTAssertTrue(strength[0].session === strengthSessions[0], "Row must carry its session so a tap can open it")
         _ = strengthWorkout
 
         let imperial = WorkoutSummaryService.recentEntries(workouts: workouts, legacySessions: [], limit: 5, cardio: true)
         XCTAssertEqual(imperial.count, 1)
         XCTAssertTrue(imperial[0].isCardio)
         XCTAssertNil(imperial[0].percentage)
+        XCTAssertNotNil(imperial[0].session)
         XCTAssertEqual(imperial[0].detail, "6.2 mi · 50 min")
 
         let metric = WorkoutSummaryService.recentEntries(workouts: workouts, legacySessions: [], limit: 5, cardio: true, useMetric: true)

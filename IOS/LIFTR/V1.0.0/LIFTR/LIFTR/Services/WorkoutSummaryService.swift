@@ -36,6 +36,8 @@ struct RecentStrengthEntry: Identifiable {
     let percentage: Double?
     /// True for cardio entries (shown under the Cardio heading).
     var isCardio: Bool = false
+    /// The new-model session behind the row. Nil for legacy entries, which have nothing to open.
+    var session: ExerciseSession? = nil
 }
 
 enum WorkoutSummaryService {
@@ -154,7 +156,8 @@ enum WorkoutSummaryService {
                     date: sortDate(session),
                     detail: cardioDetail(session, useMetric: useMetric),
                     percentage: nil,
-                    isCardio: true
+                    isCardio: true,
+                    session: session
                 ))
             } else if workoutExercise.isFreeform {
                 let count = session.sets.filter { $0.completed }.count
@@ -163,7 +166,8 @@ enum WorkoutSummaryService {
                     name: name,
                     date: sortDate(session),
                     detail: "\(count) set\(count == 1 ? "" : "s")",
-                    percentage: nil
+                    percentage: nil,
+                    session: session
                 ))
             } else {
                 entries.append(RecentStrengthEntry(
@@ -171,7 +175,8 @@ enum WorkoutSummaryService {
                     name: name,
                     date: sortDate(session),
                     detail: "\(Int(session.plannedWeight)) lbs × \(session.plannedSets)×\(session.plannedReps)",
-                    percentage: session.performancePercentage
+                    percentage: session.performancePercentage,
+                    session: session
                 ))
             }
         }

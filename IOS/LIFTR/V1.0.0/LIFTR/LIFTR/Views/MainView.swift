@@ -351,8 +351,21 @@ struct PRRow: View {
 
 struct RecentStrengthSessionRow: View {
     let entry: RecentStrengthEntry
+    @State private var showDetail = false
 
     var body: some View {
+        if let session = entry.session {
+            Button(action: { showDetail = true }) { rowContent(showChevron: true) }
+                .buttonStyle(.plain)
+                .sheet(isPresented: $showDetail) {
+                    RecentSessionDetailSheet(session: session)
+                }
+        } else {
+            rowContent(showChevron: false)
+        }
+    }
+
+    private func rowContent(showChevron: Bool) -> some View {
         HStack(spacing: 12) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundColor(.green)
@@ -384,6 +397,12 @@ struct RecentStrengthSessionRow: View {
             Text(entry.date.formatted(date: .abbreviated, time: .omitted))
                 .font(.caption2)
                 .foregroundColor(.secondary)
+
+            if showChevron {
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
         .padding()
         .background(Color(.systemGray6))
@@ -395,6 +414,38 @@ struct RecentStrengthSessionRow: View {
         if percentage >= 90 { return .green }
         else if percentage >= 75 { return .orange }
         else { return .red }
+    }
+}
+
+/// View-only detail for a finished session opened from Home Recent. Sheet with its own
+/// NavigationStack. Program sessions also link to the day screen for the whole day.
+struct RecentSessionDetailSheet: View {
+    let session: ExerciseSession
+    @Environment(\.dismiss) private var dismiss
+
+    private var day: WorkoutDay? { session.workoutExercise?.day }
+    private var workout: Workout? { day?.workout }
+    private var isProgramSession: Bool {
+        guard let exercise = session.workoutExercise else { return false }
+        return !exercise.isFreeform && !exercise.isCardio
+    }
+
+    var body: some View {
+        NavigationStack {
+            EditSessionView(session: session, readOnly: true)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Close") { dismiss() }
+                    }
+                    if isProgramSession, let day, let workout {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            NavigationLink("Whole day") {
+                                WorkoutDayView(workout: workout, day: day, week: session.weekNumber)
+                            }
+                        }
+                    }
+                }
+        }
     }
 }
 

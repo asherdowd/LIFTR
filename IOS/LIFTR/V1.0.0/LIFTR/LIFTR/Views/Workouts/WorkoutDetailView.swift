@@ -249,6 +249,9 @@ struct EditSessionView: View {
     @Query private var globalSettings: [GlobalProgressionSettings]
 
     @Bindable var session: ExerciseSession
+    /// View-only mode used when a finished session is opened from Home or History.
+    /// Editing past sessions stays on the Workouts tab (card pencil).
+    var readOnly: Bool = false
 
     private var unitLabel: String {
         globalSettings.first?.useMetric == true ? "kg" : "lbs"
@@ -333,6 +336,19 @@ struct EditSessionView: View {
                 }
             }
 
+            if !isCardio && !loggedSets.isEmpty {
+                Section("Logged sets") {
+                    ForEach(loggedSets) { set in
+                        HStack {
+                            Text("Set \(set.setNumber)")
+                            Spacer()
+                            Text(loggedText(set))
+                                .foregroundColor(set.completed ? .primary : .secondary)
+                        }
+                    }
+                }
+            }
+
             if !isFreeform && !isCardio {
                 Section {
                     HStack {
@@ -359,9 +375,22 @@ struct EditSessionView: View {
                 Text("Marking the last open session of a week advances the workout to the next week.")
             }
         }
-        .navigationTitle("Week \(session.weekNumber)")
+        .disabled(readOnly)
+        .navigationTitle(readOnly ? (session.workoutExercise?.exercise.name ?? "Session") : "Week \(session.weekNumber)")
         .navigationBarTitleDisplayMode(.inline)
-        .onDisappear { try? context.save() }
+        .onDisappear { if !readOnly { try? context.save() } }
+    }
+
+    private var loggedSets: [WorkoutSet] {
+        session.sets.sorted { $0.setNumber < $1.setNumber }
+    }
+
+    /// "225 lbs × 5", or "Not done" for a set that was never completed.
+    private func loggedText(_ set: WorkoutSet) -> String {
+        guard set.completed, let reps = set.actualReps else { return "Not done" }
+        guard let weight = set.actualWeight else { return "\(reps) reps" }
+        let weightText = weight.truncatingRemainder(dividingBy: 1) == 0 ? String(Int(weight)) : String(weight)
+        return "\(weightText) \(unitLabel) × \(reps)"
     }
 
     private func labeledField(_ title: String, value: Binding<Double?>) -> some View {
