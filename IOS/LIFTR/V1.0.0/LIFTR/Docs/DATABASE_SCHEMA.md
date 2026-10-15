@@ -562,10 +562,10 @@ ExerciseProgressionSettings (independent, 0:many)
 **Date:** 2026-10-14
 **Changes (all on the new Workout model, UnifiedWorkoutModels.swift):**
 - `ExerciseSession`: added optional `startTime`, `endTime`, `distance` (m), `duration` (s), `elevationGain` (m), `avgHeartRate`, `maxHeartRate` (bpm), `caloriesBurned` (kcal), `dataSource: ActivitySource?`, `externalID: String?`, `plannedDistance` (m), `plannedDuration` (s).
-- `WorkoutExercise`: added `kind: ExerciseKind = ExerciseKind.strength` (inline, fully qualified default).
+- `WorkoutExercise`: added `kindStored: ExerciseKind?` (optional, nil = strength) with a computed non-optional `kind` that screens use. A required enum with an inline default failed to load existing rows on device ("Could not cast Optional<Any> to ExerciseKind"), so it is stored as an optional.
 - New enums `ExerciseKind` (strength, cardio) and `ActivitySource` (manual, healthKit). No new `@Model`, so `LIFTRApp.swift` registration is unchanged.
 
-**Migration V4→V5:** no repair function. All new `ExerciseSession` properties are optional (nil on existing rows). `kind` has an inline default, so existing `WorkoutExercise` rows load as strength. NOT YET VERIFIED on device against a build 38 store.
+**Migration V4→V5:** no repair function. All new `ExerciseSession` properties are optional (nil on existing rows). `kindStored` is optional, so existing `WorkoutExercise` rows load with nil, which `kind` reads as strength. NOT YET VERIFIED on device against a build 38 store.
 
 ### V4 (WorkoutSet inverse for new Workout system)
 **Date:** 2026-10-11

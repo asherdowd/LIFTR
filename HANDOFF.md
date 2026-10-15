@@ -151,6 +151,8 @@ Scope confirmed by owner (H-3 confirm): read-only Apple Health import into the s
 
 DECISION 2026-10-14 23:45 (owner, H-4 = B): no tap-to-edit on Home Recent rows for now. PLAN a History screen later; owner requirement: it must be INTUITIVE. It would also close the open gap that Completed workouts (finished programs, quick workouts, imported runs) have no screen to open or edit them (see 8e-3). Design questions for that discussion: where it lives (a tab, or from Home/Workouts), grouping (by date vs by workout), strength and cardio together, filters, opening and editing a past session, delete/hide, link to the Home Recent rows.
 
+BUG FOUND 2026-10-15 (owner device log, Health import slice): "Could not cast value of type Swift.Optional<Any> to LIFTR.ExerciseKind" (twice) when running with the existing store. Hypothesis (not proven): old WorkoutExercise rows have no value for the new required enum column and the inline default is not applied on load. FIX (untested on device): `WorkoutExercise.kindStored: ExerciseKind?` stored optional (nil = strength) with computed `kind`; initializer assigns `kindStored`. Docs updated. LESSON for CLAUDE.md (proposed, not yet edited): store new enum properties as optionals when existing stores must load. Owner to confirm the log is gone after pulling; if the app already crashed or the store is now in a bad state, a reinstall may be needed (wipes local data).
+
 ## Merge steps (Issue #4)
 1. DONE: universal Start Workout entry.
 2. DONE: Single-lift progression creation (`CreateSingleWorkoutView`).

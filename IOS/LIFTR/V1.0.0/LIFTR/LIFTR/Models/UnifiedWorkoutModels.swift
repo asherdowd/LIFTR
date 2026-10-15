@@ -104,8 +104,15 @@ class WorkoutExercise {
     var targetSets: Int
     var targetReps: Int
     var increment: Double = 5.0
-    /// V5. Fully qualified inline default so lightweight migration can fill existing rows.
-    var kind: ExerciseKind = ExerciseKind.strength
+    /// V5. Stored as an OPTIONAL on purpose: an existing store has no value for this column, and
+    /// a required enum with an inline default failed to load old rows on device ("Could not cast
+    /// Optional<Any> to ExerciseKind", 2026-10-14). nil means strength; use `kind` everywhere.
+    var kindStored: ExerciseKind?
+
+    var kind: ExerciseKind {
+        get { kindStored ?? .strength }
+        set { kindStored = newValue }
+    }
 
     @Relationship(deleteRule: .cascade) var sessions: [ExerciseSession]
 
@@ -135,7 +142,7 @@ class WorkoutExercise {
         self.targetSets = targetSets
         self.targetReps = targetReps
         self.increment = increment
-        self.kind = kind
+        self.kindStored = kind
         self.sessions = []
         self.notes = notes
     }

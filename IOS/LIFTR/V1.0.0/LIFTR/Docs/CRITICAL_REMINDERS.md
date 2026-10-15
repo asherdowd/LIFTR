@@ -200,7 +200,7 @@ static func performStartupChecks(context: ModelContext) {
 ## 📝 CURRENT SCHEMA VERSION
 
 **As of October 11, 2026:**
-- **Version:** V5 (2026-10-14): cardio in the shared Workout model. `ExerciseSession` optional fields (startTime, endTime, distance, duration, elevationGain, avgHeartRate, maxHeartRate, caloriesBurned, dataSource, externalID, plannedDistance, plannedDuration) and `WorkoutExercise.kind = ExerciseKind.strength`. See DATABASE_SCHEMA.md. No repair function; not yet tested against a build 38 store.
+- **Version:** V5 (2026-10-14): cardio in the shared Workout model. `ExerciseSession` optional fields (startTime, endTime, distance, duration, elevationGain, avgHeartRate, maxHeartRate, caloriesBurned, dataSource, externalID, plannedDistance, plannedDuration) and `WorkoutExercise.kindStored: ExerciseKind?` (nil = strength, read through computed `kind`). LESSON: a new REQUIRED enum property with an inline default failed to load old rows on device; store new enums as optionals. See DATABASE_SCHEMA.md. No repair function; not yet tested against a build 38 store.
 - **Previous version:** V4
 - **Changes from V3:** Added `exerciseSession: ExerciseSession?` to `WorkoutSet` as the inverse relationship for the new Workout system. Legacy `session: WorkoutSession?` retained.
 - **Migration:** No repair function — `nil` default is correct for all existing records. Lightweight migration handles automatically.
