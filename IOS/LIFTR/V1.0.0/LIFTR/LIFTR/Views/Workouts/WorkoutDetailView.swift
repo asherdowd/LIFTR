@@ -303,6 +303,7 @@ struct EditSessionView: View {
                     labeledField("Distance (\(useMetric ? "km" : "mi"))", value: scaled(\.plannedDistance, by: metersPerDistanceUnit))
                     labeledField("Duration (min)", value: scaled(\.plannedDuration, by: 60))
                 }
+                .disabled(readOnly)
 
                 Section("Recorded") {
                     labeledField("Distance (\(useMetric ? "km" : "mi"))", value: scaled(\.distance, by: metersPerDistanceUnit))
@@ -311,6 +312,7 @@ struct EditSessionView: View {
                     labeledField("Elevation loss (\(useMetric ? "m" : "ft"))", value: scaled(\.elevationLoss, by: metersPerElevationUnit))
                     labeledField("Max speed (\(useMetric ? "km/h" : "mph"))", value: scaled(\.maxSpeed, by: metersPerSecondPerSpeedUnit))
                 }
+                .disabled(readOnly)
             }
 
             Section {
@@ -324,6 +326,7 @@ struct EditSessionView: View {
                     Text("Source: \(source.rawValue)")
                 }
             }
+            .disabled(readOnly)
 
             if session.startTime != nil || session.endTime != nil {
                 Section("Time") {
@@ -366,6 +369,7 @@ struct EditSessionView: View {
                 } footer: {
                     Text("Changes this session only. Other weeks are not affected.")
                 }
+                .disabled(readOnly)
             }
 
             Section {
@@ -374,8 +378,8 @@ struct EditSessionView: View {
             } footer: {
                 Text("Marking the last open session of a week advances the workout to the next week.")
             }
+            .disabled(readOnly)
         }
-        .disabled(readOnly)
         .navigationTitle(readOnly ? (session.workoutExercise?.exercise.name ?? "Session") : "Week \(session.weekNumber)")
         .navigationBarTitleDisplayMode(.inline)
         .onDisappear { if !readOnly { try? context.save() } }
