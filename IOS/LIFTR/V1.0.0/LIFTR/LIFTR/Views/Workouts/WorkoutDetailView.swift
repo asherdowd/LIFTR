@@ -270,6 +270,7 @@ struct EditSessionView: View {
     // editor shows the user's units: km or mi, m or ft, minutes.
     private var metersPerDistanceUnit: Double { useMetric ? 1000 : 1609.344 }
     private var metersPerElevationUnit: Double { useMetric ? 1 : 0.3048 }
+    private var metersPerSecondPerSpeedUnit: Double { useMetric ? 1 / 3.6 : 0.44704 }
 
     private func scaled(_ keyPath: ReferenceWritableKeyPath<ExerciseSession, Double?>, by factor: Double) -> Binding<Double?> {
         Binding(
@@ -304,6 +305,8 @@ struct EditSessionView: View {
                     labeledField("Distance (\(useMetric ? "km" : "mi"))", value: scaled(\.distance, by: metersPerDistanceUnit))
                     labeledField("Duration (min)", value: scaled(\.duration, by: 60))
                     labeledField("Elevation gain (\(useMetric ? "m" : "ft"))", value: scaled(\.elevationGain, by: metersPerElevationUnit))
+                    labeledField("Elevation loss (\(useMetric ? "m" : "ft"))", value: scaled(\.elevationLoss, by: metersPerElevationUnit))
+                    labeledField("Max speed (\(useMetric ? "km/h" : "mph"))", value: scaled(\.maxSpeed, by: metersPerSecondPerSpeedUnit))
                 }
             }
 

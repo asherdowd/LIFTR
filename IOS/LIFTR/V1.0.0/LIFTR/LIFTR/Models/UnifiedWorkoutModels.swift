@@ -168,12 +168,14 @@ class ExerciseSession {
 
     // V5: all optional (nil on existing rows). Units are always SI so data from Health needs
     // no conversion: distance and elevation in meters, duration in seconds, heart rate in bpm,
-    // calories in kcal. Screens convert for display using the user's unit setting.
+    // calories in kcal, speed in m/s. Screens convert for display using the user's unit setting.
     var startTime: Date?
     var endTime: Date?
     var distance: Double?
     var duration: TimeInterval?
     var elevationGain: Double?
+    var elevationLoss: Double?
+    var maxSpeed: Double?
     var avgHeartRate: Double?
     var maxHeartRate: Double?
     var caloriesBurned: Double?

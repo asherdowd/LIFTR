@@ -79,6 +79,8 @@ enum HealthImportService {
             session.duration = activity.duration
             session.distance = activity.distance
             session.elevationGain = activity.elevationGain
+            session.elevationLoss = activity.elevationLoss
+            session.maxSpeed = activity.maxSpeed
             session.avgHeartRate = activity.avgHeartRate
             session.maxHeartRate = activity.maxHeartRate
             session.caloriesBurned = activity.caloriesBurned

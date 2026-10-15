@@ -21,6 +21,10 @@ struct ImportedActivity: Equatable {
     let avgHeartRate: Double?
     let maxHeartRate: Double?
     let caloriesBurned: Double?
+    /// Meters descended, from the workout metadata when the writing app stored it.
+    let elevationLoss: Double?
+    /// Meters per second, from the workout metadata when the writing app stored it.
+    let maxSpeed: Double?
 }
 
 enum HealthKitServiceError: LocalizedError {
@@ -89,7 +93,9 @@ final class HealthKitService {
                 elevationGain: elevationGain(of: workout),
                 avgHeartRate: heart.avg,
                 maxHeartRate: heart.max,
-                caloriesBurned: calories(of: workout)
+                caloriesBurned: calories(of: workout),
+                elevationLoss: elevationLoss(of: workout),
+                maxSpeed: maxSpeed(of: workout)
             ))
         }
         return result
@@ -121,6 +127,21 @@ final class HealthKitService {
         guard let quantity = workout.metadata?[HKMetadataKeyElevationAscended] as? HKQuantity else { return nil }
         let meters = quantity.doubleValue(for: .meter())
         return meters > 0 ? meters : nil
+    }
+
+    /// Garmin stores these under the raw keys "HKElevationDescended" and "HKMaximumSpeed"
+    /// (seen in an Apple Health export on 2026-10-15). Read by raw key so nothing depends on
+    /// whether a named constant exists.
+    private func elevationLoss(of workout: HKWorkout) -> Double? {
+        guard let quantity = workout.metadata?["HKElevationDescended"] as? HKQuantity else { return nil }
+        let meters = quantity.doubleValue(for: .meter())
+        return meters > 0 ? meters : nil
+    }
+
+    private func maxSpeed(of workout: HKWorkout) -> Double? {
+        guard let quantity = workout.metadata?["HKMaximumSpeed"] as? HKQuantity else { return nil }
+        let speed = quantity.doubleValue(for: HKUnit.meter().unitDivided(by: .second()))
+        return speed > 0 ? speed : nil
     }
 
     /// Average and maximum heart rate over the workout's time window, whatever app wrote them.

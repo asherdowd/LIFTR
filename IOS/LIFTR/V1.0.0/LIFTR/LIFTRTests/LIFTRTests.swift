@@ -638,7 +638,9 @@ final class LiftrTests: XCTestCase {
             elevationGain: 250,
             avgHeartRate: 150,
             maxHeartRate: 178,
-            caloriesBurned: 640
+            caloriesBurned: 640,
+            elevationLoss: 240,
+            maxSpeed: 4.5
         )
     }
 
@@ -678,6 +680,8 @@ final class LiftrTests: XCTestCase {
         XCTAssertEqual(session.duration, 3_000)
         XCTAssertEqual(session.elevationGain, 250)
         XCTAssertEqual(session.avgHeartRate, 150)
+        XCTAssertEqual(session.elevationLoss, 240)
+        XCTAssertEqual(session.maxSpeed, 4.5)
         XCTAssertEqual(session.dataSource, .healthKit)
         XCTAssertEqual(session.externalID, "HK-1")
         XCTAssertEqual(session.startTime, activity.start)
