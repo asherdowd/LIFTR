@@ -200,7 +200,8 @@ static func performStartupChecks(context: ModelContext) {
 ## 📝 CURRENT SCHEMA VERSION
 
 **As of October 11, 2026:**
-- **Version:** V4
+- **Version:** V5 (2026-10-14): cardio in the shared Workout model. `ExerciseSession` optional fields (startTime, endTime, distance, duration, elevationGain, avgHeartRate, maxHeartRate, caloriesBurned, dataSource, externalID, plannedDistance, plannedDuration) and `WorkoutExercise.kind = ExerciseKind.strength`. See DATABASE_SCHEMA.md. No repair function; not yet tested against a build 38 store.
+- **Previous version:** V4
 - **Changes from V3:** Added `exerciseSession: ExerciseSession?` to `WorkoutSet` as the inverse relationship for the new Workout system. Legacy `session: WorkoutSession?` retained.
 - **Migration:** No repair function — `nil` default is correct for all existing records. Lightweight migration handles automatically.
 - **Also in V4 (added October 14, 2026, V4 not yet released):** `ExerciseSession.skipped: Bool = false` (inline default). A skipped session counts as done for week advance but is never counted as completed. No repair function needed.
@@ -219,7 +220,7 @@ static func performStartupChecks(context: ModelContext) {
   - `restTimerHaptic: Bool`
 - **Migration:** Handled by `repairRestTimerDefaults()` in MigrationService.swift
 
-**Next Version Will Be:** V5
+**Next Version Will Be:** V6
 
 ---
 
@@ -313,7 +314,7 @@ Before committing ANY model changes:
 - ✅ V3→V4: Added `exerciseSession: ExerciseSession?` inverse to `WorkoutSet` for new Workout system. No repair function — nil default is correct for all existing records. Lightweight migration handles automatically. Also added `ExerciseSession.skipped: Bool = false` (2026-10-14, folded into V4). Not yet tested against a build 38 store.
 
 **Planned:**
-- ⏳ V4→V5: Strava integration (startTime, endTime, totalDuration, stravaActivityId)
+- ✅ V4→V5 (done 2026-10-14, differently from this old plan): startTime/endTime and cardio fields added to ExerciseSession. See DATABASE_SCHEMA.md.
 - ⏳ V5→V6: User profile expansion (age, weight, height, etc.)
 - ⏳ V6→V7: Apple Health sync properties
 

@@ -266,6 +266,16 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `completed` | Bool | false | Completion status |
 | `completedDate` | Date? | nil | Actual completion date |
 | `skipped` | Bool | false | Session skipped by the user ⚠️ V4. Counts as done for week advance only; never counted as completed (no PRs/history) |
+| `startTime` | Date? | nil | When the session was started (set when a strength session is opened, or by an import) ⚠️ V5 |
+| `endTime` | Date? | nil | When the session ended (stamped on completion) ⚠️ V5 |
+| `distance` | Double? | nil | Meters ⚠️ V5 |
+| `duration` | TimeInterval? | nil | Seconds ⚠️ V5 |
+| `elevationGain` | Double? | nil | Meters ⚠️ V5 |
+| `avgHeartRate` / `maxHeartRate` | Double? | nil | bpm ⚠️ V5 |
+| `caloriesBurned` | Double? | nil | kcal ⚠️ V5 |
+| `dataSource` | ActivitySource? | nil | `.manual` or `.healthKit` ⚠️ V5 |
+| `externalID` | String? | nil | Id in the source system (Apple Health workout UUID), prevents double import ⚠️ V5 |
+| `plannedDistance` / `plannedDuration` | Double? / TimeInterval? | nil | Planned meters / seconds for cardio sessions ⚠️ V5 |
 | `notes` | String? | nil | Optional notes |
 
 **Relationships:**
@@ -548,7 +558,16 @@ ExerciseProgressionSettings (independent, 0:many)
 - Set `restTimerHaptic = true`
 - (Exercise model addition required no migration steps)
 
-### V4 (WorkoutSet inverse for new Workout system) ⚠️ CURRENT
+### V5 (cardio in the shared Workout model, Health import) ⚠️ CURRENT
+**Date:** 2026-10-14
+**Changes (all on the new Workout model, UnifiedWorkoutModels.swift):**
+- `ExerciseSession`: added optional `startTime`, `endTime`, `distance` (m), `duration` (s), `elevationGain` (m), `avgHeartRate`, `maxHeartRate` (bpm), `caloriesBurned` (kcal), `dataSource: ActivitySource?`, `externalID: String?`, `plannedDistance` (m), `plannedDuration` (s).
+- `WorkoutExercise`: added `kind: ExerciseKind = ExerciseKind.strength` (inline, fully qualified default).
+- New enums `ExerciseKind` (strength, cardio) and `ActivitySource` (manual, healthKit). No new `@Model`, so `LIFTRApp.swift` registration is unchanged.
+
+**Migration V4→V5:** no repair function. All new `ExerciseSession` properties are optional (nil on existing rows). `kind` has an inline default, so existing `WorkoutExercise` rows load as strength. NOT YET VERIFIED on device against a build 38 store.
+
+### V4 (WorkoutSet inverse for new Workout system)
 **Date:** 2026-10-11
 **Changes:**
 - Added `exerciseSession: ExerciseSession?` to `WorkoutSet` — inverse relationship for the new Workout system. The existing `session: WorkoutSession?` is retained as the legacy inverse for the old Progression system.

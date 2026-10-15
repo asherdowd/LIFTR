@@ -14,6 +14,18 @@ enum ProgressionStyle: String, Codable, CaseIterable {
         }
     }
 }
+/// What a WorkoutExercise records. Strength is the default (existing data).
+enum ExerciseKind: String, Codable {
+    case strength = "Strength"
+    case cardio = "Cardio"
+}
+
+/// Where a session's recorded numbers came from.
+enum ActivitySource: String, Codable {
+    case manual = "Manual"
+    case healthKit = "Apple Health"
+}
+
 @Model
 class Workout {
     var id: UUID = UUID()
@@ -92,6 +104,8 @@ class WorkoutExercise {
     var targetSets: Int
     var targetReps: Int
     var increment: Double = 5.0
+    /// V5. Fully qualified inline default so lightweight migration can fill existing rows.
+    var kind: ExerciseKind = ExerciseKind.strength
 
     @Relationship(deleteRule: .cascade) var sessions: [ExerciseSession]
 
@@ -109,6 +123,7 @@ class WorkoutExercise {
         targetSets: Int,
         targetReps: Int,
         increment: Double = 5.0,
+        kind: ExerciseKind = .strength,
         notes: String? = nil
     ) {
         self.id = id
@@ -120,6 +135,7 @@ class WorkoutExercise {
         self.targetSets = targetSets
         self.targetReps = targetReps
         self.increment = increment
+        self.kind = kind
         self.sessions = []
         self.notes = notes
     }
@@ -142,6 +158,24 @@ class ExerciseSession {
     var skipped: Bool = false
     var wasDeload: Bool = false
     var deloadPercent: Double?
+
+    // V5: all optional (nil on existing rows). Units are always SI so data from Health needs
+    // no conversion: distance and elevation in meters, duration in seconds, heart rate in bpm,
+    // calories in kcal. Screens convert for display using the user's unit setting.
+    var startTime: Date?
+    var endTime: Date?
+    var distance: Double?
+    var duration: TimeInterval?
+    var elevationGain: Double?
+    var avgHeartRate: Double?
+    var maxHeartRate: Double?
+    var caloriesBurned: Double?
+    var dataSource: ActivitySource?
+    /// Identifier in the source system, for example the Apple Health workout UUID. Used to
+    /// avoid importing the same activity twice.
+    var externalID: String?
+    var plannedDistance: Double?
+    var plannedDuration: TimeInterval?
 
     @Relationship(deleteRule: .cascade) var sets: [WorkoutSet]
 
@@ -207,6 +241,8 @@ extension ExerciseSession {
 }
 
 extension WorkoutExercise {
+    var isCardio: Bool { kind == .cardio }
+
     /// Quick (freeform) workouts are created with no planned sets or reps and log sets as they go.
     var isFreeform: Bool { targetSets == 0 }
 

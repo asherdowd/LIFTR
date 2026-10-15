@@ -38,6 +38,10 @@ struct WorkoutDayView: View {
         globalSettings.first?.useMetric == true ? "kg" : "lbs"
     }
 
+    private var useMetric: Bool {
+        globalSettings.first?.useMetric == true
+    }
+
     /// Sessions in this day that are not completed or skipped yet.
     private var pending: [(session: ExerciseSession, exercise: WorkoutExercise)] {
         selectedDay.sortedExercises.compactMap { exercise in
@@ -155,7 +159,10 @@ struct WorkoutDayView: View {
 
     @ViewBuilder
     private func destination(session: ExerciseSession, exercise: WorkoutExercise) -> some View {
-        if exercise.isFreeform {
+        if exercise.isCardio {
+            // Cardio is entered on the shared session editor (distance, time, heart rate...).
+            EditSessionView(session: session)
+        } else if exercise.isFreeform {
             LiveSingleWorkoutView(session: session, workoutExercise: exercise)
         } else {
             ExerciseSessionView(session: session, workoutExercise: exercise)
@@ -170,6 +177,11 @@ struct WorkoutDayView: View {
     }
 
     private func detail(session: ExerciseSession, exercise: WorkoutExercise) -> String {
+        if exercise.isCardio {
+            return session.completed
+                ? WorkoutSummaryService.cardioDetail(session, useMetric: useMetric)
+                : WorkoutSummaryService.cardioPlanDetail(session, useMetric: useMetric)
+        }
         if exercise.isFreeform {
             let logged = session.sets.filter { $0.completed }.count
             return logged > 0 ? "\(logged) set\(logged == 1 ? "" : "s") logged" : "Log sets as you go"

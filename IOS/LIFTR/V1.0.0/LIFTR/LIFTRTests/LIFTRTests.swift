@@ -623,4 +623,118 @@ final class LiftrTests: XCTestCase {
         sessions[2].skipped = true
         XCTAssertTrue(WorkoutSummaryService.upcomingDays(in: [workout], now: now, withinDays: 7).isEmpty)
     }
+
+    // MARK: - V5: cardio fields, Health import, times
+
+    private func sampleActivity(id: String = "HK-1", name: String = "Running") -> ImportedActivity {
+        let start = Date().addingTimeInterval(-3_600)
+        return ImportedActivity(
+            externalID: id,
+            activityName: name,
+            start: start,
+            end: start.addingTimeInterval(3_000),
+            duration: 3_000,
+            distance: 10_000,
+            elevationGain: 250,
+            avgHeartRate: 150,
+            maxHeartRate: 178,
+            caloriesBurned: 640
+        )
+    }
+
+    @MainActor func testV5FieldsDefaultToNilAndKindToStrength() throws {
+        let context = container.mainContext
+        let (_, workoutExercise, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        XCTAssertEqual(workoutExercise.kind, .strength)
+        XCTAssertFalse(workoutExercise.isCardio)
+        let session = sessions[0]
+        XCTAssertNil(session.startTime)
+        XCTAssertNil(session.endTime)
+        XCTAssertNil(session.distance)
+        XCTAssertNil(session.duration)
+        XCTAssertNil(session.avgHeartRate)
+        XCTAssertNil(session.dataSource)
+        XCTAssertNil(session.externalID)
+    }
+
+    @MainActor func testHealthImportCreatesFinishedCardioWorkoutAndSkipsDuplicates() throws {
+        let context = container.mainContext
+        let activity = sampleActivity()
+
+        let created = try HealthImportService.importActivities([activity], into: context)
+        try context.save()
+        XCTAssertEqual(created, 1)
+
+        let workouts = try context.fetch(FetchDescriptor<Workout>())
+        XCTAssertEqual(workouts.count, 1)
+        let workout = try XCTUnwrap(workouts.first)
+        XCTAssertEqual(workout.status, .completed)
+        let workoutExercise = try XCTUnwrap(workout.days.first?.exercises.first)
+        XCTAssertTrue(workoutExercise.isCardio)
+        XCTAssertNil(workoutExercise.exercise.coreType, "Cardio never counts toward PR totals")
+        let session = try XCTUnwrap(workoutExercise.sessions.first)
+        XCTAssertTrue(session.completed)
+        XCTAssertEqual(session.distance, 10_000)
+        XCTAssertEqual(session.duration, 3_000)
+        XCTAssertEqual(session.elevationGain, 250)
+        XCTAssertEqual(session.avgHeartRate, 150)
+        XCTAssertEqual(session.dataSource, .healthKit)
+        XCTAssertEqual(session.externalID, "HK-1")
+        XCTAssertEqual(session.startTime, activity.start)
+        XCTAssertEqual(session.endTime, activity.end)
+
+        // Importing again adds nothing; a new id adds one and reuses the Running exercise.
+        let again = try HealthImportService.importActivities([activity, sampleActivity(id: "HK-2")], into: context)
+        try context.save()
+        XCTAssertEqual(again, 1)
+        XCTAssertEqual(try context.fetch(FetchDescriptor<Workout>()).count, 2)
+        let running = try context.fetch(FetchDescriptor<Exercise>()).filter { $0.name == "Running" }
+        XCTAssertEqual(running.count, 1)
+    }
+
+    @MainActor func testRecentSeparatesCardioFromStrengthAndFormatsUnits() throws {
+        let context = container.mainContext
+        let (strengthWorkout, _, strengthSessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        strengthSessions[0].completed = true
+        strengthSessions[0].completedDate = Date()
+        try HealthImportService.importActivities([sampleActivity()], into: context)
+        let workouts = try context.fetch(FetchDescriptor<Workout>())
+
+        let strength = WorkoutSummaryService.recentEntries(workouts: workouts, legacySessions: [], limit: 5)
+        XCTAssertEqual(strength.count, 1)
+        XCTAssertFalse(strength[0].isCardio)
+        _ = strengthWorkout
+
+        let imperial = WorkoutSummaryService.recentEntries(workouts: workouts, legacySessions: [], limit: 5, cardio: true)
+        XCTAssertEqual(imperial.count, 1)
+        XCTAssertTrue(imperial[0].isCardio)
+        XCTAssertNil(imperial[0].percentage)
+        XCTAssertEqual(imperial[0].detail, "6.2 mi · 50 min")
+
+        let metric = WorkoutSummaryService.recentEntries(workouts: workouts, legacySessions: [], limit: 5, cardio: true, useMetric: true)
+        XCTAssertEqual(metric[0].detail, "10.0 km · 50 min")
+    }
+
+    @MainActor func testCardioDetailFallbacks() throws {
+        let session = ExerciseSession(weekNumber: 1, sessionNumber: 1, plannedWeight: 0, plannedSets: 0, plannedReps: 0)
+        XCTAssertEqual(WorkoutSummaryService.cardioDetail(session, useMetric: false), "Activity")
+        XCTAssertEqual(WorkoutSummaryService.cardioPlanDetail(session, useMetric: false), "Log this activity")
+        session.plannedDistance = 9_656.064
+        session.plannedDuration = 3_600
+        XCTAssertEqual(WorkoutSummaryService.cardioPlanDetail(session, useMetric: false), "6.0 mi · 60 min")
+    }
+
+    @MainActor func testEndTimeStampedOnCompletionAndClearedWhenReopened() throws {
+        let context = container.mainContext
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 2, sessionCount: 2)
+        sessions[0].startTime = Date().addingTimeInterval(-1_800)
+
+        WorkoutEditService.setCompleted(true, session: sessions[0])
+        XCTAssertNotNil(sessions[0].endTime)
+        XCTAssertNotNil(sessions[0].startTime, "Start time is kept")
+
+        WorkoutEditService.setCompleted(false, session: sessions[0])
+        XCTAssertNil(sessions[0].endTime)
+        XCTAssertNotNil(sessions[0].startTime)
+    }
 }

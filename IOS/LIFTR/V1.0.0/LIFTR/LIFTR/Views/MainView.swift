@@ -32,7 +32,19 @@ struct MainView: View {
         WorkoutSummaryService.recentEntries(
             workouts: allWorkouts,
             legacySessions: activeProgressions.flatMap { $0.sessions },
-            limit: 5
+            limit: 5,
+            useMetric: currentSettings.useMetric
+        )
+    }
+
+    /// Cardio exercises from new Workouts (for example imported from Apple Health).
+    var recentCardioEntries: [RecentStrengthEntry] {
+        WorkoutSummaryService.recentEntries(
+            workouts: allWorkouts,
+            legacySessions: [],
+            limit: 5,
+            cardio: true,
+            useMetric: currentSettings.useMetric
         )
     }
 
@@ -259,7 +271,7 @@ struct MainView: View {
                     }
 
                     // Cardio subsection
-                    if !recentCardioSessions.isEmpty {
+                    if !recentCardioSessions.isEmpty || !recentCardioEntries.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Image(systemName: "figure.run")
@@ -272,6 +284,10 @@ struct MainView: View {
                             .padding(.horizontal)
                             .padding(.top, 8)
 
+                            ForEach(recentCardioEntries) { entry in
+                                RecentStrengthSessionRow(entry: entry)
+                            }
+
                             ForEach(recentCardioSessions, id: \.id) { session in
                                 RecentCardioSessionRow(session: session)
                             }
@@ -279,7 +295,7 @@ struct MainView: View {
                     }
 
                     // Empty state
-                    if recentStrengthEntries.isEmpty && recentCardioSessions.isEmpty {
+                    if recentStrengthEntries.isEmpty && recentCardioSessions.isEmpty && recentCardioEntries.isEmpty {
                         VStack(spacing: 12) {
                             Image(systemName: "calendar.badge.clock")
                                 .font(.system(size: 40))

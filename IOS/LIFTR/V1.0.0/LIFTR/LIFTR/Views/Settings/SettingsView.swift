@@ -66,7 +66,7 @@ struct SettingsView: View {
                 
                 // Integrations Section
                 Section(header: Text("Integrations")) {
-                    NavigationLink(destination: IntegrationsView()) {
+                    NavigationLink(destination: HealthImportView()) {
                         HStack {
                             Image(systemName: "heart.fill")
                                 .foregroundColor(.red)
@@ -484,7 +484,7 @@ struct IntegrationsView: View {
                 .font(.title2)
                 .fontWeight(.bold)
             
-            Text("Apple Health and Strava integrations will be available in a future update.")
+            Text("The Strava integration will be available in a future update.")
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .padding()

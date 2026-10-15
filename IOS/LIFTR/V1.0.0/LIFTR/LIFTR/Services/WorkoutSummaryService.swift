@@ -34,6 +34,8 @@ struct RecentStrengthEntry: Identifiable {
     let detail: String
     /// Nil for quick workouts, which have no plan to compare against.
     let percentage: Double?
+    /// True for cardio entries (shown under the Cardio heading).
+    var isCardio: Bool = false
 }
 
 enum WorkoutSummaryService {
@@ -123,29 +125,38 @@ enum WorkoutSummaryService {
 
     // MARK: Recent
 
-    /// Completed exercise sessions from every Workout (any status), newest first.
-    static func recentSessions(in workouts: [Workout], limit: Int) -> [ExerciseSession] {
-        let completed = workouts
-            .flatMap { $0.days }
-            .flatMap { $0.exercises }
-            .flatMap { $0.sessions }
-            .filter { $0.completed }
-            .sorted { sortDate($0) > sortDate($1) }
-        return Array(completed.prefix(limit))
-    }
-
-    /// Recent entries from the new Workouts and the legacy WorkoutSessions, mixed, newest first.
+    /// Recent entries, newest first. `cardio: false` gives the Strength list (new Workouts mixed
+    /// with legacy WorkoutSessions); `cardio: true` gives cardio exercises from new Workouts.
     static func recentEntries(
         workouts: [Workout],
         legacySessions: [WorkoutSession],
-        limit: Int
+        limit: Int,
+        cardio: Bool = false,
+        useMetric: Bool = false
     ) -> [RecentStrengthEntry] {
         var entries: [RecentStrengthEntry] = []
 
-        for session in recentSessions(in: workouts, limit: limit) {
+        let sessions = workouts
+            .flatMap { $0.days }
+            .flatMap { $0.exercises }
+            .filter { $0.isCardio == cardio }
+            .flatMap { $0.sessions }
+            .filter { $0.completed }
+            .sorted { sortDate($0) > sortDate($1) }
+
+        for session in sessions.prefix(limit) {
             guard let workoutExercise = session.workoutExercise else { continue }
             let name = workoutExercise.exercise.name
-            if workoutExercise.isFreeform {
+            if cardio {
+                entries.append(RecentStrengthEntry(
+                    id: session.id,
+                    name: name,
+                    date: sortDate(session),
+                    detail: cardioDetail(session, useMetric: useMetric),
+                    percentage: nil,
+                    isCardio: true
+                ))
+            } else if workoutExercise.isFreeform {
                 let count = session.sets.filter { $0.completed }.count
                 entries.append(RecentStrengthEntry(
                     id: session.id,
@@ -165,17 +176,45 @@ enum WorkoutSummaryService {
             }
         }
 
-        for session in legacySessions where session.completed {
-            entries.append(RecentStrengthEntry(
-                id: session.id,
-                name: session.progression?.exerciseName ?? "Unknown Exercise",
-                date: session.completedDate ?? session.date,
-                detail: "\(Int(session.plannedWeight)) lbs × \(session.plannedSets)×\(session.plannedReps)",
-                percentage: session.performancePercentage
-            ))
+        if !cardio {
+            for session in legacySessions where session.completed {
+                entries.append(RecentStrengthEntry(
+                    id: session.id,
+                    name: session.progression?.exerciseName ?? "Unknown Exercise",
+                    date: session.completedDate ?? session.date,
+                    detail: "\(Int(session.plannedWeight)) lbs × \(session.plannedSets)×\(session.plannedReps)",
+                    percentage: session.performancePercentage
+                ))
+            }
         }
 
         return Array(entries.sorted { $0.date > $1.date }.prefix(limit))
+    }
+
+    /// "6.2 mi · 52 min", or just the time, or "Activity" when nothing was recorded.
+    static func cardioDetail(_ session: ExerciseSession, useMetric: Bool) -> String {
+        var parts: [String] = []
+        if let meters = session.distance, meters > 0 {
+            let value = useMetric ? meters / 1000 : meters / 1609.344
+            parts.append(String(format: "%.1f %@", value, useMetric ? "km" : "mi"))
+        }
+        if let seconds = session.duration, seconds > 0 {
+            parts.append("\(Int((seconds / 60).rounded())) min")
+        }
+        return parts.isEmpty ? "Activity" : parts.joined(separator: " · ")
+    }
+
+    /// Planned side of a cardio session, for example "6.0 mi · 60 min".
+    static func cardioPlanDetail(_ session: ExerciseSession, useMetric: Bool) -> String {
+        var parts: [String] = []
+        if let meters = session.plannedDistance, meters > 0 {
+            let value = useMetric ? meters / 1000 : meters / 1609.344
+            parts.append(String(format: "%.1f %@", value, useMetric ? "km" : "mi"))
+        }
+        if let seconds = session.plannedDuration, seconds > 0 {
+            parts.append("\(Int((seconds / 60).rounded())) min")
+        }
+        return parts.isEmpty ? "Log this activity" : parts.joined(separator: " · ")
     }
 
     private static func sortDate(_ session: ExerciseSession) -> Date {

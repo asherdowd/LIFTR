@@ -177,6 +177,10 @@ struct ExerciseSessionsEditView: View {
         globalSettings.first?.useMetric == true ? "kg" : "lbs"
     }
 
+    private var useMetric: Bool {
+        globalSettings.first?.useMetric == true
+    }
+
     private var sortedSessions: [ExerciseSession] {
         workoutExercise.sessions.sorted {
             ($0.weekNumber, $0.sessionNumber) < ($1.weekNumber, $1.sessionNumber)
@@ -213,6 +217,11 @@ struct ExerciseSessionsEditView: View {
     }
 
     private func detail(for session: ExerciseSession) -> String {
+        if workoutExercise.isCardio {
+            return session.completed
+                ? WorkoutSummaryService.cardioDetail(session, useMetric: useMetric)
+                : WorkoutSummaryService.cardioPlanDetail(session, useMetric: useMetric)
+        }
         if workoutExercise.isFreeform {
             let logged = session.sets.filter { $0.completed }.count
             return "\(logged) set\(logged == 1 ? "" : "s") logged"
@@ -249,6 +258,26 @@ struct EditSessionView: View {
         session.workoutExercise?.isFreeform ?? false
     }
 
+    private var isCardio: Bool {
+        session.workoutExercise?.isCardio ?? false
+    }
+
+    private var useMetric: Bool {
+        globalSettings.first?.useMetric == true
+    }
+
+    // Distance is stored in meters, elevation in meters and duration in seconds (SI). The
+    // editor shows the user's units: km or mi, m or ft, minutes.
+    private var metersPerDistanceUnit: Double { useMetric ? 1000 : 1609.344 }
+    private var metersPerElevationUnit: Double { useMetric ? 1 : 0.3048 }
+
+    private func scaled(_ keyPath: ReferenceWritableKeyPath<ExerciseSession, Double?>, by factor: Double) -> Binding<Double?> {
+        Binding(
+            get: { session[keyPath: keyPath].map { $0 / factor } },
+            set: { session[keyPath: keyPath] = $0.map { $0 * factor } }
+        )
+    }
+
     private var completedBinding: Binding<Bool> {
         Binding(
             get: { session.completed },
@@ -265,7 +294,43 @@ struct EditSessionView: View {
 
     var body: some View {
         Form {
-            if !isFreeform {
+            if isCardio {
+                Section("Planned") {
+                    labeledField("Distance (\(useMetric ? "km" : "mi"))", value: scaled(\.plannedDistance, by: metersPerDistanceUnit))
+                    labeledField("Duration (min)", value: scaled(\.plannedDuration, by: 60))
+                }
+
+                Section("Recorded") {
+                    labeledField("Distance (\(useMetric ? "km" : "mi"))", value: scaled(\.distance, by: metersPerDistanceUnit))
+                    labeledField("Duration (min)", value: scaled(\.duration, by: 60))
+                    labeledField("Elevation gain (\(useMetric ? "m" : "ft"))", value: scaled(\.elevationGain, by: metersPerElevationUnit))
+                }
+            }
+
+            Section {
+                labeledField("Average heart rate (bpm)", value: $session.avgHeartRate)
+                labeledField("Max heart rate (bpm)", value: $session.maxHeartRate)
+                labeledField("Calories (kcal)", value: $session.caloriesBurned)
+            } header: {
+                Text("Heart rate and energy (optional)")
+            } footer: {
+                if let source = session.dataSource {
+                    Text("Source: \(source.rawValue)")
+                }
+            }
+
+            if session.startTime != nil || session.endTime != nil {
+                Section("Time") {
+                    if let start = session.startTime {
+                        LabeledContent("Started", value: start.formatted(date: .abbreviated, time: .shortened))
+                    }
+                    if let end = session.endTime {
+                        LabeledContent("Ended", value: end.formatted(date: .abbreviated, time: .shortened))
+                    }
+                }
+            }
+
+            if !isFreeform && !isCardio {
                 Section {
                     HStack {
                         Text("Weight (\(unitLabel))")
@@ -294,5 +359,16 @@ struct EditSessionView: View {
         .navigationTitle("Week \(session.weekNumber)")
         .navigationBarTitleDisplayMode(.inline)
         .onDisappear { try? context.save() }
+    }
+
+    private func labeledField(_ title: String, value: Binding<Double?>) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            TextField("", value: value, format: .number)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+                .frame(maxWidth: 100)
+        }
     }
 }

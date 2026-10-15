@@ -115,7 +115,11 @@ enum DeloadAdjustmentService {
         guard let workout = workoutExercise.day?.workout else { return }
 
         // Doing a session that was skipped means it is no longer skipped.
-        if session.completed { session.skipped = false }
+        if session.completed {
+            session.skipped = false
+            // V5: every completion path ends up here, so the end time is stamped in one place.
+            if session.endTime == nil { session.endTime = session.completedDate ?? Date() }
+        }
 
         let allSessions = workout.days
             .flatMap { $0.exercises }

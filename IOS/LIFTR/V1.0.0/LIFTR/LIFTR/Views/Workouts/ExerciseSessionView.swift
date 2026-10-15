@@ -114,6 +114,12 @@ struct ExerciseSessionView: View {
             .padding(.vertical)
         }
         .navigationTitle("Active Workout")
+        .onAppear {
+            // V5: opening a session starts its clock (first time only).
+            if session.startTime == nil && !session.completed {
+                session.startTime = Date()
+            }
+        }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {

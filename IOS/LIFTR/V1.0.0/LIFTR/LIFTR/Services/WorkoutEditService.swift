@@ -21,6 +21,7 @@ enum WorkoutEditService {
         } else {
             session.completed = false
             session.completedDate = nil
+            session.endTime = nil
         }
         reevaluate(session)
     }
