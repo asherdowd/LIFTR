@@ -815,6 +815,46 @@ final class LiftrTests: XCTestCase {
         XCTAssertTrue(AnalyticsService.goalWorkouts(workouts).isEmpty, "Only active programs show goals")
     }
 
+#if DEBUG
+    @MainActor func testSampleDataLoadsPRsOnAllLiftsAndRemovesOnlySamples() throws {
+        let context = container.mainContext
+        // A real workout that must survive removal
+        let (real, _, _) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        real.notes = "mine"
+
+        let created = try SampleDataService.load(into: context)
+        XCTAssertEqual(created, 12, "3 programs + 3 quick workouts + 6 cardio")
+        XCTAssertEqual(try SampleDataService.load(into: context), 0, "Loading twice is refused")
+        XCTAssertTrue(try SampleDataService.hasSampleData(in: context))
+
+        var workouts = try context.fetch(FetchDescriptor<Workout>())
+        // Highest weight per core lift: program C / quick workouts beat the earlier programs
+        XCTAssertEqual(WorkoutSummaryService.maxWeight(for: .squat, in: workouts), 285, "Quick workout squat is the heaviest")
+        XCTAssertEqual(WorkoutSummaryService.maxWeight(for: .benchPress, in: workouts), 152.5)
+        XCTAssertEqual(WorkoutSummaryService.maxWeight(for: .deadlift, in: workouts), 305, "500 and 400 sets are ignored")
+        XCTAssertEqual(WorkoutSummaryService.maxWeight(for: .overheadPress, in: workouts), 95)
+
+        // Analytics: PRs exist on every lift, Barbell Row (no core type) never counts
+        let all = AnalyticsService.completedStrengthSessions(workouts: workouts, period: .allTime)
+        XCTAssertGreaterThan(AnalyticsService.prCount(all), 4)
+        let rowOnly = AnalyticsService.completedStrengthSessions(workouts: workouts, period: .allTime, exerciseName: "Barbell Row")
+        XCTAssertEqual(AnalyticsService.prCount(rowOnly), 0)
+
+        // History shows strength and cardio, and goals show only the active program
+        XCTAssertFalse(WorkoutSummaryService.historyMonths(workouts: workouts, kind: .cardio).isEmpty)
+        let goalNames = Set(AnalyticsService.goalWorkouts(workouts).map { $0.name })
+        XCTAssertEqual(goalNames, ["Test", "Sample: 5/3/1 Active"], "Finished sample programs have no goal; the real active workout does")
+
+        // Removal deletes only samples
+        let removed = try SampleDataService.remove(from: context)
+        XCTAssertEqual(removed, 12)
+        workouts = try context.fetch(FetchDescriptor<Workout>())
+        XCTAssertEqual(workouts.count, 1)
+        XCTAssertEqual(workouts.first?.notes, "mine")
+        XCTAssertFalse(try SampleDataService.hasSampleData(in: context))
+    }
+#endif
+
     @MainActor func testCardioDetailFallbacks() throws {
         let session = ExerciseSession(weekNumber: 1, sessionNumber: 1, plannedWeight: 0, plannedSets: 0, plannedReps: 0)
         XCTAssertEqual(WorkoutSummaryService.cardioDetail(session, useMetric: false), "Activity")

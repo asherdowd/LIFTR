@@ -92,6 +92,9 @@ struct SettingsView: View {
                         }
                     }
                 }
+                #if DEBUG
+                SampleDataSection()
+                #endif
                 // About Section
                 Section(header: Text("About")) {
                     HStack {
