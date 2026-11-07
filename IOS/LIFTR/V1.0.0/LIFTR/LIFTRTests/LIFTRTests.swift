@@ -751,6 +751,70 @@ final class LiftrTests: XCTestCase {
         XCTAssertEqual(WorkoutSummaryService.historyMonths(workouts: [], kind: .all).count, 0)
     }
 
+    @MainActor func testAnalyticsVolumeMaxWeightAndPRRules() throws {
+        let context = container.mainContext
+        let now = Date()
+        let cal = Calendar.current
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 3, sessionCount: 3)
+        let dates = [
+            cal.date(byAdding: .day, value: -2, to: now)!,
+            cal.date(byAdding: .day, value: -1, to: now)!,
+            now
+        ]
+        for (index, session) in sessions.enumerated() {
+            session.completed = true
+            session.completedDate = dates[index]
+        }
+        // Session 0: one qualifying set (5 x 200); zero reps and not-completed sets are ignored
+        addSet(to: sessions[0], number: 1, reps: 5, weight: 200, in: context)
+        addSet(to: sessions[0], number: 2, reps: 0, weight: 400, in: context)
+        addSet(to: sessions[0], number: 3, reps: 5, weight: 500, completed: false, in: context)
+        // Session 1 beats it (PR), session 2 does not
+        addSet(to: sessions[1], number: 1, reps: 5, weight: 220, in: context)
+        addSet(to: sessions[2], number: 1, reps: 5, weight: 210, in: context)
+
+        XCTAssertEqual(AnalyticsService.volume(sessions[0]), 1_000)
+        XCTAssertEqual(AnalyticsService.maxWeight(sessions[0]), 200)
+
+        let month = try context.fetch(FetchDescriptor<Workout>())
+        let inMonth = AnalyticsService.completedStrengthSessions(workouts: month, period: .month, now: now)
+        XCTAssertEqual(inMonth.count, 3)
+        XCTAssertEqual(inMonth.first?.id, sessions[0].id, "Oldest first")
+        XCTAssertEqual(AnalyticsService.prCount(inMonth), 1, "First session is the baseline; only 220 beats it")
+
+        XCTAssertEqual(AnalyticsService.completedStrengthSessions(workouts: month, period: .day, now: now).count, 1)
+        XCTAssertEqual(AnalyticsService.completedStrengthSessions(workouts: month, period: .month, exerciseName: "Squat", now: now).count, 3)
+        XCTAssertEqual(AnalyticsService.completedStrengthSessions(workouts: month, period: .month, exerciseName: "Bench", now: now).count, 0)
+
+        let stats = AnalyticsService.exerciseStats(inMonth)
+        XCTAssertEqual(stats.count, 1)
+        XCTAssertEqual(stats[0].name, "Squat")
+        XCTAssertEqual(stats[0].sessions, 3)
+        XCTAssertEqual(stats[0].totalVolume, 3_150)
+        XCTAssertEqual(stats[0].maxWeight, 220)
+
+        XCTAssertEqual(AnalyticsService.volumeByDay(inMonth).map { $0.volume }, [1_000, 1_100, 1_050])
+        XCTAssertEqual(AnalyticsService.averagePerformance([]), 0)
+    }
+
+    @MainActor func testAnalyticsLeavesOutCardioAndShowsGoalsForActiveStrengthPrograms() throws {
+        let context = container.mainContext
+        let (program, _, sessions) = makeWorkout(in: context, totalWeeks: 3, sessionCount: 3)
+        sessions[0].completed = true
+        sessions[0].completedDate = Date()
+        try HealthImportService.importActivities([sampleActivity()], into: context)
+        let workouts = try context.fetch(FetchDescriptor<Workout>())
+
+        let all = AnalyticsService.completedStrengthSessions(workouts: workouts, period: .allTime)
+        XCTAssertEqual(all.count, 1, "The imported run is cardio and is not a strength session")
+        XCTAssertEqual(AnalyticsService.strengthExerciseNames(in: workouts), ["Squat"])
+
+        XCTAssertEqual(AnalyticsService.goalWorkouts(workouts).map { $0.id }, [program.id], "Imported (finished, cardio-only) workouts have no goal")
+        XCTAssertEqual(AnalyticsService.goalExercises(of: program).map { $0.exercise.name }, ["Squat"])
+        program.status = .completed
+        XCTAssertTrue(AnalyticsService.goalWorkouts(workouts).isEmpty, "Only active programs show goals")
+    }
+
     @MainActor func testCardioDetailFallbacks() throws {
         let session = ExerciseSession(weekNumber: 1, sessionNumber: 1, plannedWeight: 0, plannedSets: 0, plannedReps: 0)
         XCTAssertEqual(WorkoutSummaryService.cardioDetail(session, useMetric: false), "Activity")

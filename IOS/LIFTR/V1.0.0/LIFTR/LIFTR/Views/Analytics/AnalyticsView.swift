@@ -38,8 +38,7 @@ enum TimePeriod: String, CaseIterable {
 
 struct AnalyticsView: View {
     @Environment(\.modelContext) private var context
-    @Query(sort: \Progression.startDate) private var allProgressions: [Progression]
-    @Query(sort: \CardioProgression.startDate) private var allCardioProgressions: [CardioProgression]
+    @Query(sort: \Workout.startDate) private var allWorkouts: [Workout]
     
     @State private var selectedPeriod: TimePeriod = .month
     @State private var selectedExercise: String = "All Exercises"
@@ -53,17 +52,12 @@ struct AnalyticsView: View {
     }
     
     var availableExercises: [String] {
-        var exercises = ["All Exercises"]
-        exercises.append(contentsOf: allProgressions.map { $0.exerciseName })
-        return exercises
+        ["All Exercises"] + AnalyticsService.strengthExerciseNames(in: allWorkouts)
     }
-    
-    var filteredProgressions: [Progression] {
-        if selectedExercise == "All Exercises" {
-            return allProgressions
-        } else {
-            return allProgressions.filter { $0.exerciseName == selectedExercise }
-        }
+
+    /// The exercise the filter is set to; nil means all exercises.
+    var exerciseFilter: String? {
+        selectedExercise == "All Exercises" ? nil : selectedExercise
     }
     
     var body: some View {
@@ -81,7 +75,7 @@ struct AnalyticsView: View {
                 }
                 
                 // Exercise Filter
-                if allProgressions.count > 1 && selectedTab != .history {
+                if availableExercises.count > 2 && selectedTab != .history {
                     Picker("Exercise", selection: $selectedExercise) {
                         ForEach(availableExercises, id: \.self) { exercise in
                             Text(exercise).tag(exercise)
@@ -105,19 +99,18 @@ struct AnalyticsView: View {
                     switch selectedTab {
                     case .overview:
                         OverviewTab(
-                            progressions: filteredProgressions,
+                            workouts: allWorkouts,
+                            exerciseName: exerciseFilter,
                             period: selectedPeriod
                         )
                     case .progress:
                         ProgressTab(
-                            progressions: filteredProgressions,
+                            workouts: allWorkouts,
+                            exerciseName: exerciseFilter,
                             period: selectedPeriod
                         )
                     case .goals:
-                        GoalsTab(
-                            progressions: filteredProgressions,
-                            period: selectedPeriod
-                        )
+                        GoalsTab(workouts: allWorkouts)
                     case .history:
                         HistoryTab()
                     }
@@ -131,28 +124,16 @@ struct AnalyticsView: View {
 // MARK: - Overview Tab
 
 struct OverviewTab: View {
-    let progressions: [Progression]
+    let workouts: [Workout]
+    let exerciseName: String?
     let period: TimePeriod
     
-    var completedSessions: [WorkoutSession] {
-        let dateRange = period.dateRange()
-        return progressions
-            .flatMap { $0.sessions }
-            .filter {
-                $0.completed &&
-                ($0.completedDate ?? $0.date) >= dateRange.start &&
-                ($0.completedDate ?? $0.date) <= dateRange.end
-            }
-            .sorted { ($0.completedDate ?? $0.date) < ($1.completedDate ?? $1.date) }
+    var completedSessions: [ExerciseSession] {
+        AnalyticsService.completedStrengthSessions(workouts: workouts, period: period, exerciseName: exerciseName)
     }
     
     var totalVolume: Int {
-        completedSessions.reduce(0) { total, session in
-            let sessionVolume = session.sets.reduce(0) { setTotal, set in
-                setTotal + ((set.actualReps ?? 0) * Int(set.actualWeight ?? 0))
-            }
-            return total + sessionVolume
-        }
+        Int(completedSessions.reduce(0) { $0 + AnalyticsService.volume($1) }.rounded())
     }
     
     var totalWorkouts: Int {
@@ -160,9 +141,7 @@ struct OverviewTab: View {
     }
     
     var averagePerformance: Double {
-        guard !completedSessions.isEmpty else { return 0 }
-        let total = completedSessions.reduce(0.0) { $0 + $1.performancePercentage }
-        return total / Double(completedSessions.count)
+        AnalyticsService.averagePerformance(completedSessions)
     }
     
     var body: some View {
@@ -192,7 +171,7 @@ struct OverviewTab: View {
                 
                 MetricCard(
                     title: "PRs Hit",
-                    value: "\(countPRs())",
+                    value: "\(AnalyticsService.prCount(completedSessions))",
                     icon: "trophy.fill",
                     color: .yellow
                 )
@@ -207,7 +186,7 @@ struct OverviewTab: View {
                         .padding(.horizontal)
                     
                     Chart {
-                        ForEach(volumeByDate(), id: \.date) { dataPoint in
+                        ForEach(AnalyticsService.volumeByDay(completedSessions), id: \.date) { dataPoint in
                             BarMark(
                                 x: .value("Date", dataPoint.date, unit: .day),
                                 y: .value("Volume", dataPoint.volume)
@@ -251,64 +230,22 @@ struct OverviewTab: View {
             return "\(volume) lbs"
         }
     }
-    
-    private func countPRs() -> Int {
-        // Count sessions where actual weight exceeded previous max
-        var prCount = 0
-        var exerciseMaxes: [String: Double] = [:]
-        
-        for session in completedSessions {
-            guard let exerciseName = session.progression?.exerciseName else { continue }
-            
-            let maxWeight = session.sets.compactMap { $0.actualWeight }.max() ?? 0
-            
-            if let previousMax = exerciseMaxes[exerciseName] {
-                if maxWeight > previousMax {
-                    prCount += 1
-                    exerciseMaxes[exerciseName] = maxWeight
-                }
-            } else {
-                exerciseMaxes[exerciseName] = maxWeight
-            }
-        }
-        
-        return prCount
-    }
-    
-    private func volumeByDate() -> [(date: Date, volume: Int)] {
-        let grouped = Dictionary(grouping: completedSessions) { session -> Date in
-            let calendar = Calendar.current
-            return calendar.startOfDay(for: session.completedDate ?? session.date)
-        }
-        
-        return grouped.map { date, sessions in
-            let volume = sessions.reduce(0) { total, session in
-                let sessionVolume = session.sets.reduce(0) { setTotal, set in
-                    setTotal + ((set.actualReps ?? 0) * Int(set.actualWeight ?? 0))
-                }
-                return total + sessionVolume
-            }
-            return (date: date, volume: volume)
-        }.sorted { $0.date < $1.date }
-    }
 }
 
 // MARK: - Progress Tab
 
 struct ProgressTab: View {
-    let progressions: [Progression]
+    let workouts: [Workout]
+    let exerciseName: String?
     let period: TimePeriod
     
-    var completedSessions: [WorkoutSession] {
-        let dateRange = period.dateRange()
-        return progressions
-            .flatMap { $0.sessions }
-            .filter {
-                $0.completed &&
-                ($0.completedDate ?? $0.date) >= dateRange.start &&
-                ($0.completedDate ?? $0.date) <= dateRange.end
-            }
-            .sorted { ($0.completedDate ?? $0.date) < ($1.completedDate ?? $1.date) }
+    var completedSessions: [ExerciseSession] {
+        AnalyticsService.completedStrengthSessions(workouts: workouts, period: period, exerciseName: exerciseName)
+    }
+    
+    /// Quick workouts have no plan, so they are left out of the performance chart.
+    var performanceSessions: [ExerciseSession] {
+        AnalyticsService.performanceSessions(completedSessions)
     }
     
     var body: some View {
@@ -321,7 +258,7 @@ struct ProgressTab: View {
                         .padding(.horizontal)
                     
                     Chart {
-                        ForEach(maxWeightByDate(), id: \.date) { dataPoint in
+                        ForEach(AnalyticsService.maxWeightByDay(completedSessions), id: \.date) { dataPoint in
                             LineMark(
                                 x: .value("Date", dataPoint.date, unit: .day),
                                 y: .value("Weight", dataPoint.weight)
@@ -353,7 +290,7 @@ struct ProgressTab: View {
                         .padding(.horizontal)
                     
                     Chart {
-                        ForEach(completedSessions, id: \.id) { session in
+                        ForEach(performanceSessions, id: \.id) { session in
                             BarMark(
                                 x: .value("Date", session.completedDate ?? session.date, unit: .day),
                                 y: .value("Performance", session.performancePercentage)
@@ -375,7 +312,7 @@ struct ProgressTab: View {
                         .font(.headline)
                         .padding(.horizontal)
                     
-                    ForEach(exerciseStats(), id: \.name) { stat in
+                    ForEach(AnalyticsService.exerciseStats(completedSessions), id: \.name) { stat in
                         ExerciseStatRow(stat: stat)
                     }
                 }
@@ -394,75 +331,33 @@ struct ProgressTab: View {
         .padding(.vertical)
     }
     
-    private func maxWeightByDate() -> [(date: Date, weight: Double)] {
-        let grouped = Dictionary(grouping: completedSessions) { session -> Date in
-            let calendar = Calendar.current
-            return calendar.startOfDay(for: session.completedDate ?? session.date)
-        }
-        
-        return grouped.map { date, sessions in
-            let maxWeight = sessions.compactMap { session in
-                session.sets.compactMap { $0.actualWeight }.max()
-            }.max() ?? 0
-            return (date: date, weight: maxWeight)
-        }.sorted { $0.date < $1.date }
-    }
-    
     private func performanceColor(_ percentage: Double) -> Color {
         if percentage >= 90 { return .green }
         else if percentage >= 75 { return .orange }
         else { return .red }
-    }
-    
-    private func exerciseStats() -> [ExerciseStat] {
-        let grouped = Dictionary(grouping: completedSessions) { $0.progression?.exerciseName ?? "Unknown" }
-        
-        return grouped.map { name, sessions in
-            let totalVolume = sessions.reduce(0) { total, session in
-                let sessionVolume = session.sets.reduce(0) { setTotal, set in
-                    setTotal + ((set.actualReps ?? 0) * Int(set.actualWeight ?? 0))
-                }
-                return total + sessionVolume
-            }
-            
-            let maxWeight = sessions.compactMap { session in
-                session.sets.compactMap { $0.actualWeight }.max()
-            }.max() ?? 0
-            
-            let avgPerformance = sessions.reduce(0.0) { $0 + $1.performancePercentage } / Double(sessions.count)
-            
-            return ExerciseStat(
-                name: name,
-                sessions: sessions.count,
-                totalVolume: totalVolume,
-                maxWeight: maxWeight,
-                avgPerformance: avgPerformance
-            )
-        }.sorted { $0.totalVolume > $1.totalVolume }
     }
 }
 
 // MARK: - Goals Tab
 
 struct GoalsTab: View {
-    let progressions: [Progression]
-    let period: TimePeriod
+    let workouts: [Workout]
     
-    var activeProgressions: [Progression] {
-        progressions.filter { $0.status == .active }
+    var activeWorkouts: [Workout] {
+        AnalyticsService.goalWorkouts(workouts)
     }
     
     var body: some View {
         VStack(spacing: 16) {
-            if activeProgressions.isEmpty {
+            if activeWorkouts.isEmpty {
                 VStack(spacing: 20) {
                     Image(systemName: "target")
                         .font(.system(size: 50))
                         .foregroundColor(.secondary)
-                    Text("No active progressions")
+                    Text("No active programs")
                         .font(.headline)
                         .foregroundColor(.secondary)
-                    Text("Create a progression to track your goals")
+                    Text("Start a program to track your goals")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -474,19 +369,22 @@ struct GoalsTab: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                 
-                ForEach(activeProgressions, id: \.id) { progression in
-                    GoalCard(progression: progression)
+                ForEach(activeWorkouts, id: \.id) { workout in
+                    GoalCard(workout: workout)
                 }
                 
                 // Milestones
-                Text("Upcoming Milestones")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.top)
-                
-                ForEach(upcomingMilestones(), id: \.title) { milestone in
-                    MilestoneRow(milestone: milestone)
+                let milestones = upcomingMilestones()
+                if !milestones.isEmpty {
+                    Text("Upcoming Milestones")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .padding(.top)
+                    
+                    ForEach(milestones, id: \.title) { milestone in
+                        MilestoneRow(milestone: milestone)
+                    }
                 }
             }
         }
@@ -496,27 +394,15 @@ struct GoalsTab: View {
     private func upcomingMilestones() -> [Milestone] {
         var milestones: [Milestone] = []
         
-        for progression in activeProgressions {
+        for workout in activeWorkouts {
             // Halfway milestone
-            if progression.currentWeek < progression.totalWeeks / 2 {
+            if workout.currentWeek < workout.totalWeeks / 2 {
                 milestones.append(Milestone(
-                    title: "\(progression.exerciseName) - Halfway Point",
-                    description: "Week \(progression.totalWeeks / 2) of \(progression.totalWeeks)",
-                    progress: Double(progression.currentWeek) / Double(progression.totalWeeks / 2),
+                    title: "\(workout.name) - Halfway Point",
+                    description: "Week \(workout.totalWeeks / 2) of \(workout.totalWeeks)",
+                    progress: Double(workout.currentWeek) / Double(workout.totalWeeks / 2),
                     icon: "flag.fill",
                     color: .orange
-                ))
-            }
-            
-            // Target weight milestone
-            let progress = (progression.currentMax - progression.startingWeight) / (progression.targetMax - progression.startingWeight)
-            if progress < 1.0 {
-                milestones.append(Milestone(
-                    title: "\(progression.exerciseName) - Target Weight",
-                    description: "\(Int(progression.targetMax)) lbs goal",
-                    progress: progress,
-                    icon: "target",
-                    color: .blue
                 ))
             }
         }
@@ -555,16 +441,28 @@ struct MetricCard: View {
 }
 
 struct RecentActivityRow: View {
-    let session: WorkoutSession
+    let session: ExerciseSession
+    
+    private var isQuick: Bool {
+        session.workoutExercise?.isFreeform ?? false
+    }
+    
+    private var detail: String {
+        if isQuick {
+            let count = session.sets.filter { $0.completed }.count
+            return "\(count) set\(count == 1 ? "" : "s")"
+        }
+        return "\(Int(session.plannedWeight)) lbs × \(session.plannedSets)×\(session.plannedReps)"
+    }
     
     var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(session.progression?.exerciseName ?? "Unknown")
+                Text(session.workoutExercise?.exercise.name ?? "Unknown")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 
-                Text("\(Int(session.plannedWeight)) lbs × \(session.plannedSets)×\(session.plannedReps)")
+                Text(detail)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -572,10 +470,12 @@ struct RecentActivityRow: View {
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                Text("\(Int(session.performancePercentage))%")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(performanceColor(session.performancePercentage))
+                if !isQuick {
+                    Text("\(Int(session.performancePercentage))%")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(performanceColor(session.performancePercentage))
+                }
                 
                 if let date = session.completedDate {
                     Text(date.formatted(date: .abbreviated, time: .omitted))
@@ -641,15 +541,15 @@ struct StatItem: View {
 }
 
 struct GoalCard: View {
-    let progression: Progression
+    let workout: Workout
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(progression.exerciseName)
+                    Text(workout.name)
                         .font(.headline)
-                    Text("\(progression.templateType.rawValue)")
+                    Text("\(workout.templateType.rawValue)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -657,40 +557,32 @@ struct GoalCard: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("Week \(progression.currentWeek)/\(progression.totalWeeks)")
+                    Text("Week \(workout.currentWeek)/\(workout.totalWeeks)")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                    Text("\(Int(progression.progressPercentage))%")
+                    Text("\(Int(workout.progressPercentage))%")
                         .font(.caption)
                         .foregroundColor(.blue)
                 }
             }
             
-            ProgressView(value: Double(progression.currentWeek), total: Double(progression.totalWeeks))
+            ProgressView(value: Double(workout.currentWeek), total: Double(workout.totalWeeks))
                 .tint(.blue)
             
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Current")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    Text("\(Int(progression.currentMax)) lbs")
+            ForEach(AnalyticsService.goalExercises(of: workout), id: \.id) { exercise in
+                HStack {
+                    Text(exercise.exercise.name)
                         .font(.subheadline)
-                        .fontWeight(.semibold)
-                }
-                
-                Spacer()
-                
-                Image(systemName: "arrow.right")
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text("Target")
-                        .font(.caption2)
+                    
+                    Spacer()
+                    
+                    Text("\(Int(exercise.startingWeight))")
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
-                    Text("\(Int(progression.targetMax)) lbs")
+                    Image(systemName: "arrow.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("\(Int(exercise.currentWeight)) lbs")
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(.blue)
