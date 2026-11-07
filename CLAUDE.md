@@ -21,6 +21,7 @@ For current state, branches, open work and next steps read **`HANDOFF.md`** (rep
 - Any model change: check `Services/MigrationService.swift`, `LIFTRApp.swift` ModelContainer registration, and `Docs/DATABASE_SCHEMA.md` / `Docs/DATA_MIGRATION_POLICY.md`. Use a MigrationService repair when a safe default exists. The pre-commit hook only checks `Models/SchemaVersions/`, which does not exist, so it is inert.
 - **Build numbers:** `CURRENT_PROJECT_VERSION` must match on the app target AND `RestTimerWidgetExtension` (mismatch = CFBundleVersion error). Apple never lets a number be reused and Xcode Cloud may have consumed some: verify the next number in App Store Connect → TestFlight → Builds. Build 38 is the last known used.
 - **PR Totals** count only exercises with non-nil `Exercise.coreType` (Squat, Bench, Deadlift, plus OHP). Custom exercises have `coreType == nil` and are excluded.
+- **New enum properties on existing models must be stored as optionals** (`var kindStored: ExerciseKind?` plus a computed non-optional accessor; assign `self.kindStored = kind` in the `@Model` initializer). A required enum with an inline default failed to load old rows on device ("Could not cast value of type Optional<Any> to ExerciseKind", 2026-10-14). Plain Bool/Int/String/Double inline defaults are fine.
 - **SwiftUI navigation:** `dismiss()` pops only its own context. Deep NavigationLink stacks inside a sheet must pass an `onComplete` closure down from the sheet owner (`StartWorkoutView` calls `dismiss()`).
 - Reuse existing views (`SetRowView`, `LogSetView`, `CalculatorViewWrapper`); do not duplicate implementations.
 - Keep `RestTimerWidget` working whenever shared models change.
@@ -30,3 +31,12 @@ For current state, branches, open work and next steps read **`HANDOFF.md`** (rep
 - Docs live in `IOS/LIFTR/V1.0.0/LIFTR/Docs/` plus root `README.md`, `CHANGELOG.md`, `RELEASE_CHECKLIST.md`. Update them when models or build numbers change.
 - Xcode Cloud: distribution is set to None / workflow disabled to stop auto-uploads. Archive and upload manually.
 - Tracker: GitHub Issues with `initiative:*` labels and the Backlog milestone.
+- **Everything is tracked in GitHub** (owner rule 2026-11-07). End-of-session sweep: before closing a chat, find items noted in `HANDOFF.md` that have no issue, create them with `gh api repos/asherdowd/LIFTR/issues` (REST; milestone Backlog, `initiative:*` label), comment status on issues whose work moved, and write the issue numbers back into `HANDOFF.md`. Issues for work fixed on a feature branch are closed when the branch merges to `main`, not before.
+
+## Lessons learned
+- **The cloud environment cannot compile Swift.** Long closure chains (`Dictionary(grouping:).map{}.sorted{}`, nested `reduce`) trigger "unable to type-check this expression in reasonable time" in Xcode. Write new code as explicit loops with typed variables, and ask the owner to paste the first build error.
+- **`.disabled()` on a whole `Form` or `List` also disables scrolling.** For view-only screens, disable only the editable sections (see `EditSessionView(readOnly:)`).
+- **The cloud clone can be shallow.** Run `git fetch --unshallow` before ahead/behind counts or merge-base checks; counts from a shallow clone were wrong (2026-10-15).
+- **Unit tests vs UI tests:** unit tests are the `LIFTRTests` target. In Xcode open the Test navigator (Cmd+6) and run LIFTRTests; the `LIFTRUITests` log (6 tests) is not the unit test log. Ask for the executed-test count and compare with the expected count in `HANDOFF.md`.
+- **Sample data:** Debug builds only, Settings > Developer > "Load sample history" / "Remove sample data" (`Services/SampleDataService.swift`; every sample Workout has `notes == "[sample data]"`, removal deletes only those). It is compiled out of Release builds.
+- **Health data:** Garmin writes workouts to Apple Health under source "Connect"; heart rate arrives as separate samples, there is no route. The Health import is read-only (Settings > Apple Health). Personal Health exports must never be committed; the owner deletes them when finished.
