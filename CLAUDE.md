@@ -25,7 +25,7 @@ For current state, branches, open work and next steps read **`HANDOFF.md`** (rep
 - **SwiftUI navigation:** `dismiss()` pops only its own context. Deep NavigationLink stacks inside a sheet must pass an `onComplete` closure down from the sheet owner (`StartWorkoutView` calls `dismiss()`).
 - Reuse existing views (`SetRowView`, `LogSetView`, `CalculatorViewWrapper`); do not duplicate implementations.
 - Keep `RestTimerWidget` working whenever shared models change.
-- Cardio stays a separate path from the unified Workout model for now.
+- Cardio lives in the shared Workout model (decided 2026-10-14): `WorkoutExercise.kind` is strength or cardio and `ExerciseSession` carries the optional cardio fields in SI units. The old `CardioProgression` path is legacy and goes away at step 9.
 
 ## Release / docs
 - Docs live in `IOS/LIFTR/V1.0.0/LIFTR/Docs/` plus root `README.md`, `CHANGELOG.md`, `RELEASE_CHECKLIST.md`. Update them when models or build numbers change.
