@@ -21,38 +21,56 @@ enum AnalyticsService {
         now: Date = Date()
     ) -> [ExerciseSession] {
         let range = period.dateRange(from: now)
-        return workouts
-            .flatMap { $0.days }
-            .flatMap { $0.exercises }
-            .filter { !$0.isCardio && (exerciseName == nil || $0.exercise.name == exerciseName) }
-            .flatMap { $0.sessions }
-            .filter { session in
-                let date = sortDate(session)
-                return session.completed && !session.skipped && date >= range.start && date <= range.end
+        var result: [ExerciseSession] = []
+        for workout in workouts {
+            for day in workout.days {
+                for workoutExercise in day.exercises {
+                    if workoutExercise.isCardio { continue }
+                    if let exerciseName, workoutExercise.exercise.name != exerciseName { continue }
+                    for session in workoutExercise.sessions {
+                        guard session.completed, !session.skipped else { continue }
+                        let date = sortDate(session)
+                        if date >= range.start && date <= range.end {
+                            result.append(session)
+                        }
+                    }
+                }
             }
-            .sorted { sortDate($0) < sortDate($1) }
+        }
+        return result.sorted { sortDate($0) < sortDate($1) }
     }
 
     /// Names of the strength exercises across all Workouts, for the exercise filter.
     static func strengthExerciseNames(in workouts: [Workout]) -> [String] {
-        let names = workouts
-            .flatMap { $0.days }
-            .flatMap { $0.exercises }
-            .filter { !$0.isCardio }
-            .map { $0.exercise.name }
-        return Array(Set(names)).sorted()
+        var names = Set<String>()
+        for workout in workouts {
+            for day in workout.days {
+                for workoutExercise in day.exercises where !workoutExercise.isCardio {
+                    names.insert(workoutExercise.exercise.name)
+                }
+            }
+        }
+        return names.sorted()
     }
 
     // MARK: Numbers
 
     /// Sum of reps x weight over the qualifying sets of one session.
     static func volume(_ session: ExerciseSession) -> Double {
-        qualifyingSets(session).reduce(0) { $0 + Double($1.reps) * $1.weight }
+        var total: Double = 0
+        for set in qualifyingSets(session) {
+            total += Double(set.reps) * set.weight
+        }
+        return total
     }
 
     /// Heaviest qualifying set of one session, 0 when none.
     static func maxWeight(_ session: ExerciseSession) -> Double {
-        qualifyingSets(session).map { $0.weight }.max() ?? 0
+        var heaviest: Double = 0
+        for set in qualifyingSets(session) {
+            heaviest = max(heaviest, set.weight)
+        }
+        return heaviest
     }
 
     /// Sessions that have a plan to compare against (not quick workouts).
@@ -63,7 +81,11 @@ enum AnalyticsService {
     static func averagePerformance(_ sessions: [ExerciseSession]) -> Double {
         let planned = performanceSessions(sessions)
         guard !planned.isEmpty else { return 0 }
-        return planned.reduce(0) { $0 + $1.performancePercentage } / Double(planned.count)
+        var total: Double = 0
+        for session in planned {
+            total += session.performancePercentage
+        }
+        return total / Double(planned.count)
     }
 
     /// Times a core lift's best set beat the earlier best inside the given sessions.
@@ -88,36 +110,67 @@ enum AnalyticsService {
         return count
     }
 
+    /// Total volume of the sessions, rounded to whole units.
+    static func totalVolume(_ sessions: [ExerciseSession]) -> Int {
+        var total: Double = 0
+        for session in sessions {
+            total += volume(session)
+        }
+        return Int(total.rounded())
+    }
+
     // MARK: Chart data
 
     static func volumeByDay(_ sessions: [ExerciseSession], calendar: Calendar = .current) -> [(date: Date, volume: Int)] {
-        Dictionary(grouping: sessions) { calendar.startOfDay(for: sortDate($0)) }
-            .map { date, daySessions in
-                (date: date, volume: Int(daySessions.reduce(0) { $0 + volume($1) }.rounded()))
-            }
-            .sorted { $0.date < $1.date }
+        var totals: [Date: Double] = [:]
+        for session in sessions {
+            let day = calendar.startOfDay(for: sortDate(session))
+            totals[day, default: 0] += volume(session)
+        }
+        var result: [(date: Date, volume: Int)] = []
+        for (day, total) in totals {
+            result.append((date: day, volume: Int(total.rounded())))
+        }
+        return result.sorted { $0.date < $1.date }
     }
 
     static func maxWeightByDay(_ sessions: [ExerciseSession], calendar: Calendar = .current) -> [(date: Date, weight: Double)] {
-        Dictionary(grouping: sessions) { calendar.startOfDay(for: sortDate($0)) }
-            .map { date, daySessions in
-                (date: date, weight: daySessions.map { maxWeight($0) }.max() ?? 0)
-            }
-            .sorted { $0.date < $1.date }
+        var best: [Date: Double] = [:]
+        for session in sessions {
+            let day = calendar.startOfDay(for: sortDate(session))
+            best[day] = max(best[day] ?? 0, maxWeight(session))
+        }
+        var result: [(date: Date, weight: Double)] = []
+        for (day, weight) in best {
+            result.append((date: day, weight: weight))
+        }
+        return result.sorted { $0.date < $1.date }
     }
 
     static func exerciseStats(_ sessions: [ExerciseSession]) -> [ExerciseStat] {
-        Dictionary(grouping: sessions) { $0.workoutExercise?.exercise.name ?? "Unknown" }
-            .map { name, group in
-                ExerciseStat(
-                    name: name,
-                    sessions: group.count,
-                    totalVolume: Int(group.reduce(0) { $0 + volume($1) }.rounded()),
-                    maxWeight: group.map { maxWeight($0) }.max() ?? 0,
-                    avgPerformance: averagePerformance(group)
-                )
+        var groups: [String: [ExerciseSession]] = [:]
+        for session in sessions {
+            let name: String = session.workoutExercise?.exercise.name ?? "Unknown"
+            groups[name, default: []].append(session)
+        }
+
+        var stats: [ExerciseStat] = []
+        for (name, group) in groups {
+            var totalVolume: Double = 0
+            var heaviest: Double = 0
+            for session in group {
+                totalVolume += volume(session)
+                heaviest = max(heaviest, maxWeight(session))
             }
-            .sorted { $0.totalVolume > $1.totalVolume }
+            stats.append(ExerciseStat(
+                name: name,
+                sessions: group.count,
+                totalVolume: Int(totalVolume.rounded()),
+                maxWeight: heaviest,
+                avgPerformance: averagePerformance(group)
+            ))
+        }
+        return stats.sorted { $0.totalVolume > $1.totalVolume }
     }
 
     // MARK: Goals
@@ -125,14 +178,24 @@ enum AnalyticsService {
     /// Active Workouts that have at least one planned strength exercise (quick workouts and
     /// cardio-only workouts have no goal to show).
     static func goalWorkouts(_ workouts: [Workout]) -> [Workout] {
-        workouts.filter { $0.status == .active && !goalExercises(of: $0).isEmpty }
+        var result: [Workout] = []
+        for workout in workouts where workout.status == .active {
+            if !goalExercises(of: workout).isEmpty {
+                result.append(workout)
+            }
+        }
+        return result
     }
 
     /// The planned strength exercises of a Workout, in order.
     static func goalExercises(of workout: Workout) -> [WorkoutExercise] {
-        workout.sortedDays
-            .flatMap { $0.sortedExercises }
-            .filter { !$0.isCardio && !$0.isFreeform }
+        var result: [WorkoutExercise] = []
+        for day in workout.sortedDays {
+            for workoutExercise in day.sortedExercises where !workoutExercise.isCardio && !workoutExercise.isFreeform {
+                result.append(workoutExercise)
+            }
+        }
+        return result
     }
 
     // MARK: Private

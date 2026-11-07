@@ -133,7 +133,7 @@ struct OverviewTab: View {
     }
     
     var totalVolume: Int {
-        Int(completedSessions.reduce(0) { $0 + AnalyticsService.volume($1) }.rounded())
+        AnalyticsService.totalVolume(completedSessions)
     }
     
     var totalWorkouts: Int {
