@@ -274,3 +274,5 @@ CLAUDE.md stale cardio line corrected 2026-11-07 16:31 (owner approved): cardio 
 SAMPLE DATA AND ANALYTICS REPORTED GOOD 2026-11-07 16:32 (owner: "all of it looks solid"): sample history load, Home PRs, Analytics tabs and History checked on the phone with the sample data. The unit test count for 35 was NOT reported (last confirmed: 34 pass at 15:45). Analytics repoint (#21) and Debug sample data are done on the branch.
 
 UNIT TESTS 2026-11-07 16:32 (owner): 35 of 35 pass at b0c27f7's code (includes the sample data test).
+
+GITHUB SWEEP DONE 2026-11-07 16:42: new issues #42 (Goals tab ignores period/exercise filters), #43 (verify migration from a build 38 store), #44 (TestFlight note, data wiped at step 9), #45 (Debug sample data generator, close at merge). Status comments added to #21, #20, #4, #27, #24. Earlier 2026-10-15 issues #37-#41 stand. Close at the branch merge to main: #3, #28, #30, #31, #32, #37, #21, #45.
