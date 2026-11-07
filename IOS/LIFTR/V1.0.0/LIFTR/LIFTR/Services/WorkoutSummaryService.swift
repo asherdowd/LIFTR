@@ -40,6 +40,20 @@ struct RecentStrengthEntry: Identifiable {
     var session: ExerciseSession? = nil
 }
 
+/// One month of entries in the History list.
+struct HistoryMonth: Identifiable {
+    let monthStart: Date
+    let entries: [RecentStrengthEntry]
+    var id: Date { monthStart }
+}
+
+/// Which entries the History list shows.
+enum HistoryKind: String, CaseIterable {
+    case all = "All"
+    case strength = "Strength"
+    case cardio = "Cardio"
+}
+
 enum WorkoutSummaryService {
 
     // MARK: PR totals
@@ -194,6 +208,33 @@ enum WorkoutSummaryService {
         }
 
         return Array(entries.sorted { $0.date > $1.date }.prefix(limit))
+    }
+
+    // MARK: History
+
+    /// Every finished session of the new Workout model, newest first, grouped by month
+    /// (newest month first). Legacy sessions are not included. No period filter: the month
+    /// headers give the time structure.
+    static func historyMonths(
+        workouts: [Workout],
+        kind: HistoryKind = .all,
+        useMetric: Bool = false,
+        calendar: Calendar = .current
+    ) -> [HistoryMonth] {
+        var entries: [RecentStrengthEntry] = []
+        if kind != .cardio {
+            entries += recentEntries(workouts: workouts, legacySessions: [], limit: Int.max, cardio: false, useMetric: useMetric)
+        }
+        if kind != .strength {
+            entries += recentEntries(workouts: workouts, legacySessions: [], limit: Int.max, cardio: true, useMetric: useMetric)
+        }
+
+        let grouped = Dictionary(grouping: entries) { entry in
+            calendar.dateInterval(of: .month, for: entry.date)?.start ?? calendar.startOfDay(for: entry.date)
+        }
+        return grouped
+            .map { HistoryMonth(monthStart: $0.key, entries: $0.value.sorted { $0.date > $1.date }) }
+            .sorted { $0.monthStart > $1.monthStart }
     }
 
     /// "6.2 mi · 52 min", or just the time, or "Activity" when nothing was recorded.

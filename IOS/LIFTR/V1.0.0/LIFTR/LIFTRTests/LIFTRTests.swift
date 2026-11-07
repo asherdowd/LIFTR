@@ -721,6 +721,36 @@ final class LiftrTests: XCTestCase {
         XCTAssertEqual(metric[0].detail, "10.0 km · 50 min")
     }
 
+    @MainActor func testHistoryGroupsByMonthNewestFirstAndFiltersKind() throws {
+        let context = container.mainContext
+        let calendar = Calendar.current
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 2)
+        let thisMonth = Date()
+        let lastMonth = calendar.date(byAdding: .month, value: -1, to: thisMonth)!
+        sessions[0].completed = true
+        sessions[0].completedDate = lastMonth
+        sessions[1].completed = true
+        sessions[1].completedDate = thisMonth
+        try HealthImportService.importActivities([sampleActivity()], into: context)
+        let workouts = try context.fetch(FetchDescriptor<Workout>())
+
+        let all = WorkoutSummaryService.historyMonths(workouts: workouts, kind: .all)
+        XCTAssertEqual(all.count, 2)
+        XCTAssertGreaterThan(all[0].monthStart, all[1].monthStart, "Newest month first")
+        XCTAssertEqual(all[0].entries.count, 2, "This month: one strength session and the imported run")
+        XCTAssertEqual(all[1].entries.count, 1)
+        XCTAssertGreaterThanOrEqual(all[0].entries[0].date, all[0].entries[1].date, "Newest first inside a month")
+
+        let strength = WorkoutSummaryService.historyMonths(workouts: workouts, kind: .strength)
+        XCTAssertEqual(strength.flatMap { $0.entries }.count, 2)
+        XCTAssertTrue(strength.flatMap { $0.entries }.allSatisfy { !$0.isCardio })
+
+        let cardio = WorkoutSummaryService.historyMonths(workouts: workouts, kind: .cardio)
+        XCTAssertEqual(cardio.count, 1)
+        XCTAssertTrue(cardio[0].entries[0].isCardio)
+        XCTAssertEqual(WorkoutSummaryService.historyMonths(workouts: [], kind: .all).count, 0)
+    }
+
     @MainActor func testCardioDetailFallbacks() throws {
         let session = ExerciseSession(weekNumber: 1, sessionNumber: 1, plannedWeight: 0, plannedSets: 0, plannedReps: 0)
         XCTAssertEqual(WorkoutSummaryService.cardioDetail(session, useMetric: false), "Activity")

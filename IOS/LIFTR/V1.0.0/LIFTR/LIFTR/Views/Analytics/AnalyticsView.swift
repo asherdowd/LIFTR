@@ -49,6 +49,7 @@ struct AnalyticsView: View {
         case overview = "Overview"
         case progress = "Progress"
         case goals = "Goals"
+        case history = "History"
     }
     
     var availableExercises: [String] {
@@ -68,17 +69,19 @@ struct AnalyticsView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Time Period Picker
-                Picker("Period", selection: $selectedPeriod) {
-                    ForEach(TimePeriod.allCases, id: \.self) { period in
-                        Text(period.rawValue).tag(period)
+                // Time Period Picker (History shows everything, grouped by month)
+                if selectedTab != .history {
+                    Picker("Period", selection: $selectedPeriod) {
+                        ForEach(TimePeriod.allCases, id: \.self) { period in
+                            Text(period.rawValue).tag(period)
+                        }
                     }
+                    .pickerStyle(.segmented)
+                    .padding()
                 }
-                .pickerStyle(.segmented)
-                .padding()
                 
                 // Exercise Filter
-                if allProgressions.count > 1 {
+                if allProgressions.count > 1 && selectedTab != .history {
                     Picker("Exercise", selection: $selectedExercise) {
                         ForEach(availableExercises, id: \.self) { exercise in
                             Text(exercise).tag(exercise)
@@ -115,6 +118,8 @@ struct AnalyticsView: View {
                             progressions: filteredProgressions,
                             period: selectedPeriod
                         )
+                    case .history:
+                        HistoryTab()
                     }
                 }
             }
