@@ -272,3 +272,5 @@ CLAUDE.md UPDATED 2026-11-07 16:30 (owner approved): added the GitHub end-of-ses
 CLAUDE.md stale cardio line corrected 2026-11-07 16:31 (owner approved): cardio now documented as living in the shared Workout model.
 
 SAMPLE DATA AND ANALYTICS REPORTED GOOD 2026-11-07 16:32 (owner: "all of it looks solid"): sample history load, Home PRs, Analytics tabs and History checked on the phone with the sample data. The unit test count for 35 was NOT reported (last confirmed: 34 pass at 15:45). Analytics repoint (#21) and Debug sample data are done on the branch.
+
+UNIT TESTS 2026-11-07 16:32 (owner): 35 of 35 pass at b0c27f7's code (includes the sample data test).
