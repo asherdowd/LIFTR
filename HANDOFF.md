@@ -270,3 +270,5 @@ PENDING GITHUB SWEEP (as of 2026-11-07 16:24, not yet created/commented): (1) NE
 CLAUDE.md UPDATED 2026-11-07 16:30 (owner approved): added the GitHub end-of-session sweep rule, the optional-enum rule, and a Lessons learned section (no compiling in the cloud / type-check errors, .disabled kills scrolling, shallow clone, unit vs UI test logs, sample data, Health data notes). NOT changed, flagged: the line "Cardio stays a separate path from the unified Workout model for now" is stale (cardio joined the shared model on 2026-10-14, H-2); awaiting owner OK to correct it.
 
 CLAUDE.md stale cardio line corrected 2026-11-07 16:31 (owner approved): cardio now documented as living in the shared Workout model.
+
+SAMPLE DATA AND ANALYTICS REPORTED GOOD 2026-11-07 16:32 (owner: "all of it looks solid"): sample history load, Home PRs, Analytics tabs and History checked on the phone with the sample data. The unit test count for 35 was NOT reported (last confirmed: 34 pass at 15:45). Analytics repoint (#21) and Debug sample data are done on the branch.
