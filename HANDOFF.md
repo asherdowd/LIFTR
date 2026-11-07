@@ -276,3 +276,12 @@ SAMPLE DATA AND ANALYTICS REPORTED GOOD 2026-11-07 16:32 (owner: "all of it look
 UNIT TESTS 2026-11-07 16:32 (owner): 35 of 35 pass at b0c27f7's code (includes the sample data test).
 
 GITHUB SWEEP DONE 2026-11-07 16:42: new issues #42 (Goals tab ignores period/exercise filters), #43 (verify migration from a build 38 store), #44 (TestFlight note, data wiped at step 9), #45 (Debug sample data generator, close at merge). Status comments added to #21, #20, #4, #27, #24. Earlier 2026-10-15 issues #37-#41 stand. Close at the branch merge to main: #3, #28, #30, #31, #32, #37, #21, #45.
+
+## SESSION END 2026-11-07 16:50
+Done this session: History tab in Analytics (#37); Analytics repoint to the new Workout model (#21: Overview, Progress, Goals via `Services/AnalyticsService.swift`); Debug-only sample history generator (#45; Settings > Developer); CLAUDE.md updated (GitHub end-of-session sweep rule, optional-enum rule, lessons learned, stale cardio line corrected). 35 of 35 unit tests pass; owner checked sample data, Home PRs, Analytics and History on the phone ("all of it looks solid"). GitHub sweep done (#42-#45 created, status comments on #21, #20, #4, #27, #24).
+
+Next, owner order: (1) cardio plan model (#39), then program-building service (#40); (2) step 7 program A/B/A (scope open, 7-1); (3) step 9 delete old models (tester note #44, migration test #43); (4) GPS (#38) and Health write (#41) after. Minor: Goals tab filters (#42).
+
+Open questions: (a) Is the TestFlight/App Store archive built from `main` or a checked-out branch? Decides when to merge (branch is far ahead of main, main has nothing the branch lacks; recommendation: wait for the build 38 migration test #43 and a decision on step 9). Do not touch `main` without owner's explicit go-ahead. (b) Step 7 scope. (c) #36 zero-rep sets. (d) Optional visible Skip button. (e) Goals tab: hide pickers or add period support (#42).
+
+Housekeeping: delete `apple_health_export` from Downloads (owner deferred 2026-11-07). Test migration from a build 38 store (#43). Verify the next build number, 39 or higher, in App Store Connect (#27). Tester note about the step 9 data wipe (#44). Close at the branch merge to main: #3, #28, #30, #31, #32, #37, #21, #45. Stale docs: CHANGELOG, README, RELEASE_CHECKLIST, PLACEHOLDER_FEATURES. Schema V5 is unreleased. Reminder: at the next session start, read HANDOFF.md and CLAUDE.md, then git fetch/status/log.
