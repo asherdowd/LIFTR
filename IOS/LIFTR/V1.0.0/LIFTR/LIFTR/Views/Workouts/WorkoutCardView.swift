@@ -135,13 +135,22 @@ struct WorkoutCardView: View {
 
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(paused ? "Paused Workout" : "Next Workout")
+                    Text(paused ? "Workout In Progress" : "Next Workout")
                         .font(.caption)
                         .foregroundColor(paused ? .orange : .secondary)
 
                     Text(daySummary(day: day, week: week))
                         .font(.subheadline)
                         .fontWeight(.semibold)
+
+                    if let running = workout.runningSession(forWeek: week) {
+                        TimelineView(.periodic(from: .now, by: 30)) { timeline in
+                            let minutes: Int = Int(LiveSessionClock.elapsed(running, now: timeline.date) / 60)
+                            Text(LiveSessionClock.isPaused(running) ? "Clock paused · \(minutes) min" : "Running · \(minutes) min")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        }
+                    }
 
                     if doneCount > 0 {
                         Text("\(doneCount) of \(sessions.count) done")

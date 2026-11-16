@@ -15,6 +15,7 @@ struct ExerciseSessionView: View {
     @State private var adjustmentRecommendation: ProgressionAdjustment?
     @State private var selectedSet: WorkoutSet?
     @State private var showComplete = false
+    @State private var showAdjust = false
 
     var currentSettings: GlobalProgressionSettings {
         globalSettings.first ?? GlobalProgressionSettings()
@@ -96,6 +97,13 @@ struct ExerciseSessionView: View {
                     }
                     .padding(.horizontal)
 
+                    if isRunning && remainingSetsCount > 0 {
+                        Button("Adjust weight") { showAdjust = true }
+                            .font(.subheadline)
+                            .padding(.horizontal)
+                    }
+
+                    // Before Start the sets are a preview: visible but not loggable.
                     ForEach(session.sets.sorted(by: { $0.setNumber < $1.setNumber })) { set in
                         SetRowView(
                             set: set,
@@ -103,6 +111,8 @@ struct ExerciseSessionView: View {
                             onEdit: { selectedSet = set }
                         )
                     }
+                    .opacity(needsStart ? 0.5 : 1)
+                    .allowsHitTesting(!needsStart)
                 }
 
                 if completedSetsCount > 0 {
@@ -114,34 +124,63 @@ struct ExerciseSessionView: View {
             }
             .padding(.vertical)
         }
-        .navigationTitle("Active Workout")
-        .onAppear {
-            // V5: opening a session starts its clock (first time only).
-            if session.startTime == nil && !session.completed {
-                session.startTime = Date()
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if isRunning {
+                LiveSessionHeader(session: session)
             }
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if needsStart {
+                LiveSessionStartBar(action: startSession)
+            }
+        }
+        .navigationTitle("Active Workout")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // Back on the screen: the session is no longer "away" (see onDisappear).
+            if session.paused {
+                session.paused = false
+                try? context.save()
+            }
+        }
+        .onDisappear {
+            // Left a started session without finishing it: mark it in progress so the
+            // Resume card and the day screen show it. The clock keeps running.
+            if isRunning {
+                session.paused = true
+                try? context.save()
+            }
+        }
+        .stalePrompt(for: session) { seconds in
+            LiveSessionClock.setEnd(session, durationSeconds: seconds)
+            completeWorkout()
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button("Cancel") {
+                Button("Close") {
                     dismiss()
                 }
             }
 
             ToolbarItem(placement: .navigationBarTrailing) {
-                HStack(spacing: 12) {
-                    Button("Pause") {
-                        pauseWorkout()
-                    }
-                    .disabled(completedSetsCount == 0)
-
+                if session.startTime != nil {
                     Button("Complete") {
                         completeWorkout()
                     }
                     .disabled(completedSetsCount == 0)
                 }
             }
+        }
+        .sheet(isPresented: $showAdjust) {
+            AdjustWeightSheet(
+                initialWeight: nextRemainingWeight,
+                unitLabel: currentSettings.useMetric ? "kg" : "lbs",
+                remainingSets: remainingSetsCount,
+                onApply: { weight in
+                    session.retargetRemainingSets(to: weight)
+                    try? context.save()
+                }
+            )
         }
         .sheet(item: $selectedSet) { set in
             LogSetView(
@@ -184,6 +223,24 @@ struct ExerciseSessionView: View {
         session.sets.filter { $0.completed }.count
     }
 
+    private var remainingSetsCount: Int {
+        session.sets.filter { !$0.completed }.count
+    }
+
+    /// Target weight of the next set still to do (the planned weight if every set is done).
+    private var nextRemainingWeight: Double {
+        let remaining = session.sets.filter { !$0.completed }.sorted { $0.setNumber < $1.setNumber }
+        return remaining.first?.targetWeight ?? session.plannedWeight
+    }
+
+    private var needsStart: Bool { LiveSessionClock.needsStart(session) }
+    private var isRunning: Bool { LiveSessionClock.isRunningSession(session) }
+
+    private func startSession() {
+        LiveSessionClock.start(session)
+        try? context.save()
+    }
+
     private func completeWorkout() {
         let performance = DeloadAdjustmentService.analyzePerformance(session: session, settings: currentSettings)
 
@@ -208,11 +265,5 @@ struct ExerciseSessionView: View {
         }
         try? context.save()
         showComplete = true
-    }
-
-    private func pauseWorkout() {
-        session.paused = true
-        try? context.save()
-        dismiss()
     }
 }

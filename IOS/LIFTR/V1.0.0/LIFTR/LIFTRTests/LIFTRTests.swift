@@ -1024,4 +1024,124 @@ final class LiftrTests: XCTestCase {
         let lines = WorkoutSummaryService.completionLines(for: sessions[0], useMetric: false)
         XCTAssertEqual(lines, ["1 set · 5 reps", "Heaviest set: 100 lbs"])
     }
+
+    // MARK: - Live session clock (step 2, 2026-11-16)
+
+    private let clockStart = Date(timeIntervalSince1970: 1_000_000)
+
+    @MainActor func testLiveSessionClockStartPauseResume() throws {
+        let context = container.mainContext
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        let session = sessions[0]
+        let t0 = clockStart
+
+        XCTAssertTrue(LiveSessionClock.needsStart(session))
+        LiveSessionClock.pause(session, now: t0)
+        XCTAssertNil(session.pausedAt, "Cannot pause a session that has not started")
+
+        LiveSessionClock.start(session, now: t0)
+        XCTAssertFalse(LiveSessionClock.needsStart(session))
+        XCTAssertEqual(LiveSessionClock.elapsed(session, now: t0.addingTimeInterval(600)), 600, accuracy: 0.001)
+
+        // Pause: the clock freezes
+        LiveSessionClock.pause(session, now: t0.addingTimeInterval(600))
+        XCTAssertTrue(LiveSessionClock.isPaused(session))
+        XCTAssertEqual(LiveSessionClock.elapsed(session, now: t0.addingTimeInterval(900)), 600, accuracy: 0.001)
+
+        // Resume: the 300 s gap is not counted
+        LiveSessionClock.resume(session, now: t0.addingTimeInterval(900))
+        XCTAssertFalse(LiveSessionClock.isPaused(session))
+        XCTAssertEqual(try XCTUnwrap(session.pausedSeconds), 300, accuracy: 0.001)
+        XCTAssertEqual(LiveSessionClock.elapsed(session, now: t0.addingTimeInterval(1200)), 900, accuracy: 0.001)
+
+        // A second pause adds to the total
+        LiveSessionClock.pause(session, now: t0.addingTimeInterval(1200))
+        LiveSessionClock.resume(session, now: t0.addingTimeInterval(1260))
+        XCTAssertEqual(try XCTUnwrap(session.pausedSeconds), 360, accuracy: 0.001)
+        XCTAssertEqual(LiveSessionClock.elapsed(session, now: t0.addingTimeInterval(1500)), 1140, accuracy: 0.001)
+
+        // Start is only honoured once
+        LiveSessionClock.start(session, now: t0.addingTimeInterval(5_000))
+        XCTAssertEqual(session.startTime, t0)
+    }
+
+    @MainActor func testCompletingWhilePausedFoldsThePauseAndStampsEnd() throws {
+        let context = container.mainContext
+        let (_, workoutExercise, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        let session = sessions[0]
+        let t0 = clockStart
+
+        LiveSessionClock.start(session, now: t0)
+        LiveSessionClock.pause(session, now: t0.addingTimeInterval(600))
+        session.completed = true
+        session.completedDate = t0.addingTimeInterval(900)
+        DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
+
+        XCTAssertEqual(session.endTime, t0.addingTimeInterval(900))
+        XCTAssertNil(session.pausedAt)
+        XCTAssertEqual(try XCTUnwrap(session.pausedSeconds), 300, accuracy: 0.001)
+        XCTAssertEqual(LiveSessionClock.elapsed(session), 600, accuracy: 0.001)
+        XCTAssertFalse(LiveSessionClock.isRunningSession(session))
+    }
+
+    @MainActor func testStaleSessionDetectionAndFinishDuration() throws {
+        let context = container.mainContext
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        let session = sessions[0]
+        let t0 = clockStart
+        let sevenHours = t0.addingTimeInterval(7 * 3600)
+
+        LiveSessionClock.start(session, now: t0)
+        XCTAssertFalse(LiveSessionClock.isStale(session, now: sevenHours), "No sets logged: not stale")
+
+        addSet(to: session, number: 1, reps: 5, weight: 100, in: context)
+        XCTAssertFalse(LiveSessionClock.isStale(session, now: t0.addingTimeInterval(5 * 3600)))
+        XCTAssertTrue(LiveSessionClock.isStale(session, now: sevenHours))
+
+        // A paused clock is not stale
+        LiveSessionClock.pause(session, now: t0.addingTimeInterval(600))
+        XCTAssertFalse(LiveSessionClock.isStale(session, now: sevenHours))
+        LiveSessionClock.resume(session, now: t0.addingTimeInterval(660))   // 60 s paused in total
+
+        // Finish with a stated duration: active time equals it
+        LiveSessionClock.setEnd(session, durationSeconds: 3_600, now: sevenHours)
+        XCTAssertEqual(LiveSessionClock.elapsed(session), 3_600, accuracy: 0.001)
+
+        // A duration longer than the session really lasted is clamped to now
+        session.endTime = nil
+        LiveSessionClock.setEnd(session, durationSeconds: 100 * 3600, now: sevenHours)
+        XCTAssertEqual(session.endTime, sevenHours)
+    }
+
+    @MainActor func testClockFormatAndRunningSessionLookup() throws {
+        XCTAssertEqual(LiveSessionClock.format(125), "02:05")
+        XCTAssertEqual(LiveSessionClock.format(3_725), "1:02:05")
+        XCTAssertEqual(LiveSessionClock.format(-5), "00:00")
+
+        let context = container.mainContext
+        let (workout, _, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        XCTAssertNil(workout.runningSession(forWeek: 1))
+        LiveSessionClock.start(sessions[0], now: clockStart)
+        XCTAssertTrue(workout.runningSession(forWeek: 1) === sessions[0])
+        sessions[0].completed = true
+        XCTAssertNil(workout.runningSession(forWeek: 1))
+    }
+
+    @MainActor func testManualWeightAdjustmentOnlyChangesRemainingSets() throws {
+        let context = container.mainContext
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        let session = sessions[0]
+        addSet(to: session, number: 1, reps: 5, weight: 225, in: context)
+        addSet(to: session, number: 2, reps: nil, weight: nil, completed: false, in: context)
+        addSet(to: session, number: 3, reps: nil, weight: nil, completed: false, in: context)
+
+        let changed = session.retargetRemainingSets(to: 215)
+        XCTAssertEqual(changed, 2)
+        let ordered = session.sets.sorted { $0.setNumber < $1.setNumber }
+        XCTAssertEqual(ordered[0].targetWeight, 100, "A completed set keeps its target")
+        XCTAssertEqual(ordered[0].actualWeight, 225)
+        XCTAssertEqual(ordered[1].targetWeight, 215)
+        XCTAssertEqual(ordered[2].targetWeight, 215)
+        XCTAssertEqual(session.plannedWeight, 100, "The plan itself is not rewritten")
+    }
 }

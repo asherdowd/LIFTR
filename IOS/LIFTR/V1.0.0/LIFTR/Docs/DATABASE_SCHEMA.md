@@ -266,8 +266,10 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `completed` | Bool | false | Completion status |
 | `completedDate` | Date? | nil | Actual completion date |
 | `skipped` | Bool | false | Session skipped by the user ⚠️ V4. Counts as done for week advance only; never counted as completed (no PRs/history) |
-| `startTime` | Date? | nil | When the session was started (set when a strength session is opened, or by an import) ⚠️ V5 |
+| `startTime` | Date? | nil | When the session was started (set when Start is tapped on a live strength session, or by an import) ⚠️ V5 |
 | `endTime` | Date? | nil | When the session ended (stamped on completion) ⚠️ V5 |
+| `pausedSeconds` | Double? | nil | Live session clock: total seconds the clock was paused so far ⚠️ V5 |
+| `pausedAt` | Date? | nil | Live session clock: when the current pause began (nil while running) ⚠️ V5 |
 | `distance` | Double? | nil | Meters ⚠️ V5 |
 | `duration` | TimeInterval? | nil | Seconds ⚠️ V5 |
 | `elevationGain` | Double? | nil | Meters ⚠️ V5 |
@@ -563,7 +565,7 @@ ExerciseProgressionSettings (independent, 0:many)
 ### V5 (cardio in the shared Workout model, Health import) ⚠️ CURRENT
 **Date:** 2026-10-14
 **Changes (all on the new Workout model, UnifiedWorkoutModels.swift):**
-- `ExerciseSession`: added optional `startTime`, `endTime`, `distance` (m), `duration` (s), `elevationGain` (m), `elevationLoss` (m), `maxSpeed` (m/s), `avgHeartRate`, `maxHeartRate` (bpm), `caloriesBurned` (kcal), `dataSource: ActivitySource?`, `externalID: String?`, `plannedDistance` (m), `plannedDuration` (s).
+- `ExerciseSession`: added optional `startTime`, `endTime`, `pausedSeconds`, `pausedAt`, `distance` (m), `duration` (s), `elevationGain` (m), `elevationLoss` (m), `maxSpeed` (m/s), `avgHeartRate`, `maxHeartRate` (bpm), `caloriesBurned` (kcal), `dataSource: ActivitySource?`, `externalID: String?`, `plannedDistance` (m), `plannedDuration` (s).
 - `WorkoutExercise`: added `kindStored: ExerciseKind?` (optional, nil = strength) with a computed non-optional `kind` that screens use. A required enum with an inline default failed to load existing rows on device ("Could not cast Optional<Any> to ExerciseKind"), so it is stored as an optional.
 - New enums `ExerciseKind` (strength, cardio) and `ActivitySource` (manual, healthKit). No new `@Model`, so `LIFTRApp.swift` registration is unchanged.
 

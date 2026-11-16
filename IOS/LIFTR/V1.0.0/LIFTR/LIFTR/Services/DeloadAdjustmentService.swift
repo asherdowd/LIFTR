@@ -116,7 +116,7 @@ enum DeloadAdjustmentService {
         if session.completed {
             session.skipped = false
             // V5: every completion path ends up here, so the end time is stamped in one place.
-            if session.endTime == nil { session.endTime = session.completedDate ?? Date() }
+            LiveSessionClock.close(session, at: session.completedDate ?? Date())
         }
 
         let allSessions = workout.days

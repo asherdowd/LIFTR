@@ -22,6 +22,13 @@ struct LiveSingleWorkoutView: View {
         session.sets.filter { $0.completed }.count
     }
 
+    private var needsStart: Bool { LiveSessionClock.needsStart(session) }
+
+    private func startSession() {
+        LiveSessionClock.start(session)
+        try? context.save()
+    }
+
     private var lastCompletedWeight: Double? {
         session.sets
             .filter { $0.completed }
@@ -104,29 +111,55 @@ struct LiveSingleWorkoutView: View {
                     .cornerRadius(10)
                 }
                 .padding(.horizontal)
+                .disabled(needsStart)
 
                 Spacer(minLength: 20)
             }
             .padding(.vertical)
         }
-        .navigationTitle("Workout")
-        .onAppear {
-            // V5: opening a session starts its clock (first time only).
-            if session.startTime == nil && !session.completed {
-                session.startTime = Date()
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if LiveSessionClock.isRunningSession(session) {
+                LiveSessionHeader(session: session)
             }
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if needsStart {
+                LiveSessionStartBar(action: startSession)
+            }
+        }
+        .navigationTitle("Workout")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // Back on the screen: the session is no longer "away" (see onDisappear).
+            if session.paused {
+                session.paused = false
+                try? context.save()
+            }
+        }
+        .onDisappear {
+            // Left a started session without finishing it: mark it in progress so the
+            // Resume card and the day screen show it. The clock keeps running.
+            if LiveSessionClock.isRunningSession(session) {
+                session.paused = true
+                try? context.save()
+            }
+        }
+        .stalePrompt(for: session) { seconds in
+            LiveSessionClock.setEnd(session, durationSeconds: seconds)
+            completeWorkout()
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button("Cancel") { dismiss() }
+                Button("Close") { dismiss() }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Complete") {
-                    completeWorkout()
+                if session.startTime != nil {
+                    Button("Complete") {
+                        completeWorkout()
+                    }
+                    .disabled(completedSetsCount == 0)
+                    .fontWeight(.semibold)
                 }
-                .disabled(completedSetsCount == 0)
-                .fontWeight(.semibold)
             }
         }
         .sheet(item: $selectedSet) { set in

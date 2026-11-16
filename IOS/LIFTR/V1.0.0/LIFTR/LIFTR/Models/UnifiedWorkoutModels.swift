@@ -171,6 +171,9 @@ class ExerciseSession {
     // calories in kcal, speed in m/s. Screens convert for display using the user's unit setting.
     var startTime: Date?
     var endTime: Date?
+    // Live session clock (V5, unreleased): total seconds paused so far, and when the current pause began.
+    var pausedSeconds: Double?
+    var pausedAt: Date?
     var distance: Double?
     var duration: TimeInterval?
     var elevationGain: Double?
@@ -275,6 +278,19 @@ extension ExerciseSession {
 
     /// At least one set has been logged as completed.
     var hasLoggedSets: Bool { sets.contains { $0.completed } }
+
+    /// Mid-session weight change: sets not completed yet take the new target weight.
+    /// Completed sets and the planned weight are left alone, so performance % still measures
+    /// the session against the original plan. Returns how many sets changed.
+    @discardableResult
+    func retargetRemainingSets(to weight: Double) -> Int {
+        var changed = 0
+        for set in sets where !set.completed {
+            set.targetWeight = weight
+            changed += 1
+        }
+        return changed
+    }
 }
 
 extension WorkoutExercise {
@@ -321,6 +337,16 @@ extension Workout {
     }
 
     var nextDay: WorkoutDay? { nextDay(forWeek: currentWeek) }
+
+    /// The session with a running live clock this week (started, not done), if any.
+    func runningSession(forWeek week: Int) -> ExerciseSession? {
+        for day in days {
+            for session in day.sessions(forWeek: week) {
+                if LiveSessionClock.isRunningSession(session) { return session }
+            }
+        }
+        return nil
+    }
 
     func hasPausedSession(forWeek week: Int) -> Bool {
         days.contains { day in
