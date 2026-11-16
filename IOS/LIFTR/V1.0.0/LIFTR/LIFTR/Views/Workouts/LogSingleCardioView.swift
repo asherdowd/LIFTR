@@ -119,47 +119,18 @@ struct LogSingleCardioView: View {
             return
         }
 
-        let today = Calendar.current.startOfDay(for: Date())
         let useMetric = globalSettings.first?.useMetric ?? false
 
-        // Create a CardioProgression with 1 week / 1 session, already completed
-        let name: String
-        switch selectedType {
-        case .running:   name = "Run"
-        case .swimming:  name = "Swim"
-        case .calisthenics: name = "Calisthenics"
-        case .crossfit:  name = "CrossFit"
-        case .freeCardio: name = activityType.trimmingCharacters(in: .whitespaces)
-        }
-
-        let progression = CardioProgression(
-            name: name,
-            cardioType: selectedType,
-            totalWeeks: 1,
-            startDate: today,
-            useMetric: useMetric
-        )
-        context.insert(progression)
-
-        let session = CardioSession(
-            date: today,
-            weekNumber: 1,
-            dayNumber: 1
-        )
-        session.duration = durationMinutes * 60
-        session.actualDistance = Double(distance)
-        if selectedType == .freeCardio {
-            session.activityType = activityType.trimmingCharacters(in: .whitespaces)
-        }
-        session.completed = true
-        session.completedDate = Date()
-        session.notes = notes.isEmpty ? nil : notes
-        session.progression = progression
-        progression.sessions.append(session)
-        context.insert(session)
-
         do {
-            try context.save()
+            try CardioWorkoutService.logManualActivity(
+                type: selectedType,
+                customName: activityType,
+                durationMinutes: durationMinutes,
+                distanceEntered: Double(distance),
+                notes: notes,
+                useMetric: useMetric,
+                into: context
+            )
             onComplete()
         } catch {
             showErrorMessage("Failed to save workout: \(error.localizedDescription)")

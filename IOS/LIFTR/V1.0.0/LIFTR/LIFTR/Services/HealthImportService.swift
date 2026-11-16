@@ -3,8 +3,8 @@ import SwiftData
 
 // MARK: - Health Import Service
 // Turns activities read from Health into the shared Workout model. Each imported activity
-// becomes a finished quick Workout: one day, one cardio exercise, one completed session
-// carrying the numbers. No HealthKit types here, so it can be unit tested with an in-memory
+// becomes a finished quick Workout (built by CardioWorkoutService, which manual logging and
+// the sample data also use). No HealthKit types here, so it can be unit tested with an in-memory
 // container.
 
 enum HealthImportService {
@@ -37,58 +37,24 @@ enum HealthImportService {
                 exercisesByName[activity.activityName.lowercased()] = exercise
             }
 
-            let workout = Workout(
+            let record = CardioActivityRecord(
                 name: activity.activityName,
-                templateType: .custom,
-                status: .completed,
-                totalWeeks: 1,
-                startDate: Calendar.current.startOfDay(for: activity.start)
-            )
-            context.insert(workout)
-
-            let day = WorkoutDay(name: "Workout", dayNumber: 1)
-            day.workout = workout
-            workout.days.append(day)
-            context.insert(day)
-
-            let workoutExercise = WorkoutExercise(
-                exercise: exercise,
-                orderIndex: 0,
-                progressionStyle: .linear,
-                startingWeight: 0,
-                targetSets: 0,
-                targetReps: 0,
-                kind: .cardio
-            )
-            workoutExercise.day = day
-            day.exercises.append(workoutExercise)
-            context.insert(workoutExercise)
-
-            let session = ExerciseSession(
                 date: activity.start,
-                weekNumber: 1,
-                sessionNumber: 1,
-                plannedWeight: 0,
-                plannedSets: 0,
-                plannedReps: 0,
-                completed: true,
-                completedDate: activity.end
+                completedDate: activity.end,
+                startTime: activity.start,
+                endTime: activity.end,
+                duration: activity.duration,
+                distance: activity.distance,
+                elevationGain: activity.elevationGain,
+                elevationLoss: activity.elevationLoss,
+                maxSpeed: activity.maxSpeed,
+                avgHeartRate: activity.avgHeartRate,
+                maxHeartRate: activity.maxHeartRate,
+                caloriesBurned: activity.caloriesBurned,
+                dataSource: .healthKit,
+                externalID: activity.externalID
             )
-            session.startTime = activity.start
-            session.endTime = activity.end
-            session.duration = activity.duration
-            session.distance = activity.distance
-            session.elevationGain = activity.elevationGain
-            session.elevationLoss = activity.elevationLoss
-            session.maxSpeed = activity.maxSpeed
-            session.avgHeartRate = activity.avgHeartRate
-            session.maxHeartRate = activity.maxHeartRate
-            session.caloriesBurned = activity.caloriesBurned
-            session.dataSource = .healthKit
-            session.externalID = activity.externalID
-            session.workoutExercise = workoutExercise
-            workoutExercise.sessions.append(session)
-            context.insert(session)
+            CardioWorkoutService.createFinishedWorkout(record, exercise: exercise, context: context)
 
             knownIDs.insert(activity.externalID)
             created += 1

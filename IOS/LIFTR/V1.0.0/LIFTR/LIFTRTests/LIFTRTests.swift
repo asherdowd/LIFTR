@@ -855,6 +855,59 @@ final class LiftrTests: XCTestCase {
     }
 #endif
 
+    @MainActor func testManualCardioLogUsesSharedModelAndHealthImportNames() throws {
+        let context = container.mainContext
+        let first = try CardioWorkoutService.logManualActivity(
+            type: .running, customName: "", durationMinutes: 30, distanceEntered: 3.1,
+            notes: " easy ", useMetric: false, into: context
+        )
+        XCTAssertEqual(first.status, .completed)
+        XCTAssertEqual(first.name, "Running")
+        let session = try XCTUnwrap(first.days.first?.exercises.first?.sessions.first)
+        XCTAssertEqual(session.distance ?? 0, 3.1 * 1_609.344, accuracy: 0.01)
+        XCTAssertEqual(session.duration, 1_800)
+        XCTAssertEqual(session.dataSource, .manual)
+        XCTAssertNil(session.externalID)
+        XCTAssertEqual(session.notes, "easy")
+        XCTAssertTrue(session.completed)
+        XCTAssertNil(session.startTime, "Manual logs have no real clock times")
+
+        // A Health import of the same activity kind shares the Exercise (no duplicate names)
+        try HealthImportService.importActivities([sampleActivity()], into: context)
+        let exercises = try context.fetch(FetchDescriptor<Exercise>())
+        XCTAssertEqual(exercises.filter { $0.name == "Running" }.count, 1)
+
+        // It shows up in Recent and History like an imported run
+        let workouts = try context.fetch(FetchDescriptor<Workout>())
+        let recent = WorkoutSummaryService.recentEntries(workouts: workouts, legacySessions: [], limit: 5, cardio: true, useMetric: false)
+        XCTAssertEqual(recent.count, 2)
+        XCTAssertTrue(recent.contains { $0.detail == "3.1 mi · 30 min" })
+        XCTAssertEqual(WorkoutSummaryService.historyMonths(workouts: workouts, kind: .cardio).flatMap { $0.entries }.count, 2)
+    }
+
+    @MainActor func testManualCardioNamesAndUnitConversions() throws {
+        XCTAssertEqual(CardioWorkoutService.activityName(for: .swimming, custom: ""), "Swimming")
+        XCTAssertEqual(CardioWorkoutService.activityName(for: .crossfit, custom: ""), "CrossFit")
+        XCTAssertEqual(CardioWorkoutService.activityName(for: .freeCardio, custom: "  Elliptical "), "Elliptical")
+        XCTAssertEqual(CardioWorkoutService.activityName(for: .freeCardio, custom: " "), "Cardio")
+
+        XCTAssertEqual(CardioWorkoutService.meters(fromEntered: 5, type: .running, useMetric: true), 5_000)
+        XCTAssertEqual(try XCTUnwrap(CardioWorkoutService.meters(fromEntered: 1, type: .running, useMetric: false)), 1_609.344, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(CardioWorkoutService.meters(fromEntered: 100, type: .swimming, useMetric: false)), 91.44, accuracy: 0.001)
+        XCTAssertEqual(CardioWorkoutService.meters(fromEntered: 400, type: .swimming, useMetric: true), 400)
+        XCTAssertNil(CardioWorkoutService.meters(fromEntered: 10, type: .crossfit, useMetric: true), "No distance field outside running and swimming")
+
+        // No distance is stored for a type without a distance field, even if text was typed
+        let context = container.mainContext
+        let workout = try CardioWorkoutService.logManualActivity(
+            type: .calisthenics, customName: "", durationMinutes: 20, distanceEntered: 9,
+            notes: "", useMetric: false, into: context
+        )
+        let session = try XCTUnwrap(workout.days.first?.exercises.first?.sessions.first)
+        XCTAssertNil(session.distance)
+        XCTAssertNil(session.notes)
+    }
+
     @MainActor func testCardioDetailFallbacks() throws {
         let session = ExerciseSession(weekNumber: 1, sessionNumber: 1, plannedWeight: 0, plannedSets: 0, plannedReps: 0)
         XCTAssertEqual(WorkoutSummaryService.cardioDetail(session, useMetric: false), "Activity")

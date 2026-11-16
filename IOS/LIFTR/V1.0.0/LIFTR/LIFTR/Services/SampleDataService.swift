@@ -405,58 +405,24 @@ enum SampleDataService {
     ) {
         let start = date(daysAgo: plan.daysAgo, from: now)
         let end = start.addingTimeInterval(plan.seconds)
-
-        let workout = Workout(
-            name: plan.name,
-            templateType: .custom,
-            status: .completed,
-            totalWeeks: 1,
-            startDate: Calendar.current.startOfDay(for: start),
-            notes: marker
-        )
-        context.insert(workout)
-
-        let day = WorkoutDay(name: "Workout", dayNumber: 1)
-        day.workout = workout
-        workout.days.append(day)
-        context.insert(day)
-
         let exercise = findOrCreateExercise(named: plan.name, core: nil, context: context, exercises: &exercises)
-        let workoutExercise = WorkoutExercise(
-            exercise: exercise,
-            orderIndex: 0,
-            progressionStyle: .linear,
-            startingWeight: 0,
-            targetSets: 0,
-            targetReps: 0,
-            kind: .cardio
-        )
-        workoutExercise.day = day
-        day.exercises.append(workoutExercise)
-        context.insert(workoutExercise)
 
-        let session = ExerciseSession(
+        let record = CardioActivityRecord(
+            name: plan.name,
             date: start,
-            weekNumber: 1,
-            sessionNumber: 1,
-            plannedWeight: 0,
-            plannedSets: 0,
-            plannedReps: 0,
-            completed: true,
-            completedDate: end
+            completedDate: end,
+            startTime: start,
+            endTime: end,
+            duration: plan.seconds,
+            distance: plan.meters,
+            elevationGain: plan.gain,
+            avgHeartRate: plan.avgHR,
+            maxHeartRate: plan.maxHR,
+            caloriesBurned: plan.kcal,
+            dataSource: .manual,
+            workoutNotes: marker
         )
-        session.startTime = start
-        session.endTime = end
-        session.duration = plan.seconds
-        session.distance = plan.meters
-        session.elevationGain = plan.gain
-        session.avgHeartRate = plan.avgHR
-        session.maxHeartRate = plan.maxHR
-        session.caloriesBurned = plan.kcal
-        session.dataSource = .manual
-        session.workoutExercise = workoutExercise
-        workoutExercise.sessions.append(session)
-        context.insert(session)
+        CardioWorkoutService.createFinishedWorkout(record, exercise: exercise, context: context)
     }
 }
 #endif
