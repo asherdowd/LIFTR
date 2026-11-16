@@ -24,12 +24,10 @@ enum ProgressionAdjustment: Equatable {
 enum DeloadAdjustmentService {
 
     static func analyzePerformance(session: ExerciseSession, settings: GlobalProgressionSettings) -> ProgressionAdjustment {
-        let totalPlanned = session.totalPlannedReps
-        let totalCompleted = session.totalCompletedReps
+        guard session.totalPlannedReps > 0 else { return .continueAsPlanned }
 
-        guard totalPlanned > 0 else { return .continueAsPlanned }
-
-        let percentage = (Double(totalCompleted) / Double(totalPlanned)) * 100
+        // Shared definition: capped volume ratio (reps x weight), see ExerciseSession.performancePercentage.
+        let percentage = session.performancePercentage
 
         if percentage >= Double(settings.excellentThreshold) {
             return .continueAsPlanned

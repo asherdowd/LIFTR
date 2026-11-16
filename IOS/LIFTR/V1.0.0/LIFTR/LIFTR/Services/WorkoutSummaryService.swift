@@ -263,6 +263,11 @@ enum WorkoutSummaryService {
                 : String(format: "%.1f", heaviest)
             lines.append("Heaviest set: \(weightText) \(useMetric ? "kg" : "lbs")")
         }
+
+        // Program sessions have a plan to compare against; quick workouts do not.
+        if !workoutExercise.isFreeform {
+            lines.append("Performance: \(Int(session.performancePercentage))% · Week \(session.weekNumber)")
+        }
         return lines
     }
 

@@ -916,9 +916,9 @@ final class LiftrTests: XCTestCase {
         addSet(to: sessions[0], number: 3, reps: 5, weight: 300, completed: false, in: context)
 
         XCTAssertEqual(WorkoutSummaryService.completionLines(for: sessions[0], useMetric: false),
-                       ["2 sets · 8 reps", "Heaviest set: 232.5 lbs"])
+                       ["2 sets · 8 reps", "Heaviest set: 232.5 lbs", "Performance: 100% · Week 1"])
         XCTAssertEqual(WorkoutSummaryService.completionLines(for: sessions[0], useMetric: true),
-                       ["2 sets · 8 reps", "Heaviest set: 232.5 kg"])
+                       ["2 sets · 8 reps", "Heaviest set: 232.5 kg", "Performance: 100% · Week 1"])
 
         let run = try CardioWorkoutService.logManualActivity(
             type: .running, customName: "", durationMinutes: 30, distanceEntered: 3.1,
@@ -949,5 +949,79 @@ final class LiftrTests: XCTestCase {
         WorkoutEditService.setCompleted(false, session: sessions[0])
         XCTAssertNil(sessions[0].endTime)
         XCTAssertNotNil(sessions[0].startTime)
+    }
+
+    // MARK: - Performance % (capped volume ratio, decided 2026-11-16)
+
+    @MainActor func testPerformancePercentageIsCappedVolumeRatio() throws {
+        let context = container.mainContext
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 4, sessionCount: 4)
+        // Plan: 3 sets x 5 reps at 100 = 1500 volume.
+
+        // On plan
+        for n in 1...3 { addSet(to: sessions[0], number: n, reps: 5, weight: 100, in: context) }
+        XCTAssertEqual(sessions[0].performancePercentage, 100, accuracy: 0.001)
+
+        // All reps but lighter: 5 x 90 x 3 = 1350 of 1500
+        for n in 1...3 { addSet(to: sessions[1], number: n, reps: 5, weight: 90, in: context) }
+        XCTAssertEqual(sessions[1].performancePercentage, 90, accuracy: 0.001)
+
+        // Heavier than planned is capped at 100
+        for n in 1...3 { addSet(to: sessions[2], number: n, reps: 5, weight: 120, in: context) }
+        XCTAssertEqual(sessions[2].performancePercentage, 100, accuracy: 0.001)
+
+        // Missed reps at the planned weight: 12 of 15 reps = 80
+        addSet(to: sessions[3], number: 1, reps: 5, weight: 100, in: context)
+        addSet(to: sessions[3], number: 2, reps: 5, weight: 100, in: context)
+        addSet(to: sessions[3], number: 3, reps: 2, weight: 100, in: context)
+        XCTAssertEqual(sessions[3].performancePercentage, 80, accuracy: 0.001)
+    }
+
+    @MainActor func testPerformancePercentageEdgeCases() throws {
+        let context = container.mainContext
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 3, sessionCount: 3)
+
+        // A set that was not completed does not count
+        addSet(to: sessions[0], number: 1, reps: 5, weight: 100, in: context)
+        addSet(to: sessions[0], number: 2, reps: 5, weight: 100, completed: false, in: context)
+        XCTAssertEqual(sessions[0].performancePercentage, 100.0 / 3.0, accuracy: 0.001)
+
+        // No weight logged: the set counts at its target weight (100 in addSet)
+        addSet(to: sessions[1], number: 1, reps: 5, weight: nil, in: context)
+        XCTAssertEqual(sessions[1].performancePercentage, 100.0 / 3.0, accuracy: 0.001)
+
+        // No planned weight: falls back to the rep ratio, still capped
+        sessions[2].plannedWeight = 0
+        addSet(to: sessions[2], number: 1, reps: 10, weight: 0, in: context)
+        addSet(to: sessions[2], number: 2, reps: 10, weight: 0, in: context)
+        XCTAssertEqual(sessions[2].performancePercentage, 100, accuracy: 0.001)
+    }
+
+    @MainActor func testSuggestionUsesVolumeNotJustReps() throws {
+        let context = container.mainContext
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 2, sessionCount: 2)
+        let settings = GlobalProgressionSettings()
+        settings.excellentThreshold = 90
+        settings.goodThreshold = 75
+        settings.adjustmentThreshold = 60
+
+        // Every rep done but at 70% of the planned weight: volume 70%, so a reduction is suggested
+        for n in 1...3 { addSet(to: sessions[0], number: n, reps: 5, weight: 70, in: context) }
+        XCTAssertEqual(sessions[0].totalCompletedReps, sessions[0].totalPlannedReps)
+        XCTAssertEqual(DeloadAdjustmentService.analyzePerformance(session: sessions[0], settings: settings),
+                       .reduceBy(percent: settings.reductionPercent))
+
+        // On plan continues as planned
+        for n in 1...3 { addSet(to: sessions[1], number: n, reps: 5, weight: 100, in: context) }
+        XCTAssertEqual(DeloadAdjustmentService.analyzePerformance(session: sessions[1], settings: settings), .continueAsPlanned)
+    }
+
+    @MainActor func testQuickWorkoutCompletionLinesHaveNoPerformanceLine() throws {
+        let context = container.mainContext
+        let (_, workoutExercise, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        workoutExercise.targetSets = 0   // freeform, as a quick workout
+        addSet(to: sessions[0], number: 1, reps: 5, weight: 100, in: context)
+        let lines = WorkoutSummaryService.completionLines(for: sessions[0], useMetric: false)
+        XCTAssertEqual(lines, ["1 set · 5 reps", "Heaviest set: 100 lbs"])
     }
 }

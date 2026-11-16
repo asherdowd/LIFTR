@@ -2,7 +2,12 @@ import SwiftUI
 import SwiftData
 
 struct ExercisePerformanceSummaryView: View {
+    @Query private var globalSettings: [GlobalProgressionSettings]
     let session: ExerciseSession
+
+    private var unitLabel: String {
+        globalSettings.first?.useMetric == true ? "kg" : "lbs"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -30,6 +35,18 @@ struct ExercisePerformanceSummaryView: View {
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(performanceColor)
+                }
+            }
+
+            if session.plannedWeight > 0 {
+                HStack {
+                    Text("Volume")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("\(Int(session.completedVolume)) / \(Int(session.plannedVolume)) \(unitLabel)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
 

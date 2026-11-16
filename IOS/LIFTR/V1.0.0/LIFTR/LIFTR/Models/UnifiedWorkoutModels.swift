@@ -233,9 +233,37 @@ class ExerciseSession {
         return sets.reduce(0) { $0 + ($1.actualReps ?? 0) }
     }
 
+    /// Planned volume: sets x reps x planned weight.
+    var plannedVolume: Double {
+        return Double(totalPlannedReps) * plannedWeight
+    }
+
+    /// Completed volume: reps x weight used, over completed sets. A set with no weight logged
+    /// counts at its target weight.
+    var completedVolume: Double {
+        var total: Double = 0
+        for set in sets where set.completed {
+            let reps: Double = Double(set.actualReps ?? 0)
+            let weight: Double = set.actualWeight ?? set.targetWeight
+            total += reps * weight
+        }
+        return total
+    }
+
+    /// Performance against plan, 0...100. Volume ratio (reps x weight), capped at 100 so a heavier
+    /// weight cannot hide missed reps. Falls back to the rep ratio when no weight is planned.
+    /// One definition shared by the end-of-session suggestion, Analytics and the summary screens.
     var performancePercentage: Double {
         guard totalPlannedReps > 0 else { return 0 }
-        return Double(totalCompletedReps) / Double(totalPlannedReps) * 100
+        var ratio: Double
+        if plannedWeight > 0 {
+            ratio = completedVolume / plannedVolume
+        } else {
+            ratio = Double(totalCompletedReps) / Double(totalPlannedReps)
+        }
+        if ratio > 1 { ratio = 1 }
+        if ratio < 0 { ratio = 0 }
+        return ratio * 100
     }
 }
 

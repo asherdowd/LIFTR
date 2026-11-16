@@ -14,6 +14,7 @@ struct ExerciseSessionView: View {
     @State private var showAdjustmentPrompt = false
     @State private var adjustmentRecommendation: ProgressionAdjustment?
     @State private var selectedSet: WorkoutSet?
+    @State private var showComplete = false
 
     var currentSettings: GlobalProgressionSettings {
         globalSettings.first ?? GlobalProgressionSettings()
@@ -153,35 +154,23 @@ struct ExerciseSessionView: View {
         .sheet(isPresented: $showCalculator) {
             CalculatorViewWrapper(targetWeight: session.plannedWeight)
         }
+        .sheet(isPresented: $showComplete, onDismiss: {
+            onComplete()
+            dismiss()
+        }) {
+            WorkoutCompleteView(
+                title: workoutExercise.exercise.name,
+                lines: WorkoutSummaryService.completionLines(for: session, useMetric: currentSettings.useMetric),
+                onDone: { showComplete = false }
+            )
+        }
         .alert("Workout Performance", isPresented: $showAdjustmentPrompt) {
             if let adjustment = adjustmentRecommendation {
                 Button("Accept Recommendation") {
-                    session.completed = true
-                    session.completedDate = Date()
-                    session.paused = false
-                    DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
-                    DeloadAdjustmentService.applyAdjustment(adjustment, session: session, workoutExercise: workoutExercise, settings: currentSettings)
-                    try? context.save()
-                    onComplete()
-                    dismiss()
+                    finishSession(applying: adjustment)
                 }
                 Button("Keep Original Plan") {
-                    session.completed = true
-                    session.completedDate = Date()
-                    session.paused = false
-                    DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
-                    try? context.save()
-                    onComplete()
-                    dismiss()
-                }
-                Button("Manual Adjustment") {
-                    session.completed = true
-                    session.completedDate = Date()
-                    session.paused = false
-                    DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
-                    try? context.save()
-                    onComplete()
-                    dismiss()
+                    finishSession(applying: nil)
                 }
             }
         } message: {
@@ -202,19 +191,23 @@ struct ExerciseSessionView: View {
             adjustmentRecommendation = performance
             showAdjustmentPrompt = true
         } else {
-            session.completed = true
-            session.completedDate = Date()
-            session.paused = false
-
-            DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
-
-            if currentSettings.adjustmentMode == .autoAdjust && performance != .continueAsPlanned {
-                DeloadAdjustmentService.applyAdjustment(performance, session: session, workoutExercise: workoutExercise, settings: currentSettings)
-            }
-            try? context.save()
-            onComplete()
-            dismiss()
+            finishSession(applying: nil)
         }
+    }
+
+    /// The single exit for finishing a program session. Marks it complete, advances the week,
+    /// optionally applies a progression adjustment, saves, then shows the Workout Complete sheet.
+    private func finishSession(applying adjustment: ProgressionAdjustment?) {
+        session.completed = true
+        session.completedDate = Date()
+        session.paused = false
+
+        DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
+        if let adjustment = adjustment {
+            DeloadAdjustmentService.applyAdjustment(adjustment, session: session, workoutExercise: workoutExercise, settings: currentSettings)
+        }
+        try? context.save()
+        showComplete = true
     }
 
     private func pauseWorkout() {
