@@ -908,6 +908,26 @@ final class LiftrTests: XCTestCase {
         XCTAssertNil(session.notes)
     }
 
+    @MainActor func testCompletionSummaryLinesForStrengthAndCardio() throws {
+        let context = container.mainContext
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        addSet(to: sessions[0], number: 1, reps: 5, weight: 225, in: context)
+        addSet(to: sessions[0], number: 2, reps: 3, weight: 232.5, in: context)
+        addSet(to: sessions[0], number: 3, reps: 5, weight: 300, completed: false, in: context)
+
+        XCTAssertEqual(WorkoutSummaryService.completionLines(for: sessions[0], useMetric: false),
+                       ["2 sets · 8 reps", "Heaviest set: 232.5 lbs"])
+        XCTAssertEqual(WorkoutSummaryService.completionLines(for: sessions[0], useMetric: true),
+                       ["2 sets · 8 reps", "Heaviest set: 232.5 kg"])
+
+        let run = try CardioWorkoutService.logManualActivity(
+            type: .running, customName: "", durationMinutes: 30, distanceEntered: 3.1,
+            notes: "", useMetric: false, into: context
+        )
+        let runSession = try XCTUnwrap(run.days.first?.exercises.first?.sessions.first)
+        XCTAssertEqual(WorkoutSummaryService.completionLines(for: runSession, useMetric: false), ["3.1 mi · 30 min"])
+    }
+
     @MainActor func testCardioDetailFallbacks() throws {
         let session = ExerciseSession(weekNumber: 1, sessionNumber: 1, plannedWeight: 0, plannedSets: 0, plannedReps: 0)
         XCTAssertEqual(WorkoutSummaryService.cardioDetail(session, useMetric: false), "Activity")

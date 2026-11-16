@@ -12,6 +12,7 @@ struct LiveSingleWorkoutView: View {
 
     @State private var selectedSet: WorkoutSet?
     @State private var showCalculator = false
+    @State private var showComplete = false
 
     private var unitLabel: String {
         globalSettings.first?.useMetric == true ? "kg" : "lbs"
@@ -139,6 +140,16 @@ struct LiveSingleWorkoutView: View {
         .sheet(isPresented: $showCalculator) {
             CalculatorViewWrapper(targetWeight: session.plannedWeight)
         }
+        .sheet(isPresented: $showComplete, onDismiss: {
+            onComplete()
+            dismiss()
+        }) {
+            WorkoutCompleteView(
+                title: workoutExercise.exercise.name,
+                lines: WorkoutSummaryService.completionLines(for: session, useMetric: globalSettings.first?.useMetric == true),
+                onDone: { showComplete = false }
+            )
+        }
     }
 
     private func addSet() {
@@ -165,7 +176,6 @@ struct LiveSingleWorkoutView: View {
         session.plannedSets = completedSetsCount
         DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
         try? context.save()
-        onComplete()
-        dismiss()
+        showComplete = true
     }
 }

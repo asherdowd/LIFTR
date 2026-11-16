@@ -13,6 +13,10 @@ struct LogSingleCardioView: View {
     @State private var activityType: String = ""    // free cardio only
     @State private var notes: String = ""
 
+    @State private var showComplete = false
+    @State private var completionTitle = ""
+    @State private var completionLines: [String] = []
+
     @State private var showError = false
     @State private var errorMessage = ""
 
@@ -105,6 +109,13 @@ struct LogSingleCardioView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+            .sheet(isPresented: $showComplete, onDismiss: { onComplete() }) {
+                WorkoutCompleteView(
+                    title: completionTitle,
+                    lines: completionLines,
+                    onDone: { showComplete = false }
+                )
+            }
             .alert("Error", isPresented: $showError) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -122,7 +133,7 @@ struct LogSingleCardioView: View {
         let useMetric = globalSettings.first?.useMetric ?? false
 
         do {
-            try CardioWorkoutService.logManualActivity(
+            let workout = try CardioWorkoutService.logManualActivity(
                 type: selectedType,
                 customName: activityType,
                 durationMinutes: durationMinutes,
@@ -131,7 +142,11 @@ struct LogSingleCardioView: View {
                 useMetric: useMetric,
                 into: context
             )
-            onComplete()
+            completionTitle = workout.name
+            if let session = workout.days.first?.exercises.first?.sessions.first {
+                completionLines = WorkoutSummaryService.completionLines(for: session, useMetric: useMetric)
+            }
+            showComplete = true
         } catch {
             showErrorMessage("Failed to save workout: \(error.localizedDescription)")
         }

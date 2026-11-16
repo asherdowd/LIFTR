@@ -101,7 +101,7 @@ struct WorkoutsView: View {
                 }
                 .navigationTitle("Workouts")
                 .sheet(isPresented: $showStartWorkout) {
-                    StartWorkoutView()
+                    StartWorkoutView(category: selectedCategory)
                 }
             }
         }

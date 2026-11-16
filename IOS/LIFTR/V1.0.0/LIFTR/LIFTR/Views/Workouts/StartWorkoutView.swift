@@ -2,9 +2,22 @@ import SwiftUI
 
 struct StartWorkoutView: View {
     @Environment(\.dismiss) var dismiss
+    /// The Workouts tab segment the sheet was opened from. Single Workout goes straight to
+    /// the matching log screen, so the user is not asked Strength or Cardio a second time.
+    let category: WorkoutsView.WorkoutCategory
     
     private var onComplete: () -> Void { { dismiss() } }
     
+    @ViewBuilder
+    private var singleWorkoutDestination: some View {
+        switch category {
+        case .strength:
+            LogSingleStrengthView(onComplete: { dismiss() })
+        case .cardio:
+            LogSingleCardioView(onComplete: { dismiss() })
+        }
+    }
+
     var body: some View {
         NavigationView {
             VStack(spacing: 24) {
@@ -13,7 +26,7 @@ struct StartWorkoutView: View {
                     .fontWeight(.bold)
                     .padding(.top, 40)
 
-                NavigationLink(destination: SingleWorkoutCategoryView(onComplete: { dismiss() })) {
+                NavigationLink(destination: singleWorkoutDestination) {
                     HStack {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.title2)
@@ -51,5 +64,5 @@ struct StartWorkoutView: View {
 }
 
 #Preview {
-    StartWorkoutView()
+    StartWorkoutView(category: .strength)
 }

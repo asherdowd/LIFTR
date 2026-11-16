@@ -237,6 +237,35 @@ enum WorkoutSummaryService {
             .sorted { $0.monthStart > $1.monthStart }
     }
 
+    // MARK: Completion summary
+
+    /// Lines for the "Workout Complete" screen shown after a single strength workout or a
+    /// manual cardio log. Strength: sets and reps, then the heaviest qualifying set.
+    /// Cardio: distance and time.
+    static func completionLines(for session: ExerciseSession, useMetric: Bool) -> [String] {
+        guard let workoutExercise = session.workoutExercise else { return [] }
+        if workoutExercise.isCardio {
+            return [cardioDetail(session, useMetric: useMetric)]
+        }
+
+        var sets = 0
+        var reps = 0
+        for set in session.sets where set.completed {
+            sets += 1
+            reps += set.actualReps ?? 0
+        }
+        var lines: [String] = ["\(sets) set\(sets == 1 ? "" : "s") · \(reps) rep\(reps == 1 ? "" : "s")"]
+
+        let heaviest = AnalyticsService.maxWeight(session)
+        if heaviest > 0 {
+            let weightText = heaviest.truncatingRemainder(dividingBy: 1) == 0
+                ? String(Int(heaviest))
+                : String(format: "%.1f", heaviest)
+            lines.append("Heaviest set: \(weightText) \(useMetric ? "kg" : "lbs")")
+        }
+        return lines
+    }
+
     /// "6.2 mi · 52 min", or just the time, or "Activity" when nothing was recorded.
     static func cardioDetail(_ session: ExerciseSession, useMetric: Bool) -> String {
         var parts: [String] = []
