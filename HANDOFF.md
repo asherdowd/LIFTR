@@ -317,3 +317,9 @@ Agreed order (each step a separate testable commit; nothing coded yet):
 OUT of launch (owner may re-open): elevation gain, route maps, auto-pause, same-route history, calories (needs Health heart rate), Health write.
 Release blockers unchanged: step 7 scope (7-1), step 9, #43, #44, docs, verified build number (39+), merge only on owner go-ahead, archive from main.
 Pending GitHub issues to create at session end: live session (relates to #23, #34, #10, #33), GPS distance (relates to #38), consistent Workout Complete, Workouts-tab Cardio repoint, activity detail, program-to-Analytics link.
+
+## Manual weight adjustment (decided 2026-11-16)
+- "Manual Adjustment" is NOT an end-of-session alert button. It is a mid-session control on the live session screen (step 2): the owner changes the weight after a set and the target weight of the remaining (not completed) sets follows. Completed sets keep what was logged. The end-of-session "Workout Performance" alert keeps two buttons: Accept Recommendation and Keep Original Plan.
+- Today (verified in code): `LogSetView` has a per-set "Weight Used" (`actualWeight`); `DeloadAdjustmentService.analyzePerformance` compares total completed reps to planned reps only and ignores weight.
+- DECIDED: the end-of-session suggestion must factor weight in, so lifting less than planned counts as a shortfall. Open: exact measure (see next entry once decided). Keep `AnalyticsService` performance % consistent with it.
+- Same alert is duplicated in `WorkoutSessionView.swift:170`; check whether that screen is still used before changing either.
