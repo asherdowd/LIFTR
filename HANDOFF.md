@@ -345,3 +345,6 @@ Built:
 Known limits: `SetRowView` still hardcodes "lbs" (existing); a started session with no sets never counts as stale; rest timer and widget unchanged (steps 3 and 4); cardio (step 5).
 Owner checks: build, run LIFTRTests (expect 47), then on phone: program day > exercise shows dimmed sets and Start; Start shows header; Pause/Resume; Close then Workouts card shows In Progress with minutes; reopen keeps the clock; Adjust weight changes only remaining sets; Complete shows the sheet; quick workout same; Cancel on a quick workout with no sets still leaves no card.
 - STEP 2 UNIT TESTS VERIFIED 2026-11-16 23:21 (owner): LIFTRTests 47 executed, all passed (the first 42 was a stale pull). Phone checks (list above) in progress.
+
+## Manual test script (decided 2026-11-16)
+The "LIFTR Test Run" artifact (https://claude.ai/artifact/14Fr2jmcY26d8g7nNjz5vB) is now the running manual test script, parallel to LIFTRTests. Claude adds a section per build step (F = step 2 live clock, E = step 1 finish and performance; A-D older checks, refreshed), the owner records results there, Claude reads them via ArtifactData. Rule added to CLAUDE.md. E2 seeded as Pass from the owner's 14:36 report; everything else To do. Run meta set to build 76f3f25.
