@@ -348,3 +348,12 @@ Owner checks: build, run LIFTRTests (expect 47), then on phone: program day > ex
 
 ## Manual test script (decided 2026-11-16)
 The "LIFTR Test Run" artifact (https://claude.ai/artifact/14Fr2jmcY26d8g7nNjz5vB) is now the running manual test script, parallel to LIFTRTests. Claude adds a section per build step (F = step 2 live clock, E = step 1 finish and performance; A-D older checks, refreshed), the owner records results there, Claude reads them via ArtifactData. Rule added to CLAUDE.md. E2 seeded as Pass from the owner's 14:36 report; everything else To do. Run meta set to build 76f3f25.
+
+## First manual run of steps 1 and 2 (2026-11-16 23:45, build 76f3f25, iPhone 13 Pro)
+Results: 37 Pass, 2 Fail, 4 Skip (F12 stale prompt, E7 Auto Adjust, B5, C3 migration), 2 not run (B4, C2). Everything in step 1 passed except E5; everything in step 2 passed except F8.
+- DECISION (owner): remove the mid-session "Adjust weight" button. The user just logs the actual weight used (F6 confirmed that lowers performance % and drives the suggestion). This supersedes the earlier 2026-11-16 mid-session control decision. Removed in the same commit: button, sheet, `AdjustWeightSheet.swift`, `ExerciseSession.retargetRemainingSets` and its test. Unit tests now 46.
+- FAIL F8 (quick strength, going back): "locks up the screen, fatal error". Not diagnosed: need the Xcode console text. Hypotheses only: the screen reading a deleted session (empty quick workouts are deleted 0.4 s after leaving) now that the clock header re-reads the session every second; or my onDisappear save. Close before Start (F9) and Close after Start with no sets (F10) pass.
+- E5 FAIL: owner could not find the Volume row. It sits in the Performance Summary card at the bottom of the program exercise screen (after the first completed set). Wording in the test page clarified; to be re-checked.
+- F4 note: card/row showed "In Progress" without minutes; clock is correct on reopen. Unclear whether the owner looked at the day screen row (no minutes by design) or the Workouts card. To confirm.
+- F2 note: owner has a design issue with "the widget" (clunky) and wants to discuss. Which widget (header or Live Activity) to confirm.
+- D3 and D4 (known issues #31 and the doubled nav bar) now PASS: check whether they are fixed and close at the merge.

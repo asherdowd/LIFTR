@@ -15,7 +15,6 @@ struct ExerciseSessionView: View {
     @State private var adjustmentRecommendation: ProgressionAdjustment?
     @State private var selectedSet: WorkoutSet?
     @State private var showComplete = false
-    @State private var showAdjust = false
 
     var currentSettings: GlobalProgressionSettings {
         globalSettings.first ?? GlobalProgressionSettings()
@@ -97,12 +96,6 @@ struct ExerciseSessionView: View {
                     }
                     .padding(.horizontal)
 
-                    if isRunning && remainingSetsCount > 0 {
-                        Button("Adjust weight") { showAdjust = true }
-                            .font(.subheadline)
-                            .padding(.horizontal)
-                    }
-
                     // Before Start the sets are a preview: visible but not loggable.
                     ForEach(session.sets.sorted(by: { $0.setNumber < $1.setNumber })) { set in
                         SetRowView(
@@ -171,17 +164,6 @@ struct ExerciseSessionView: View {
                 }
             }
         }
-        .sheet(isPresented: $showAdjust) {
-            AdjustWeightSheet(
-                initialWeight: nextRemainingWeight,
-                unitLabel: currentSettings.useMetric ? "kg" : "lbs",
-                remainingSets: remainingSetsCount,
-                onApply: { weight in
-                    session.retargetRemainingSets(to: weight)
-                    try? context.save()
-                }
-            )
-        }
         .sheet(item: $selectedSet) { set in
             LogSetView(
                 set: set,
@@ -221,16 +203,6 @@ struct ExerciseSessionView: View {
 
     private var completedSetsCount: Int {
         session.sets.filter { $0.completed }.count
-    }
-
-    private var remainingSetsCount: Int {
-        session.sets.filter { !$0.completed }.count
-    }
-
-    /// Target weight of the next set still to do (the planned weight if every set is done).
-    private var nextRemainingWeight: Double {
-        let remaining = session.sets.filter { !$0.completed }.sorted { $0.setNumber < $1.setNumber }
-        return remaining.first?.targetWeight ?? session.plannedWeight
     }
 
     private var needsStart: Bool { LiveSessionClock.needsStart(session) }

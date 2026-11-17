@@ -278,19 +278,6 @@ extension ExerciseSession {
 
     /// At least one set has been logged as completed.
     var hasLoggedSets: Bool { sets.contains { $0.completed } }
-
-    /// Mid-session weight change: sets not completed yet take the new target weight.
-    /// Completed sets and the planned weight are left alone, so performance % still measures
-    /// the session against the original plan. Returns how many sets changed.
-    @discardableResult
-    func retargetRemainingSets(to weight: Double) -> Int {
-        var changed = 0
-        for set in sets where !set.completed {
-            set.targetWeight = weight
-            changed += 1
-        }
-        return changed
-    }
 }
 
 extension WorkoutExercise {

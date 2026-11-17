@@ -1126,22 +1126,4 @@ final class LiftrTests: XCTestCase {
         sessions[0].completed = true
         XCTAssertNil(workout.runningSession(forWeek: 1))
     }
-
-    @MainActor func testManualWeightAdjustmentOnlyChangesRemainingSets() throws {
-        let context = container.mainContext
-        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
-        let session = sessions[0]
-        addSet(to: session, number: 1, reps: 5, weight: 225, in: context)
-        addSet(to: session, number: 2, reps: nil, weight: nil, completed: false, in: context)
-        addSet(to: session, number: 3, reps: nil, weight: nil, completed: false, in: context)
-
-        let changed = session.retargetRemainingSets(to: 215)
-        XCTAssertEqual(changed, 2)
-        let ordered = session.sets.sorted { $0.setNumber < $1.setNumber }
-        XCTAssertEqual(ordered[0].targetWeight, 100, "A completed set keeps its target")
-        XCTAssertEqual(ordered[0].actualWeight, 225)
-        XCTAssertEqual(ordered[1].targetWeight, 215)
-        XCTAssertEqual(ordered[2].targetWeight, 215)
-        XCTAssertEqual(session.plannedWeight, 100, "The plan itself is not rewritten")
-    }
 }
