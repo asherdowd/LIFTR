@@ -344,3 +344,4 @@ Built:
 - Tests: 5 new (expected total 47). CHANGELOG not updated yet (it has no entries for the merge; update at release).
 Known limits: `SetRowView` still hardcodes "lbs" (existing); a started session with no sets never counts as stale; rest timer and widget unchanged (steps 3 and 4); cardio (step 5).
 Owner checks: build, run LIFTRTests (expect 47), then on phone: program day > exercise shows dimmed sets and Start; Start shows header; Pause/Resume; Close then Workouts card shows In Progress with minutes; reopen keeps the clock; Adjust weight changes only remaining sets; Complete shows the sheet; quick workout same; Cancel on a quick workout with no sets still leaves no card.
+- STEP 2 UNIT TESTS VERIFIED 2026-11-16 23:21 (owner): LIFTRTests 47 executed, all passed (the first 42 was a stale pull). Phone checks (list above) in progress.
