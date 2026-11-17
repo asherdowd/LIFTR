@@ -3,7 +3,6 @@ import SwiftData
 
 struct LogSingleCardioView: View {
     @Environment(\.modelContext) private var context
-    @Environment(\.dismiss) var dismiss
     @Query private var globalSettings: [GlobalProgressionSettings]
     var onComplete: () -> Void = {}
 
@@ -38,89 +37,82 @@ struct LogSingleCardioView: View {
     }
 
     var body: some View {
-        NavigationView {
-            Form {
-                Section {
-                    Picker("Type", selection: $selectedType) {
-                        ForEach(CardioType.allCases, id: \.self) { type in
-                            Label(type.rawValue, systemImage: type.icon).tag(type)
-                        }
+        Form {
+            Section {
+                Picker("Type", selection: $selectedType) {
+                    ForEach(CardioType.allCases, id: \.self) { type in
+                        Label(type.rawValue, systemImage: type.icon).tag(type)
                     }
-                } header: {
-                    Text("Activity Type")
+                }
+            } header: {
+                Text("Activity Type")
+            }
+
+            Section {
+                HStack {
+                    Text("Duration")
+                    Spacer()
+                    TextField("0", text: $duration)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text("min")
                 }
 
-                Section {
+                if selectedType == .running || selectedType == .swimming {
                     HStack {
-                        Text("Duration")
+                        Text("Distance")
                         Spacer()
-                        TextField("0", text: $duration)
+                        TextField("0", text: $distance)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 80)
-                        Text("min")
+                        Text(selectedType == .swimming
+                             ? (globalSettings.first?.useMetric == true ? "meters" : "yards")
+                             : unitLabel)
                     }
-
-                    if selectedType == .running || selectedType == .swimming {
-                        HStack {
-                            Text("Distance")
-                            Spacer()
-                            TextField("0", text: $distance)
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
-                                .frame(width: 80)
-                            Text(selectedType == .swimming
-                                 ? (globalSettings.first?.useMetric == true ? "meters" : "yards")
-                                 : unitLabel)
-                        }
-                    }
-
-                    if selectedType == .freeCardio {
-                        TextField("Activity (e.g. Elliptical, Bike)", text: $activityType)
-                            .autocapitalization(.words)
-                    }
-                } header: {
-                    Text("Details")
                 }
 
-                Section {
-                    TextField("Notes (optional)", text: $notes, axis: .vertical)
-                        .lineLimit(3)
-                } header: {
-                    Text("Notes")
+                if selectedType == .freeCardio {
+                    TextField("Activity (e.g. Elliptical, Bike)", text: $activityType)
+                        .autocapitalization(.words)
                 }
+            } header: {
+                Text("Details")
+            }
 
-                Section {
-                    Button(action: logWorkout) {
-                        HStack {
-                            Spacer()
-                            Text("Log Workout")
-                                .fontWeight(.semibold)
-                            Spacer()
-                        }
+            Section {
+                TextField("Notes (optional)", text: $notes, axis: .vertical)
+                    .lineLimit(3)
+            } header: {
+                Text("Notes")
+            }
+
+            Section {
+                Button(action: logWorkout) {
+                    HStack {
+                        Spacer()
+                        Text("Log Workout")
+                            .fontWeight(.semibold)
+                        Spacer()
                     }
-                    .disabled(!isValidInput)
                 }
+                .disabled(!isValidInput)
             }
-            .navigationTitle("Log Cardio")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
-            .sheet(isPresented: $showComplete, onDismiss: { onComplete() }) {
-                WorkoutCompleteView(
-                    title: completionTitle,
-                    lines: completionLines,
-                    onDone: { showComplete = false }
-                )
-            }
-            .alert("Error", isPresented: $showError) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text(errorMessage)
-            }
+        }
+        .navigationTitle("Log Cardio")
+        .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showComplete, onDismiss: { onComplete() }) {
+            WorkoutCompleteView(
+                title: completionTitle,
+                lines: completionLines,
+                onDone: { showComplete = false }
+            )
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
         }
     }
 

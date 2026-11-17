@@ -3,7 +3,6 @@ import SwiftData
 
 struct LogSingleStrengthView: View {
     @Environment(\.modelContext) private var context
-    @Environment(\.dismiss) var dismiss
     @Query private var globalSettings: [GlobalProgressionSettings]
     @Query private var allExercises: [Exercise]
     var onComplete: () -> Void = {}
@@ -35,91 +34,84 @@ struct LogSingleStrengthView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    if !isAddingNewExercise {
-                        if allExercises.isEmpty {
-                            Button("Add New Exercise") { isAddingNewExercise = true }
-                        } else {
-                            Picker("Exercise", selection: $selectedExercise) {
-                                Text("Select...").tag(Optional<Exercise>.none)
-                                ForEach(allExercises.sorted(by: { $0.name < $1.name })) { exercise in
-                                    Text(exercise.name).tag(Optional(exercise))
-                                }
-                            }
-                            Button("+ New Exercise") {
-                                selectedExercise = nil
-                                isAddingNewExercise = true
-                            }
-                            .font(.subheadline)
-                        }
+        Form {
+            Section {
+                if !isAddingNewExercise {
+                    if allExercises.isEmpty {
+                        Button("Add New Exercise") { isAddingNewExercise = true }
                     } else {
-                        TextField("Exercise Name", text: $newExerciseName)
-                            .autocapitalization(.words)
-                        Button("Cancel") {
-                            newExerciseName = ""
-                            isAddingNewExercise = false
+                        Picker("Exercise", selection: $selectedExercise) {
+                            Text("Select...").tag(Optional<Exercise>.none)
+                            ForEach(allExercises.sorted(by: { $0.name < $1.name })) { exercise in
+                                Text(exercise.name).tag(Optional(exercise))
+                            }
+                        }
+                        Button("+ New Exercise") {
+                            selectedExercise = nil
+                            isAddingNewExercise = true
                         }
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
                     }
-                } header: {
-                    Text("Exercise")
+                } else {
+                    TextField("Exercise Name", text: $newExerciseName)
+                        .autocapitalization(.words)
+                    Button("Cancel") {
+                        newExerciseName = ""
+                        isAddingNewExercise = false
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
                 }
+            } header: {
+                Text("Exercise")
+            }
 
-                Section {
+            Section {
+                HStack {
+                    Text("Starting Weight")
+                    Spacer()
+                    TextField("0", text: $startingWeight)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text(unitLabel)
+                }
+            } header: {
+                Text("Weight")
+            } footer: {
+                Text("You'll add sets on the next screen.")
+            }
+
+            Section {
+                Button(action: startWorkout) {
                     HStack {
-                        Text("Starting Weight")
                         Spacer()
-                        TextField("0", text: $startingWeight)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                        Text(unitLabel)
+                        Text("Start Workout")
+                            .fontWeight(.semibold)
+                        Spacer()
                     }
-                } header: {
-                    Text("Weight")
-                } footer: {
-                    Text("You'll add sets on the next screen.")
                 }
-
-                Section {
-                    Button(action: startWorkout) {
-                        HStack {
-                            Spacer()
-                            Text("Start Workout")
-                                .fontWeight(.semibold)
-                            Spacer()
-                        }
-                    }
-                    .disabled(!isValidInput)
-                }
+                .disabled(!isValidInput)
             }
-            .navigationTitle("Single Workout")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
+        }
+        .navigationTitle("Single Workout")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $navigateToLiveWorkout) {
+            if let session = createdSession, let we = createdWorkoutExercise {
+                LiveSingleWorkoutView(
+                    session: session,
+                    workoutExercise: we,
+                    onComplete: onComplete
+                )
             }
-            .navigationDestination(isPresented: $navigateToLiveWorkout) {
-                if let session = createdSession, let we = createdWorkoutExercise {
-                    LiveSingleWorkoutView(
-                        session: session,
-                        workoutExercise: we,
-                        onComplete: onComplete
-                    )
-                }
-            }
-            .onChange(of: navigateToLiveWorkout) { _, isShowing in
-                if !isShowing { removeWorkoutIfNothingLogged() }
-            }
-            .alert("Error", isPresented: $showError) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text(errorMessage)
-            }
+        }
+        .onChange(of: navigateToLiveWorkout) { _, isShowing in
+            if !isShowing { removeWorkoutIfNothingLogged() }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
         }
     }
 

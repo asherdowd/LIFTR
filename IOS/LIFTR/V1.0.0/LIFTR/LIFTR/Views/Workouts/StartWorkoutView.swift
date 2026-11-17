@@ -19,7 +19,7 @@ struct StartWorkoutView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 24) {
                 Text("What do you want to do?")
                     .font(.title2)

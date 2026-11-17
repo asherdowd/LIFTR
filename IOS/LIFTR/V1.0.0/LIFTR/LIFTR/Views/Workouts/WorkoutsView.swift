@@ -25,7 +25,7 @@ struct WorkoutsView: View {
     }
     
     var activeWorkouts: [Workout] {
-        allWorkouts.filter { $0.status == .active }
+        allWorkouts.filter { $0.status == .active && !$0.isEmptyQuickWorkout }
     }
     
     var activeProgressions: [Progression] {

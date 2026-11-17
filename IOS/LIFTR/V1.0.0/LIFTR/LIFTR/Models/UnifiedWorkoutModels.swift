@@ -325,6 +325,22 @@ extension Workout {
 
     var nextDay: WorkoutDay? { nextDay(forWeek: currentWeek) }
 
+    /// A quick strength workout that was opened but has no logged sets yet. It is deleted if the
+    /// owner leaves without logging anything, so it must not be shown as a card in the meantime.
+    var isEmptyQuickWorkout: Bool {
+        var sawQuickExercise = false
+        for day in days {
+            for exercise in day.exercises {
+                if exercise.isCardio || !exercise.isFreeform { return false }
+                sawQuickExercise = true
+                for session in exercise.sessions {
+                    if session.hasLoggedSets { return false }
+                }
+            }
+        }
+        return sawQuickExercise
+    }
+
     /// The session with a running live clock this week (started, not done), if any.
     func runningSession(forWeek week: Int) -> ExerciseSession? {
         for day in days {

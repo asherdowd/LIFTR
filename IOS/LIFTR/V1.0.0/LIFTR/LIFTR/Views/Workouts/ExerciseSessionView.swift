@@ -149,12 +149,6 @@ struct ExerciseSessionView: View {
             completeWorkout()
         }
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Close") {
-                    dismiss()
-                }
-            }
-
             ToolbarItem(placement: .navigationBarTrailing) {
                 if session.startTime != nil {
                     Button("Complete") {

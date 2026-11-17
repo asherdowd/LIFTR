@@ -41,148 +41,146 @@ struct CreateSingleWorkoutView: View {
     @State private var errorMessage = ""
 
     var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Exercise")) {
-                    Picker("Exercise", selection: $selectedPreset) {
-                        ForEach(PresetExercise.allCases) { preset in
-                            Text(preset.rawValue).tag(preset)
-                        }
-                    }
-                    .pickerStyle(.menu)
-
-                    if selectedPreset == .custom {
-                        TextField("Exercise Name", text: $customExerciseName)
-                            .autocapitalization(.words)
+        Form {
+            Section(header: Text("Exercise")) {
+                Picker("Exercise", selection: $selectedPreset) {
+                    ForEach(PresetExercise.allCases) { preset in
+                        Text(preset.rawValue).tag(preset)
                     }
                 }
+                .pickerStyle(.menu)
 
-                Section(header: Text("Progression Style"),
-                        footer: Text(selectedStyle.description)) {
-                    Picker("Style", selection: $selectedStyle) {
-                        ForEach(ProgressionStyle.allCases, id: \.self) { style in
-                            Text(style.rawValue).tag(style)
-                        }
-                    }
-                    .pickerStyle(.segmented)
+                if selectedPreset == .custom {
+                    TextField("Exercise Name", text: $customExerciseName)
+                        .autocapitalization(.words)
                 }
+            }
 
-                Section(header: Text("Weight Parameters")) {
-                    HStack {
-                        Text("Current Max")
-                        Spacer()
-                        TextField("", text: $currentMax)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                        Text(unitLabel)
-                    }
-
-                    HStack {
-                        Text("Target Max")
-                        Spacer()
-                        TextField("", text: $targetMax)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                        Text(unitLabel)
+            Section(header: Text("Progression Style"),
+                    footer: Text(selectedStyle.description)) {
+                Picker("Style", selection: $selectedStyle) {
+                    ForEach(ProgressionStyle.allCases, id: \.self) { style in
+                        Text(style.rawValue).tag(style)
                     }
                 }
+                .pickerStyle(.segmented)
+            }
 
-                Section(header: Text("Duration")) {
-                    HStack {
-                        Text("Total Weeks")
-                        Spacer()
-                        TextField("", text: $totalWeeks)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                        Text("weeks")
-                    }
-
-                    HStack {
-                        Text("Sessions per Week")
-                        Spacer()
-                        TextField("", text: $sessionsPerWeek)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                        Text("sessions")
-                    }
+            Section(header: Text("Weight Parameters")) {
+                HStack {
+                    Text("Current Max")
+                    Spacer()
+                    TextField("", text: $currentMax)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text(unitLabel)
                 }
 
-                Section(header: Text("Workout Structure")) {
-                    HStack {
-                        Text("Sets per Session")
-                        Spacer()
-                        TextField("", text: $setsPerWorkout)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                        Text("sets")
-                    }
+                HStack {
+                    Text("Target Max")
+                    Spacer()
+                    TextField("", text: $targetMax)
+                        .keyboardType(.decimalPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text(unitLabel)
+                }
+            }
 
-                    HStack {
-                        Text("Reps per Set")
-                        Spacer()
-                        TextField("", text: $repsPerSet)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                        Text("reps")
-                    }
+            Section(header: Text("Duration")) {
+                HStack {
+                    Text("Total Weeks")
+                    Spacer()
+                    TextField("", text: $totalWeeks)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text("weeks")
                 }
 
-                if isValidInput {
-                    Section(header: Text("Preview")) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Starting Weight:")
-                                Spacer()
-                                Text("\(Int(calculatedStartingWeight)) \(unitLabel)")
-                                    .fontWeight(.semibold)
-                            }
-                            HStack {
-                                Text("Weekly Increase:")
-                                Spacer()
-                                Text("\(String(format: "%.1f", calculatedWeeklyIncrease)) \(unitLabel)")
-                                    .fontWeight(.semibold)
-                            }
-                            HStack {
-                                Text("Total Sessions:")
-                                Spacer()
-                                Text("\(calculatedTotalSessions)")
-                                    .fontWeight(.semibold)
-                            }
-                        }
-                        .font(.subheadline)
-                    }
+                HStack {
+                    Text("Sessions per Week")
+                    Spacer()
+                    TextField("", text: $sessionsPerWeek)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text("sessions")
+                }
+            }
+
+            Section(header: Text("Workout Structure")) {
+                HStack {
+                    Text("Sets per Session")
+                    Spacer()
+                    TextField("", text: $setsPerWorkout)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text("sets")
                 }
 
-                Section {
-                    Button(action: createWorkout) {
+                HStack {
+                    Text("Reps per Set")
+                    Spacer()
+                    TextField("", text: $repsPerSet)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80)
+                    Text("reps")
+                }
+            }
+
+            if isValidInput {
+                Section(header: Text("Preview")) {
+                    VStack(alignment: .leading, spacing: 8) {
                         HStack {
+                            Text("Starting Weight:")
                             Spacer()
-                            Text("Create Workout")
+                            Text("\(Int(calculatedStartingWeight)) \(unitLabel)")
                                 .fontWeight(.semibold)
+                        }
+                        HStack {
+                            Text("Weekly Increase:")
                             Spacer()
+                            Text("\(String(format: "%.1f", calculatedWeeklyIncrease)) \(unitLabel)")
+                                .fontWeight(.semibold)
+                        }
+                        HStack {
+                            Text("Total Sessions:")
+                            Spacer()
+                            Text("\(calculatedTotalSessions)")
+                                .fontWeight(.semibold)
                         }
                     }
-                    .disabled(!isValidInput)
+                    .font(.subheadline)
                 }
             }
-            .navigationTitle("Single Workout")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+
+            Section {
+                Button(action: createWorkout) {
+                    HStack {
+                        Spacer()
+                        Text("Create Workout")
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
                 }
+                .disabled(!isValidInput)
             }
-            .alert("Error", isPresented: $showError) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text(errorMessage)
+        }
+        .navigationTitle("Single Workout")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Cancel") { dismiss() }
             }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
         }
     }
 

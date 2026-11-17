@@ -1126,4 +1126,17 @@ final class LiftrTests: XCTestCase {
         sessions[0].completed = true
         XCTAssertNil(workout.runningSession(forWeek: 1))
     }
+
+    @MainActor func testEmptyQuickWorkoutIsHiddenUntilASetIsLogged() throws {
+        let context = container.mainContext
+        let (workout, workoutExercise, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+
+        XCTAssertFalse(workout.isEmptyQuickWorkout, "A program workout is never an empty quick workout")
+
+        workoutExercise.targetSets = 0   // quick (freeform) workout
+        XCTAssertTrue(workout.isEmptyQuickWorkout)
+
+        addSet(to: sessions[0], number: 1, reps: 5, weight: 100, in: context)
+        XCTAssertFalse(workout.isEmptyQuickWorkout, "Once a set is logged the workout is kept and shown")
+    }
 }
