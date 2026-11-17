@@ -6,37 +6,74 @@ import SwiftData
 // with the clock and a single Pause / Resume once it runs, and the "Still working out?" prompt.
 
 /// Pinned at the top while a session is running. The only Pause on the screen: it pauses the clock.
+/// While a rest is running a second row shows the rest countdown with +15s and Skip.
 struct LiveSessionHeader: View {
     @Environment(\.modelContext) private var context
     let session: ExerciseSession
+    @ObservedObject var rest: RestTimerController
 
     private var isPaused: Bool { LiveSessionClock.isPaused(session) }
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                TimelineView(.periodic(from: .now, by: 1)) { timeline in
-                    Text(LiveSessionClock.format(LiveSessionClock.elapsed(session, now: timeline.date)))
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .monospacedDigit()
+        VStack(spacing: 10) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                        Text(LiveSessionClock.format(LiveSessionClock.elapsed(session, now: timeline.date)))
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                    }
+                    Text(isPaused ? "Paused" : "Elapsed")
+                        .font(.caption)
+                        .foregroundColor(isPaused ? .orange : .secondary)
                 }
-                Text(isPaused ? "Paused" : "Elapsed")
-                    .font(.caption)
-                    .foregroundColor(isPaused ? .orange : .secondary)
+
+                Spacer()
+
+                Button(action: togglePause) {
+                    Label(isPaused ? "Resume" : "Pause", systemImage: isPaused ? "play.fill" : "pause.fill")
+                        .fontWeight(.semibold)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(isPaused ? .green : .orange)
             }
 
-            Spacer()
-
-            Button(action: togglePause) {
-                Label(isPaused ? "Resume" : "Pause", systemImage: isPaused ? "play.fill" : "pause.fill")
-                    .fontWeight(.semibold)
+            if let clock = rest.clock {
+                restRow(clock: clock)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(isPaused ? .green : .orange)
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
         .background(.bar)
+    }
+
+    @ViewBuilder
+    private func restRow(clock: RestClock) -> some View {
+        if rest.phase == .finished {
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                Text("Rest over")
+                    .fontWeight(.semibold)
+                Spacer()
+            }
+        } else {
+            TimelineView(.periodic(from: .now, by: 0.5)) { timeline in
+                HStack(spacing: 12) {
+                    Text("Rest")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(RestClock.format(clock.remaining(at: timeline.date)))
+                        .font(.title3.weight(.bold))
+                        .monospacedDigit()
+                    ProgressView(value: clock.progress(at: timeline.date))
+                    Button("+15s") { rest.addTime() }
+                        .buttonStyle(.bordered)
+                    Button("Skip") { rest.skip() }
+                        .buttonStyle(.bordered)
+                }
+            }
+        }
     }
 
     private func togglePause() {

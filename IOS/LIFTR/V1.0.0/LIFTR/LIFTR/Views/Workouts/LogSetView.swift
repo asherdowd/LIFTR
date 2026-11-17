@@ -1,31 +1,18 @@
 import SwiftUI
 import SwiftData
-import AVFoundation
 
 struct LogSetView: View {
     @Environment(\.dismiss) var dismiss
     @Bindable var set: WorkoutSet
     let trackRPE: Bool
-    let exerciseName: String
-    let totalSets: Int
+    /// Called after a set is saved. The live screen starts the rest timer from here.
+    var onSaved: (WorkoutSet) -> Void = { _ in }
     
     @State private var repsCompleted: String = ""
     @State private var weightUsed: String = ""
     @State private var rpeValue: Double = 7
     @State private var notes: String = ""
     @Environment(\.modelContext) private var context
-    @Query private var globalSettings: [GlobalProgressionSettings]
-
-    @State private var showRestTimer = false
-
-    var currentSettings: GlobalProgressionSettings {
-        globalSettings.first ?? GlobalProgressionSettings()
-    }
-    
-    var setInfo: String {
-        "Set \(set.setNumber) of \(totalSets)"
-    }
-    
     var body: some View {
         NavigationView {
             Form {
@@ -103,21 +90,6 @@ struct LogSetView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showRestTimer) {
-                RestTimerView(
-                    defaultDuration: currentSettings.defaultRestTime,
-                    exerciseName: exerciseName,
-                    setInfo: setInfo,
-                    autoStart: currentSettings.autoStartRestTimer,
-                    playSound: currentSettings.restTimerSound,
-                    enableHaptic: currentSettings.restTimerHaptic,
-                    onComplete: {
-                        // Timer complete rest tapped - dismiss LogSetView
-                        // timer already dismisses itself, this dismisses LogSetView
-                        dismiss()
-                    }
-                )
-            }
             .onAppear {
                 if let actualReps = set.actualReps {
                     repsCompleted = String(actualReps)
@@ -145,10 +117,7 @@ struct LogSetView: View {
         
         try? context.save()
         
-        if currentSettings.autoStartRestTimer {
-            showRestTimer = true
-        } else {
-            dismiss()
-        }
+        onSaved(set)
+        dismiss()
     }
 }

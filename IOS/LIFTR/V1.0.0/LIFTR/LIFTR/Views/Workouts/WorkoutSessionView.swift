@@ -140,11 +140,10 @@ struct WorkoutSessionView: View {
         }
         
         .sheet(item: $selectedSet) { set in
+            // Legacy progression screen (removed at step 9): no live header, so no rest timer here.
             LogSetView(
                 set: set,
-                trackRPE: currentSettings.trackRPE,
-                exerciseName: progression.exerciseName,
-                totalSets: session.plannedSets
+                trackRPE: currentSettings.trackRPE
             )
         }
         .sheet(isPresented: $showCalculator) {

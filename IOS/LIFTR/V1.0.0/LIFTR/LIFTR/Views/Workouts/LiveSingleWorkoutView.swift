@@ -13,6 +13,7 @@ struct LiveSingleWorkoutView: View {
     @State private var selectedSet: WorkoutSet?
     @State private var showCalculator = false
     @State private var showComplete = false
+    @StateObject private var rest = RestTimerController()
 
     private var unitLabel: String {
         globalSettings.first?.useMetric == true ? "kg" : "lbs"
@@ -119,7 +120,7 @@ struct LiveSingleWorkoutView: View {
         }
         .safeAreaInset(edge: .top, spacing: 0) {
             if LiveSessionClock.isRunningSession(session) {
-                LiveSessionHeader(session: session)
+                LiveSessionHeader(session: session, rest: rest)
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -137,6 +138,8 @@ struct LiveSingleWorkoutView: View {
             }
         }
         .onDisappear {
+            // The rest timer belongs to this screen.
+            rest.stop()
             // Left a started session without finishing it: mark it in progress so the
             // Resume card and the day screen show it. The clock keeps running.
             if LiveSessionClock.isRunningSession(session) {
@@ -163,8 +166,13 @@ struct LiveSingleWorkoutView: View {
             LogSetView(
                 set: set,
                 trackRPE: globalSettings.first?.trackRPE ?? false,
-                exerciseName: workoutExercise.exercise.name,
-                totalSets: session.sets.count
+                onSaved: { savedSet in
+                    rest.startAfterSet(
+                        settings: globalSettings.first ?? GlobalProgressionSettings(),
+                        exerciseName: workoutExercise.exercise.name,
+                        setInfo: "Set \(savedSet.setNumber)"
+                    )
+                }
             )
         }
         .sheet(isPresented: $showCalculator) {

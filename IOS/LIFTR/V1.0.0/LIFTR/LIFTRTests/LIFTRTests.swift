@@ -1139,4 +1139,39 @@ final class LiftrTests: XCTestCase {
         addSet(to: sessions[0], number: 1, reps: 5, weight: 100, in: context)
         XCTAssertFalse(workout.isEmptyQuickWorkout, "Once a set is logged the workout is kept and shown")
     }
+
+    // MARK: - Rest clock (step 3, 2026-11-17)
+
+    func testRestClockRemainingProgressAndFinish() throws {
+        let t0 = Date(timeIntervalSince1970: 2_000_000)
+        let clock = RestClock(startedAt: t0, duration: 90)
+
+        XCTAssertEqual(clock.totalSeconds, 90, accuracy: 0.001)
+        XCTAssertEqual(clock.remaining(at: t0), 90, accuracy: 0.001)
+        XCTAssertEqual(clock.remaining(at: t0.addingTimeInterval(30)), 60, accuracy: 0.001)
+        XCTAssertEqual(clock.progress(at: t0), 0, accuracy: 0.001)
+        XCTAssertEqual(clock.progress(at: t0.addingTimeInterval(45)), 0.5, accuracy: 0.001)
+        XCTAssertFalse(clock.isFinished(at: t0.addingTimeInterval(89.9)))
+        XCTAssertTrue(clock.isFinished(at: t0.addingTimeInterval(90)))
+
+        // Never negative, never past 1, even long after the end (app was suspended)
+        XCTAssertEqual(clock.remaining(at: t0.addingTimeInterval(500)), 0, accuracy: 0.001)
+        XCTAssertEqual(clock.progress(at: t0.addingTimeInterval(500)), 1, accuracy: 0.001)
+    }
+
+    func testRestClockAddTimeAndFormat() throws {
+        let t0 = Date(timeIntervalSince1970: 2_000_000)
+        let clock = RestClock(startedAt: t0, duration: 60).adding(15)
+
+        XCTAssertEqual(clock.totalSeconds, 75, accuracy: 0.001)
+        XCTAssertEqual(clock.remaining(at: t0.addingTimeInterval(10)), 65, accuracy: 0.001)
+        XCTAssertFalse(clock.isFinished(at: t0.addingTimeInterval(60)), "Added time moves the end")
+        XCTAssertTrue(clock.isFinished(at: t0.addingTimeInterval(75)))
+
+        // Rounds up so 0:00 only shows when the rest is really over
+        XCTAssertEqual(RestClock.format(72), "1:12")
+        XCTAssertEqual(RestClock.format(0.2), "0:01")
+        XCTAssertEqual(RestClock.format(0), "0:00")
+        XCTAssertEqual(RestClock.format(180), "3:00")
+    }
 }

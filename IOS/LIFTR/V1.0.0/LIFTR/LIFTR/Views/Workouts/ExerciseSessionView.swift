@@ -15,6 +15,7 @@ struct ExerciseSessionView: View {
     @State private var adjustmentRecommendation: ProgressionAdjustment?
     @State private var selectedSet: WorkoutSet?
     @State private var showComplete = false
+    @StateObject private var rest = RestTimerController()
 
     var currentSettings: GlobalProgressionSettings {
         globalSettings.first ?? GlobalProgressionSettings()
@@ -119,7 +120,7 @@ struct ExerciseSessionView: View {
         }
         .safeAreaInset(edge: .top, spacing: 0) {
             if isRunning {
-                LiveSessionHeader(session: session)
+                LiveSessionHeader(session: session, rest: rest)
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -137,6 +138,8 @@ struct ExerciseSessionView: View {
             }
         }
         .onDisappear {
+            // The rest timer belongs to this screen.
+            rest.stop()
             // Left a started session without finishing it: mark it in progress so the
             // Resume card and the day screen show it. The clock keeps running.
             if isRunning {
@@ -162,8 +165,13 @@ struct ExerciseSessionView: View {
             LogSetView(
                 set: set,
                 trackRPE: currentSettings.trackRPE,
-                exerciseName: workoutExercise.exercise.name,
-                totalSets: session.plannedSets
+                onSaved: { savedSet in
+                    rest.startAfterSet(
+                        settings: currentSettings,
+                        exerciseName: workoutExercise.exercise.name,
+                        setInfo: "Set \(savedSet.setNumber) of \(session.plannedSets)"
+                    )
+                }
             )
         }
         .sheet(isPresented: $showCalculator) {
