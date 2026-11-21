@@ -458,3 +458,11 @@ Next: step 6 (GPS distance, stored route, live map, live elevation). Places list
 
 ## Decision 2026-11-21 (owner, 10:56): TestFlight build
 - App Store Connect shows 1.2.1 build 38 (expired) as the highest. Build number bumped to 39 on the app target and RestTimerWidgetExtension (both configurations). Display name is Iron Pilled; bundle ID unchanged. App icon: the existing brain image (AppIcon.appiconset, flat, dark and tinted) stays for now; no icon change needed. Ready to archive.
+
+## To-do (owner, 2026-11-21 11:00): declutter the Home screen (not started, needs a places list and confirmation before coding)
+- Move "Recent workouts" off Home onto the Strength and Cardio screens (one each), and remove it from Home entirely.
+- Home keeps only an Upcoming section, split under the Upcoming header by Strength and Cardio subheaders.
+- New global setting: how many upcoming workouts to show; default 1 per category (strength, cardio).
+- Under Upcoming: a large, obvious "Start Workout" button that opens the Workouts tab.
+- Likely places to check: Home view, WorkoutsView (Strength and Cardio segments), Settings (global setting, GlobalProgressionSettings or a new store: model change needs the migration check), tests, docs.
+- Open questions to ask before coding: what "upcoming" means for strength vs cardio (next program day vs planned cardio); where the setting lives in Settings; whether live (In Progress) workouts stay on Home above Upcoming.
