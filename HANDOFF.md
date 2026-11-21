@@ -450,3 +450,8 @@ Next: step 6 (GPS distance, stored route, live map, live elevation). Places list
 - Behavior to confirm: recording is app-wide, so GPS keeps recording if the live screen is left (Lock Screen activity ends, as before). Route Section on the finished-workout detail screen.
 - Expected unit tests: 57. Cloud cannot compile or test GPS: owner to paste first build error and run outdoor checks (section J of the test page).
 - Open: App Store privacy answers (precise location, stored on device, not linked/tracked).
+
+## Owner notes 2026-11-21 (10:50)
+- Step 6 build e3ef6fe: unit tests 57, no failures. Outdoor checks (test page section J) deferred until the owner can walk around.
+- To-do later (not scheduled, not launch-blocking unless re-opened): swipe left to delete on the workout lists, to clear old data. Needs a places list and confirmation before coding. GitHub issue to be created at the end-of-session sweep.
+- Owner wants to distribute via TestFlight and start the Iron Pilled rename and new logos now. Pending: build number check in App Store Connect (pbxproj still has 38 on the app target) and rename scope (visible name only vs bundle ID too), which decides whether to upload before or after the rename.
