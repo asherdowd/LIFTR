@@ -466,3 +466,8 @@ Next: step 6 (GPS distance, stored route, live map, live elevation). Places list
 - Under Upcoming: a large, obvious "Start Workout" button that opens the Workouts tab.
 - Likely places to check: Home view, WorkoutsView (Strength and Cardio segments), Settings (global setting, GlobalProgressionSettings or a new store: model change needs the migration check), tests, docs.
 - Open questions to ask before coding: what "upcoming" means for strength vs cardio (next program day vs planned cardio); where the setting lives in Settings; whether live (In Progress) workouts stay on Home above Upcoming.
+
+## TestFlight build 39 (2026-11-21, 11:12)
+- Archived from f1cc0df (version 1.2.1, build 39), uploaded with an Apple warning that the iOS 26.0 SDK will no longer be accepted from April 2027 (Xcode 27 or later needed). Not blocking now. To do before April 2027: update Xcode, run unit tests and a manual pass.
+- App Store Connect app name changed to Iron Pilled by the owner. Export compliance (Missing Compliance) answered by the owner; app has no network or custom encryption code. `ITSAppUsesNonExemptEncryption` offered, not added (awaiting owner answer).
+- Installed from TestFlight on a second phone (fresh install): launches fine, name correct. This does NOT test #43 (migration from the build 38 store); that needs an install over existing build 38 data.
