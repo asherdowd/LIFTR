@@ -1174,4 +1174,58 @@ final class LiftrTests: XCTestCase {
         XCTAssertEqual(RestClock.format(0), "0:00")
         XCTAssertEqual(RestClock.format(180), "3:00")
     }
+
+    // MARK: - Session Live Activity (step 4, 2026-11-21)
+
+    @MainActor func testActivityClockStartKeepsLockScreenClockEqualToElapsed() throws {
+        let context = container.mainContext
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        let session = sessions[0]
+        let t0 = clockStart
+
+        LiveSessionClock.start(session, now: t0)
+        LiveSessionClock.pause(session, now: t0.addingTimeInterval(600))
+        LiveSessionClock.resume(session, now: t0.addingTimeInterval(900))   // 300 s paused
+
+        // The Lock Screen counts up from this date: it must equal the in-app elapsed time.
+        let origin = LiveSessionClock.activityClockStart(session)
+        XCTAssertEqual(origin, t0.addingTimeInterval(300))
+        let probe = t0.addingTimeInterval(1500)
+        XCTAssertEqual(probe.timeIntervalSince(origin), LiveSessionClock.elapsed(session, now: probe), accuracy: 0.001)
+
+        // While paused the Lock Screen freezes at pausedAt: same value as the frozen in-app clock.
+        LiveSessionClock.pause(session, now: t0.addingTimeInterval(1500))
+        let frozenAt = try XCTUnwrap(session.pausedAt)
+        XCTAssertEqual(frozenAt.timeIntervalSince(LiveSessionClock.activityClockStart(session)),
+                       LiveSessionClock.elapsed(session, now: t0.addingTimeInterval(9_999)), accuracy: 0.001)
+    }
+
+    func testSessionActivityStateFlagsAndRanges() throws {
+        let t0 = Date(timeIntervalSince1970: 3_000_000)
+        var state = RestTimerAttributes.ContentState(
+            clockStart: t0,
+            pausedAt: nil,
+            progressText: "2 of 5 sets",
+            restStart: nil,
+            restEnd: nil,
+            restOver: false
+        )
+        XCTAssertFalse(state.isResting)
+        XCTAssertFalse(state.isPaused)
+        XCTAssertEqual(state.clockRange.lowerBound, t0)
+
+        state.restStart = t0.addingTimeInterval(100)
+        state.restEnd = t0.addingTimeInterval(190)
+        XCTAssertTrue(state.isResting)
+        XCTAssertEqual(state.restRange.upperBound.timeIntervalSince(state.restRange.lowerBound), 90, accuracy: 0.001)
+
+        // "Rest over" is not "resting"
+        state.restOver = true
+        XCTAssertFalse(state.isResting)
+
+        state.pausedAt = t0.addingTimeInterval(50)
+        XCTAssertTrue(state.isPaused)
+        XCTAssertEqual(RestTimerAttributes.strengthType, "Strength")
+        XCTAssertEqual(RestTimerAttributes.cardioType, "Cardio")
+    }
 }

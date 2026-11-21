@@ -14,6 +14,7 @@ struct LiveSingleWorkoutView: View {
     @State private var showCalculator = false
     @State private var showComplete = false
     @StateObject private var rest = RestTimerController()
+    @StateObject private var activity = SessionActivityController()
 
     private var unitLabel: String {
         globalSettings.first?.useMetric == true ? "kg" : "lbs"
@@ -25,9 +26,23 @@ struct LiveSingleWorkoutView: View {
 
     private var needsStart: Bool { LiveSessionClock.needsStart(session) }
 
+    private var progressText: String {
+        return "\(completedSetsCount) sets"
+    }
+
+    private func beginActivity() {
+        activity.begin(
+            workoutType: RestTimerAttributes.strengthType,
+            name: workoutExercise.exercise.name,
+            progress: progressText,
+            session: session
+        )
+    }
+
     private func startSession() {
         LiveSessionClock.start(session)
         try? context.save()
+        beginActivity()
     }
 
     private var lastCompletedWeight: Double? {
@@ -131,15 +146,22 @@ struct LiveSingleWorkoutView: View {
         .navigationTitle("Workout")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            rest.attach(activity)
             // Back on the screen: the session is no longer "away" (see onDisappear).
             if session.paused {
                 session.paused = false
                 try? context.save()
             }
+            // Returning to a session that is still running: bring the Lock Screen activity back.
+            if LiveSessionClock.isRunningSession(session) { beginActivity() }
+        }
+        .onChange(of: session.pausedAt) { _, _ in
+            activity.sync(session: session)
         }
         .onDisappear {
-            // The rest timer belongs to this screen.
+            // The rest timer and the Lock Screen activity belong to this screen.
             rest.stop()
+            activity.end()
             // Left a started session without finishing it: mark it in progress so the
             // Resume card and the day screen show it. The clock keeps running.
             if LiveSessionClock.isRunningSession(session) {
@@ -167,6 +189,7 @@ struct LiveSingleWorkoutView: View {
                 set: set,
                 trackRPE: globalSettings.first?.trackRPE ?? false,
                 onSaved: { savedSet in
+                    activity.setProgress(progressText)
                     rest.startAfterSet(
                         settings: globalSettings.first ?? GlobalProgressionSettings(),
                         exerciseName: workoutExercise.exercise.name,
@@ -214,6 +237,8 @@ struct LiveSingleWorkoutView: View {
         session.plannedSets = completedSetsCount
         DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
         try? context.save()
+        rest.stop()
+        activity.end()
         showComplete = true
     }
 }

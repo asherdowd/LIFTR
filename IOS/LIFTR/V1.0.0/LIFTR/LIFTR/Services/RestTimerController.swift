@@ -1,6 +1,5 @@
 import Foundation
 import Combine
-import ActivityKit
 import AVFoundation
 import UIKit
 @preconcurrency import UserNotifications
@@ -8,7 +7,7 @@ import UIKit
 // MARK: - Rest Timer Controller
 // One rest timer per live workout screen. The screen owns it, the pinned header shows it.
 // Date based (see RestClock): it survives the app being suspended. While resting it also
-//  - mirrors the countdown to the Lock Screen Live Activity, and
+//  - reports the countdown to the session's Lock Screen Live Activity, and
 //  - schedules a local notification for the end, so a locked phone still alerts.
 // Sound and haptic fire at the end only when the app is open and the end just happened.
 
@@ -25,7 +24,7 @@ final class RestTimerController: ObservableObject {
     @Published private(set) var clock: RestClock?
 
     private var ticker: Timer?
-    private var activity: Activity<RestTimerAttributes>?
+    private weak var sessionActivity: SessionActivityController?
     private var audioPlayer: AVAudioPlayer?
     private var playSound = true
     private var enableHaptic = true
@@ -38,6 +37,11 @@ final class RestTimerController: ObservableObject {
     private let addTimeSeconds: TimeInterval = 15
 
     // MARK: - Controls
+
+    /// The screen's session activity, which shows the rest countdown on the Lock Screen.
+    func attach(_ activity: SessionActivityController) {
+        sessionActivity = activity
+    }
 
     /// Starts a rest after a set is saved, if the owner has auto-start on.
     func startAfterSet(settings: GlobalProgressionSettings, exerciseName: String, setInfo: String) {
@@ -52,7 +56,7 @@ final class RestTimerController: ObservableObject {
     }
 
     func start(duration: TimeInterval, exerciseName: String, setInfo: String, playSound: Bool, enableHaptic: Bool) {
-        teardown(endActivityImmediately: true)
+        teardown(clearActivity: false)
 
         self.exerciseName = exerciseName.isEmpty ? "Exercise" : exerciseName
         self.setInfo = setInfo.isEmpty ? "Rest" : setInfo
@@ -64,7 +68,7 @@ final class RestTimerController: ObservableObject {
         phase = .resting
 
         startTicker()
-        startLiveActivity(clock: newClock)
+        sessionActivity?.setRest(start: newClock.startedAt, end: newClock.endsAt)
         scheduleNotification(clock: newClock)
     }
 
@@ -73,13 +77,13 @@ final class RestTimerController: ObservableObject {
         guard phase == .resting, let current = clock else { return }
         let extended = current.adding(addTimeSeconds)
         clock = extended
-        updateLiveActivity(clock: extended)
+        sessionActivity?.setRest(start: extended.startedAt, end: extended.endsAt)
         scheduleNotification(clock: extended)
     }
 
     /// Skip: ends the rest now, with no sound.
     func skip() {
-        teardown(endActivityImmediately: true)
+        teardown(clearActivity: true)
         clock = nil
         phase = .idle
     }
@@ -123,7 +127,7 @@ final class RestTimerController: ObservableObject {
                 generator.notificationOccurred(.success)
             }
         }
-        completeLiveActivity(clock: finished)
+        sessionActivity?.restFinished()
 
         let linger: TimeInterval = finishedLinger
         Task { @MainActor [weak self] in
@@ -131,14 +135,15 @@ final class RestTimerController: ObservableObject {
             guard let self = self, self.phase == .finished else { return }
             self.clock = nil
             self.phase = .idle
+            self.sessionActivity?.clearRest()
         }
     }
 
-    private func teardown(endActivityImmediately: Bool) {
+    private func teardown(clearActivity: Bool) {
         ticker?.invalidate()
         ticker = nil
         removeNotification()
-        if endActivityImmediately { endLiveActivity() }
+        if clearActivity { sessionActivity?.clearRest() }
     }
 
     // MARK: - Sound
@@ -199,57 +204,5 @@ final class RestTimerController: ObservableObject {
     private func removeNotification() {
         let center = UNUserNotificationCenter.current()
         center.removePendingNotificationRequests(withIdentifiers: [notificationID])
-    }
-
-    // MARK: - Live Activity (Lock Screen / Dynamic Island mirror)
-
-    private func startLiveActivity(clock: RestClock) {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
-
-        let attributes = RestTimerAttributes(exerciseName: exerciseName, setInfo: setInfo)
-        let state = RestTimerAttributes.ContentState.initial(duration: clock.totalSeconds)
-        do {
-            activity = try Activity.request(
-                attributes: attributes,
-                content: .init(state: state, staleDate: nil),
-                pushType: nil
-            )
-        } catch {
-            // The Live Activity is optional: the rest continues without it.
-        }
-    }
-
-    private func updateLiveActivity(clock: RestClock) {
-        guard let activity = activity else { return }
-        let state = RestTimerAttributes.ContentState.running(
-            originalStart: clock.startedAt,
-            totalDuration: Int(clock.totalSeconds),
-            timeRemaining: Int(clock.remaining(at: Date()).rounded(.up))
-        )
-        Task {
-            await activity.update(.init(state: state, staleDate: nil))
-        }
-    }
-
-    private func completeLiveActivity(clock: RestClock) {
-        guard let activity = activity else { return }
-        let state = RestTimerAttributes.ContentState.completed(
-            originalStart: clock.startedAt,
-            totalDuration: Int(clock.totalSeconds)
-        )
-        self.activity = nil
-        Task {
-            await activity.update(.init(state: state, staleDate: nil))
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
-            await activity.end(.init(state: state, staleDate: nil), dismissalPolicy: .default)
-        }
-    }
-
-    private func endLiveActivity() {
-        guard let activity = activity else { return }
-        self.activity = nil
-        Task {
-            await activity.end(nil, dismissalPolicy: .immediate)
-        }
     }
 }

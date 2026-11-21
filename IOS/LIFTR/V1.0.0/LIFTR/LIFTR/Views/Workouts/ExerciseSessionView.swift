@@ -16,6 +16,7 @@ struct ExerciseSessionView: View {
     @State private var selectedSet: WorkoutSet?
     @State private var showComplete = false
     @StateObject private var rest = RestTimerController()
+    @StateObject private var activity = SessionActivityController()
 
     var currentSettings: GlobalProgressionSettings {
         globalSettings.first ?? GlobalProgressionSettings()
@@ -131,15 +132,22 @@ struct ExerciseSessionView: View {
         .navigationTitle("Active Workout")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            rest.attach(activity)
             // Back on the screen: the session is no longer "away" (see onDisappear).
             if session.paused {
                 session.paused = false
                 try? context.save()
             }
+            // Returning to a session that is still running: bring the Lock Screen activity back.
+            if isRunning { beginActivity() }
+        }
+        .onChange(of: session.pausedAt) { _, _ in
+            activity.sync(session: session)
         }
         .onDisappear {
-            // The rest timer belongs to this screen.
+            // The rest timer and the Lock Screen activity belong to this screen.
             rest.stop()
+            activity.end()
             // Left a started session without finishing it: mark it in progress so the
             // Resume card and the day screen show it. The clock keeps running.
             if isRunning {
@@ -166,6 +174,7 @@ struct ExerciseSessionView: View {
                 set: set,
                 trackRPE: currentSettings.trackRPE,
                 onSaved: { savedSet in
+                    activity.setProgress(progressText)
                     rest.startAfterSet(
                         settings: currentSettings,
                         exerciseName: workoutExercise.exercise.name,
@@ -210,9 +219,23 @@ struct ExerciseSessionView: View {
     private var needsStart: Bool { LiveSessionClock.needsStart(session) }
     private var isRunning: Bool { LiveSessionClock.isRunningSession(session) }
 
+    private var progressText: String {
+        return "\(completedSetsCount) of \(session.plannedSets) sets"
+    }
+
+    private func beginActivity() {
+        activity.begin(
+            workoutType: RestTimerAttributes.strengthType,
+            name: workoutExercise.exercise.name,
+            progress: progressText,
+            session: session
+        )
+    }
+
     private func startSession() {
         LiveSessionClock.start(session)
         try? context.save()
+        beginActivity()
     }
 
     private func completeWorkout() {
@@ -238,6 +261,8 @@ struct ExerciseSessionView: View {
             DeloadAdjustmentService.applyAdjustment(adjustment, session: session, workoutExercise: workoutExercise, settings: currentSettings)
         }
         try? context.save()
+        rest.stop()
+        activity.end()
         showComplete = true
     }
 }

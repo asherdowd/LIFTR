@@ -1,113 +1,61 @@
 import Foundation
 import ActivityKit
 
-// MARK: - Rest Timer Live Activity Attributes
+// MARK: - Session Live Activity attributes
+// One Live Activity covers a whole live workout session (Strength or Cardio): the session clock
+// between sets, and the rest countdown while resting. The type keeps its original name because
+// this file is shared by the app and the widget extension through project membership.
+//
+// Everything on the Lock Screen counts from DATES, so the system keeps the clock and the rest
+// countdown running with no app updates. The app only pushes an update when something changes:
+// pause, resume, a set saved, a rest starting, +15s, skip, or rest over.
 
-/// Attributes for the rest timer Live Activity
-/// This struct defines the data that will be displayed in the lock screen and Dynamic Island
 struct RestTimerAttributes: ActivityAttributes {
-    
-    // MARK: - Static Attributes (Don't Change During Activity)
-    
-    /// The exercise name (e.g., "Squat", "Bench Press")
+
+    /// Static for the whole activity.
+    /// "Strength" or "Cardio".
+    var workoutType: String
+
+    /// Exercise or activity name, e.g. "Squat" or "Running".
     var exerciseName: String
-    
-    /// Set number (e.g., "Set 3 of 5")
-    var setInfo: String
-    
-    // MARK: - Dynamic Content State (Changes During Activity)
-    
+
     public struct ContentState: Codable, Hashable {
-        /// The time when the timer originally started (never changes, used for progress)
-        var originalStartTime: Date
-        
-        /// The total duration of the timer in seconds (never changes, used for progress)
-        var totalDuration: Int
-        
-        /// The time when the current interval started (for countdown display)
-        var startTime: Date
-        
-        /// The time when the timer will end (for countdown display)
-        var endTime: Date
-        
-        /// Current state of the timer
-        var timerState: TimerState
-        
-        /// Time remaining in seconds when paused (stores exact value to prevent recalculation)
-        var pausedTimeRemaining: Int?
-    }
-    
-    // MARK: - Timer State
-    
-    enum TimerState: String, Codable, Hashable {
-        case running = "Running"
-        case paused = "Paused"
-        case completed = "Completed"
+        /// Session clock start shifted by paused time: elapsed = now - clockStart.
+        var clockStart: Date
+
+        /// Set while the session clock is paused: the clock stays frozen at this moment.
+        var pausedAt: Date?
+
+        /// "2 of 5 sets", "3 sets" or empty (cardio).
+        var progressText: String
+
+        /// Rest countdown window. nil when not resting.
+        var restStart: Date?
+        var restEnd: Date?
+
+        /// True for a short moment when a rest has just ended ("Rest over").
+        var restOver: Bool
     }
 }
 
-// MARK: - Helper Extensions
-
 extension RestTimerAttributes {
-    /// Create attributes for a new rest timer
-    static func create(exerciseName: String, setInfo: String, duration: TimeInterval) -> RestTimerAttributes {
-        RestTimerAttributes(
-            exerciseName: exerciseName,
-            setInfo: setInfo
-        )
-    }
+    static let strengthType = "Strength"
+    static let cardioType = "Cardio"
 }
 
 extension RestTimerAttributes.ContentState {
-    /// Create initial content state for a timer
-    static func initial(duration: TimeInterval) -> RestTimerAttributes.ContentState {
-        let now = Date()
-        return RestTimerAttributes.ContentState(
-            originalStartTime: now,
-            totalDuration: Int(duration),
-            startTime: now,
-            endTime: now.addingTimeInterval(duration),
-            timerState: .running,
-            pausedTimeRemaining: nil
-        )
+    var isResting: Bool { restStart != nil && restEnd != nil && !restOver }
+    var isPaused: Bool { pausedAt != nil }
+
+    /// Range for the system-driven elapsed clock (counts up, freezes at pausedAt).
+    var clockRange: ClosedRange<Date> {
+        return clockStart...clockStart.addingTimeInterval(24 * 3600)
     }
-    
-    /// Create paused state with frozen time
-    static func paused(originalStart: Date, totalDuration: Int, timeRemaining: Int) -> RestTimerAttributes.ContentState {
-        let now = Date()
-        return RestTimerAttributes.ContentState(
-            originalStartTime: originalStart,
-            totalDuration: totalDuration,
-            startTime: now,
-            endTime: now,  // Same as startTime so countdown stops
-            timerState: .paused,
-            pausedTimeRemaining: timeRemaining
-        )
-    }
-    
-    /// Create running state (for resume or updates)
-    static func running(originalStart: Date, totalDuration: Int, timeRemaining: Int) -> RestTimerAttributes.ContentState {
-        let now = Date()
-        return RestTimerAttributes.ContentState(
-            originalStartTime: originalStart,
-            totalDuration: totalDuration,
-            startTime: now,
-            endTime: now.addingTimeInterval(TimeInterval(timeRemaining)),
-            timerState: .running,
-            pausedTimeRemaining: nil
-        )
-    }
-    
-    /// Create completed state
-    static func completed(originalStart: Date, totalDuration: Int) -> RestTimerAttributes.ContentState {
-        let now = Date()
-        return RestTimerAttributes.ContentState(
-            originalStartTime: originalStart,
-            totalDuration: totalDuration,
-            startTime: now,
-            endTime: now,
-            timerState: .completed,
-            pausedTimeRemaining: 0
-        )
+
+    /// Range for the system-driven rest countdown. Only call when isResting.
+    var restRange: ClosedRange<Date> {
+        let start: Date = restStart ?? clockStart
+        let end: Date = restEnd ?? start
+        return start...max(start, end)
     }
 }

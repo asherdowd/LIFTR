@@ -84,6 +84,14 @@ enum LiveSessionClock {
         session.endTime = min(wanted, now)
     }
 
+    /// The date elapsed time counts from: start shifted by paused time, so that
+    /// elapsed = now - activityClockStart. The Lock Screen Live Activity counts from this date
+    /// (and freezes at pausedAt), which keeps it equal to elapsed(_:now:) with no app updates.
+    static func activityClockStart(_ session: ExerciseSession) -> Date {
+        let start: Date = session.startTime ?? Date()
+        return start.addingTimeInterval(session.pausedSeconds ?? 0)
+    }
+
     /// "42:07" or "1:05:09".
     static func format(_ seconds: TimeInterval) -> String {
         let total: Int = max(0, Int(seconds))
