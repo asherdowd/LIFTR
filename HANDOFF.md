@@ -391,3 +391,5 @@ Update 2026-11-21 (owner 09:17): LIFTRTests 49 passed, build has no warnings. St
 ## Decisions 2026-11-21 (owner, 09:20)
 - Remove the leftover Xcode example widget ("My Widget": shows time and a smiley, registered in the widget bundle). Done: `RestTimerWidget.swift` deleted and unregistered from `RestTimerWidgetBundle`; the project uses a synchronized folder so no project file edit was needed. Needs a build to confirm.
 - Step 4 is NOT deferred: the owner wants the Live Activity on the Lock Screen for the whole session (session mirror: clock between sets plus the rest countdown during rests). Design questions for step 4 still open before code. Step 5 (cardio live timer) start-flow question also still open.
+
+Update 2026-11-21 (owner 09:26): Step 5 cardio starts "Start first, fill in after": pick type, Start, clock runs, Stop, then enter distance and effort (Strava/Garmin style). The Lock Screen Live Activity shows the workout type (Strength or Cardio) and is one shared design for both; owner is happy with the current look. Order: step 4 builds the shared session activity (type field included) wired to strength; step 5 plugs cardio into it.
