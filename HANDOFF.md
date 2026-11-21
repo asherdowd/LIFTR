@@ -376,3 +376,6 @@ Built:
 - Widget unchanged: its `.paused` timer state is now unused (clean up in step 4, with the session mirror). Widget attributes unchanged, no schema change.
 - Tests: 2 new RestClock tests (expected total 49). Relates to #23 and #34 (sheet dismissal bugs): expected gone, to confirm on the phone.
 Compile risks to watch: `@StateObject` with a @MainActor controller; notification closures.
+
+## Manual test page refresh per build (owner decision 2026-11-21)
+With every pull command for a build to test, Claude also refreshes the "LIFTR Test Run" page: updated checks and UPDATED_FOR, all results cleared, run/meta set to the new commit and date, link given in the same message. Previous round outcomes are written to HANDOFF.md before clearing. Round 2026-11-21 (build 3737ace): in progress, results not yet recorded; stale checks D2 and A5 removed, D1/D3/D4 reworded.
