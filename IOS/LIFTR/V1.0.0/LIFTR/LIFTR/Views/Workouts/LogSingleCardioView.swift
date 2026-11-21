@@ -1,39 +1,27 @@
 import SwiftUI
 import SwiftData
 
+/// Start Workout > Single Workout > Cardio. Pick the activity and tap Start: the workout is
+/// created with its clock running and the live screen opens (LiveCardioView). Distance, duration
+/// and notes are entered when the activity is stopped.
 struct LogSingleCardioView: View {
     @Environment(\.modelContext) private var context
-    @Query private var globalSettings: [GlobalProgressionSettings]
     var onComplete: () -> Void = {}
 
     @State private var selectedType: CardioType = .running
-    @State private var duration: String = ""        // minutes
-    @State private var distance: String = ""
     @State private var activityType: String = ""    // free cardio only
-    @State private var notes: String = ""
 
-    @State private var showComplete = false
-    @State private var completionTitle = ""
-    @State private var completionLines: [String] = []
+    @State private var navigateToLive = false
+    @State private var liveStart: CardioWorkoutService.LiveStart?
 
     @State private var showError = false
     @State private var errorMessage = ""
 
-    private var unitLabel: String {
-        globalSettings.first?.useMetric == true ? "km" : "miles"
-    }
-
-    private var isValidInput: Bool {
-        switch selectedType {
-        case .running, .swimming:
-            return Double(distance) != nil && Double(duration) != nil
-        case .calisthenics:
-            return Double(duration) != nil
-        case .crossfit:
-            return Double(duration) != nil
-        case .freeCardio:
-            return !activityType.trimmingCharacters(in: .whitespaces).isEmpty && Double(duration) != nil
+    private var canStart: Bool {
+        if selectedType == .freeCardio {
+            return !activityType.trimmingCharacters(in: .whitespaces).isEmpty
         }
+        return true
     }
 
     var body: some View {
@@ -48,66 +36,48 @@ struct LogSingleCardioView: View {
                 Text("Activity Type")
             }
 
-            Section {
-                HStack {
-                    Text("Duration")
-                    Spacer()
-                    TextField("0", text: $duration)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 80)
-                    Text("min")
-                }
-
-                if selectedType == .running || selectedType == .swimming {
-                    HStack {
-                        Text("Distance")
-                        Spacer()
-                        TextField("0", text: $distance)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                        Text(selectedType == .swimming
-                             ? (globalSettings.first?.useMetric == true ? "meters" : "yards")
-                             : unitLabel)
-                    }
-                }
-
-                if selectedType == .freeCardio {
+            if selectedType == .freeCardio {
+                Section {
                     TextField("Activity (e.g. Elliptical, Bike)", text: $activityType)
                         .autocapitalization(.words)
+                } header: {
+                    Text("Activity")
                 }
-            } header: {
-                Text("Details")
             }
 
             Section {
-                TextField("Notes (optional)", text: $notes, axis: .vertical)
-                    .lineLimit(3)
-            } header: {
-                Text("Notes")
-            }
-
-            Section {
-                Button(action: logWorkout) {
+                Button(action: startWorkout) {
                     HStack {
                         Spacer()
-                        Text("Log Workout")
+                        Text("Start")
                             .fontWeight(.semibold)
                         Spacer()
                     }
                 }
-                .disabled(!isValidInput)
+                .disabled(!canStart)
+            } footer: {
+                Text("The clock starts when you tap Start. You enter distance and notes when you stop.")
             }
         }
-        .navigationTitle("Log Cardio")
+        .navigationTitle("Cardio")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showComplete, onDismiss: { onComplete() }) {
-            WorkoutCompleteView(
-                title: completionTitle,
-                lines: completionLines,
-                onDone: { showComplete = false }
-            )
+        .navigationDestination(isPresented: $navigateToLive) {
+            if let live = liveStart {
+                LiveCardioView(
+                    session: live.session,
+                    workoutExercise: live.workoutExercise,
+                    onComplete: onComplete
+                )
+            }
+        }
+        .onChange(of: navigateToLive) { _, isShowing in
+            // Leaving the live screen (finished, or back arrow while still running) closes the
+            // Start Workout sheet, so a second workout cannot be started by accident. A running
+            // workout stays on the Cardio tab as In Progress.
+            if !isShowing {
+                liveStart = nil
+                onComplete()
+            }
         }
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) { }
@@ -116,42 +86,23 @@ struct LogSingleCardioView: View {
         }
     }
 
-    private func logWorkout() {
-        guard let durationMinutes = Double(duration) else {
-            showErrorMessage("Please enter a valid duration.")
-            return
-        }
-
-        let useMetric = globalSettings.first?.useMetric ?? false
-
+    private func startWorkout() {
         do {
-            let workout = try CardioWorkoutService.logManualActivity(
+            liveStart = try CardioWorkoutService.startLiveWorkout(
                 type: selectedType,
                 customName: activityType,
-                durationMinutes: durationMinutes,
-                distanceEntered: Double(distance),
-                notes: notes,
-                useMetric: useMetric,
                 into: context
             )
-            completionTitle = workout.name
-            if let session = workout.days.first?.exercises.first?.sessions.first {
-                completionLines = WorkoutSummaryService.completionLines(for: session, useMetric: useMetric)
-            }
-            showComplete = true
+            navigateToLive = true
         } catch {
-            showErrorMessage("Failed to save workout: \(error.localizedDescription)")
+            errorMessage = "Failed to start workout: \(error.localizedDescription)"
+            showError = true
         }
-    }
-
-    private func showErrorMessage(_ message: String) {
-        errorMessage = message
-        showError = true
     }
 }
 
 #Preview {
-    NavigationView {
+    NavigationStack {
         LogSingleCardioView()
     }
 }

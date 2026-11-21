@@ -6,7 +6,7 @@ import SwiftData
 // Workout (completed, 1 week) > Day > cardio exercise > one completed session carrying the
 // numbers. Used by Apple Health import, manual "Log Cardio" and the Debug sample data, so the
 // three can never drift apart. Units are SI (meters, seconds, bpm, kcal). No saving here
-// except in `logManualActivity`; callers that batch save once.
+// except in `startLiveWorkout` and `finishLiveWorkout`; callers that batch save once.
 
 /// Everything stored for one finished cardio activity.
 struct CardioActivityRecord {
@@ -105,41 +105,82 @@ enum CardioWorkoutService {
         return workout
     }
 
-    // MARK: Manual logging
+    // MARK: Live logging
 
-    /// Saves a manually logged activity (Start Workout > Single Workout > Cardio).
-    @discardableResult
-    static func logManualActivity(
+    /// A live cardio workout that was just started (Start Workout > Single Workout > Cardio).
+    struct LiveStart {
+        let workout: Workout
+        let workoutExercise: WorkoutExercise
+        let session: ExerciseSession
+    }
+
+    /// Creates an in-progress quick cardio Workout whose session clock starts now.
+    /// Built with `createFinishedWorkout` (so the structure stays in one place), then reopened:
+    /// the workout is active and the session is not completed until `finishLiveWorkout`.
+    static func startLiveWorkout(
         type: CardioType,
         customName: String,
-        durationMinutes: Double,
-        distanceEntered: Double?,
-        notes: String,
-        useMetric: Bool,
         into context: ModelContext,
         now: Date = Date()
-    ) throws -> Workout {
+    ) throws -> LiveStart {
         let name = activityName(for: type, custom: customName)
         let exercise = try findOrCreateExercise(named: name, in: context)
-
-        var distance: Double? = nil
-        if let entered = distanceEntered {
-            distance = meters(fromEntered: entered, type: type, useMetric: useMetric)
-        }
-        let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
 
         let record = CardioActivityRecord(
             name: name,
             date: now,
             completedDate: now,
-            duration: durationMinutes * 60,
-            distance: distance,
-            dataSource: .manual,
-            notes: trimmedNotes.isEmpty ? nil : trimmedNotes
+            startTime: now,
+            dataSource: .manual
         )
         let workout = createFinishedWorkout(record, exercise: exercise, context: context)
+        workout.status = .active
+
+        guard let workoutExercise = workout.days.first?.exercises.first,
+              let session = workoutExercise.sessions.first else {
+            throw CocoaError(.coderInvalidValue)
+        }
+        session.completed = false
+        session.completedDate = nil
+
         try context.save()
-        return workout
+        return LiveStart(workout: workout, workoutExercise: workoutExercise, session: session)
+    }
+
+    /// Saves the numbers entered when a live cardio session is stopped and completes it.
+    /// `checkAndAdvanceWeek` stamps the end time and marks the single-session Workout completed.
+    static func finishLiveWorkout(
+        session: ExerciseSession,
+        workoutExercise: WorkoutExercise,
+        durationSeconds: TimeInterval,
+        distanceMeters: Double?,
+        notes: String,
+        into context: ModelContext,
+        now: Date = Date()
+    ) throws {
+        let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        session.duration = max(0, durationSeconds)
+        session.distance = distanceMeters
+        session.notes = trimmedNotes.isEmpty ? nil : trimmedNotes
+        session.completed = true
+        session.completedDate = now
+        session.paused = false
+
+        DeloadAdjustmentService.checkAndAdvanceWeek(session: session, workoutExercise: workoutExercise)
+        try context.save()
+    }
+
+    /// The cardio type for an exercise name made by `activityName` (the live screen only has the
+    /// exercise). Names that are not one of the fixed types are Free Cardio.
+    static func cardioType(forExerciseName name: String) -> CardioType {
+        switch name.lowercased() {
+        case "running": return .running
+        case "swimming": return .swimming
+        case "calisthenics": return .calisthenics
+        case "crossfit": return .crossfit
+        default: return .freeCardio
+        }
     }
 
     /// Same names Apple Health imports use ("Running", "Swimming"), so activities group together.

@@ -159,8 +159,11 @@ struct WorkoutDayView: View {
 
     @ViewBuilder
     private func destination(session: ExerciseSession, exercise: WorkoutExercise) -> some View {
-        if exercise.isCardio {
-            // Cardio is entered on the shared session editor (distance, time, heart rate...).
+        if exercise.isCardio && session.startTime != nil && !session.isDone {
+            // A cardio session started with the live timer: back to its live screen.
+            LiveCardioView(session: session, workoutExercise: exercise)
+        } else if exercise.isCardio {
+            // Other cardio is entered on the shared session editor (distance, time, heart rate...).
             EditSessionView(session: session)
         } else if exercise.isFreeform {
             LiveSingleWorkoutView(session: session, workoutExercise: exercise)

@@ -341,6 +341,19 @@ extension Workout {
         return sawQuickExercise
     }
 
+    /// Every exercise is cardio (a live or logged cardio activity). Used to list it on the
+    /// Cardio tab instead of the Strength tab.
+    var isCardioWorkout: Bool {
+        var sawExercise = false
+        for day in days {
+            for exercise in day.exercises {
+                if !exercise.isCardio { return false }
+                sawExercise = true
+            }
+        }
+        return sawExercise
+    }
+
     /// The session with a running live clock this week (started, not done), if any.
     func runningSession(forWeek week: Int) -> ExerciseSession? {
         for day in days {

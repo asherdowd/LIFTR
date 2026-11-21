@@ -28,6 +28,16 @@ struct WorkoutsView: View {
         allWorkouts.filter { $0.status == .active && !$0.isEmptyQuickWorkout }
     }
     
+    /// Active quick and program workouts that are not cardio (cardio workouts have their own tab).
+    var activeStrengthWorkouts: [Workout] {
+        activeWorkouts.filter { !$0.isCardioWorkout }
+    }
+
+    /// Active cardio workouts in the shared model, for example a running live session.
+    var activeCardioWorkouts: [Workout] {
+        activeWorkouts.filter { $0.isCardioWorkout }
+    }
+
     var activeProgressions: [Progression] {
         allProgressions.filter { $0.status == .active }
     }
@@ -54,13 +64,13 @@ struct WorkoutsView: View {
                         VStack(spacing: 16) {
                             switch selectedCategory {
                             case .strength:
-                                if activeProgressions.isEmpty && activeWorkouts.isEmpty {
+                                if activeProgressions.isEmpty && activeStrengthWorkouts.isEmpty {
                                     EmptyProgressionsView(
                                         type: "Strength",
                                         onCreateNew: { showStartWorkout = true }
                                     )
                                 } else {
-                                    ForEach(activeWorkouts) { workout in
+                                    ForEach(activeStrengthWorkouts) { workout in
                                         WorkoutCardView(workout: workout)
                                     }
                                     ForEach(activeProgressions) { progression in
@@ -69,12 +79,15 @@ struct WorkoutsView: View {
                                 }
                                 
                             case .cardio:
-                                if activeCardioProgressions.isEmpty {
+                                if activeCardioProgressions.isEmpty && activeCardioWorkouts.isEmpty {
                                     EmptyProgressionsView(
                                         type: "Cardio",
                                         onCreateNew: { showStartWorkout = true }
                                     )
                                 } else {
+                                    ForEach(activeCardioWorkouts) { workout in
+                                        WorkoutCardView(workout: workout)
+                                    }
                                     ForEach(activeCardioProgressions) { progression in
                                         CardioProgressionCard(progression: progression)
                                     }

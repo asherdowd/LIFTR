@@ -6,11 +6,12 @@ import SwiftData
 // with the clock and a single Pause / Resume once it runs, and the "Still working out?" prompt.
 
 /// Pinned at the top while a session is running. The only Pause on the screen: it pauses the clock.
-/// While a rest is running a second row shows the rest countdown with +15s and Skip.
+/// While a rest is running (strength screens) a second row shows the rest countdown with +15s and Skip.
+/// Cardio screens pass no rest controller.
 struct LiveSessionHeader: View {
     @Environment(\.modelContext) private var context
     let session: ExerciseSession
-    @ObservedObject var rest: RestTimerController
+    var rest: RestTimerController? = nil
 
     private var isPaused: Bool { LiveSessionClock.isPaused(session) }
 
@@ -38,42 +39,13 @@ struct LiveSessionHeader: View {
                 .tint(isPaused ? .green : .orange)
             }
 
-            if let clock = rest.clock {
-                restRow(clock: clock)
+            if let rest = rest {
+                LiveRestRow(rest: rest)
             }
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
         .background(.bar)
-    }
-
-    @ViewBuilder
-    private func restRow(clock: RestClock) -> some View {
-        if rest.phase == .finished {
-            HStack {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
-                Text("Rest over")
-                    .fontWeight(.semibold)
-                Spacer()
-            }
-        } else {
-            TimelineView(.periodic(from: .now, by: 0.5)) { timeline in
-                HStack(spacing: 12) {
-                    Text("Rest")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(RestClock.format(clock.remaining(at: timeline.date)))
-                        .font(.title3.weight(.bold))
-                        .monospacedDigit()
-                    ProgressView(value: clock.progress(at: timeline.date))
-                    Button("+15s") { rest.addTime() }
-                        .buttonStyle(.bordered)
-                    Button("Skip") { rest.skip() }
-                        .buttonStyle(.bordered)
-                }
-            }
-        }
     }
 
     private func togglePause() {
@@ -83,6 +55,41 @@ struct LiveSessionHeader: View {
             LiveSessionClock.pause(session)
         }
         try? context.save()
+    }
+}
+
+/// The rest row of the header: observes the rest controller so the header redraws when a rest starts or ends.
+private struct LiveRestRow: View {
+    @ObservedObject var rest: RestTimerController
+
+    var body: some View {
+        if let clock = rest.clock {
+            if rest.phase == .finished {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("Rest over")
+                        .fontWeight(.semibold)
+                    Spacer()
+                }
+            } else {
+                TimelineView(.periodic(from: .now, by: 0.5)) { timeline in
+                    HStack(spacing: 12) {
+                        Text("Rest")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(RestClock.format(clock.remaining(at: timeline.date)))
+                            .font(.title3.weight(.bold))
+                            .monospacedDigit()
+                        ProgressView(value: clock.progress(at: timeline.date))
+                        Button("+15s") { rest.addTime() }
+                            .buttonStyle(.bordered)
+                        Button("Skip") { rest.skip() }
+                            .buttonStyle(.bordered)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -100,6 +107,28 @@ struct LiveSessionStartBar: View {
             .frame(maxWidth: .infinity)
             .padding()
             .background(Color.green)
+            .foregroundColor(.white)
+            .cornerRadius(12)
+        }
+        .padding()
+        .background(.bar)
+    }
+}
+
+/// Bottom bar while a cardio session runs: stops the clock and opens the result form.
+struct LiveSessionStopBar: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: "stop.fill")
+                Text("Stop")
+                    .fontWeight(.semibold)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.red)
             .foregroundColor(.white)
             .cornerRadius(12)
         }

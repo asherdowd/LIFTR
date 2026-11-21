@@ -855,22 +855,57 @@ final class LiftrTests: XCTestCase {
     }
 #endif
 
-    @MainActor func testManualCardioLogUsesSharedModelAndHealthImportNames() throws {
-        let context = container.mainContext
-        let first = try CardioWorkoutService.logManualActivity(
-            type: .running, customName: "", durationMinutes: 30, distanceEntered: 3.1,
-            notes: " easy ", useMetric: false, into: context
+    /// Starts a live cardio workout and finishes it, with controlled times (step 5).
+    @MainActor private func runLiveCardio(
+        type: CardioType, minutes: Double, distanceEntered: Double?, notes: String,
+        useMetric: Bool, in context: ModelContext
+    ) throws -> Workout {
+        let t0 = Date(timeIntervalSince1970: 4_000_000)
+        let live = try CardioWorkoutService.startLiveWorkout(type: type, customName: "", into: context, now: t0)
+        var meters: Double? = nil
+        if let entered = distanceEntered {
+            meters = CardioWorkoutService.meters(fromEntered: entered, type: type, useMetric: useMetric)
+        }
+        try CardioWorkoutService.finishLiveWorkout(
+            session: live.session, workoutExercise: live.workoutExercise,
+            durationSeconds: minutes * 60, distanceMeters: meters, notes: notes,
+            into: context, now: t0.addingTimeInterval(minutes * 60)
         )
-        XCTAssertEqual(first.status, .completed)
-        XCTAssertEqual(first.name, "Running")
-        let session = try XCTUnwrap(first.days.first?.exercises.first?.sessions.first)
+        return live.workout
+    }
+
+    @MainActor func testLiveCardioStartAndFinishUsesSharedModelAndHealthImportNames() throws {
+        let context = container.mainContext
+        let t0 = Date(timeIntervalSince1970: 4_000_000)
+
+        // Start: an active, running, not-completed cardio session
+        let live = try CardioWorkoutService.startLiveWorkout(type: .running, customName: "", into: context, now: t0)
+        XCTAssertEqual(live.workout.status, .active)
+        XCTAssertEqual(live.workout.name, "Running")
+        XCTAssertTrue(live.workout.isCardioWorkout)
+        XCTAssertFalse(live.workout.isEmptyQuickWorkout, "A live cardio workout is never hidden as an empty quick workout")
+        XCTAssertFalse(live.session.completed)
+        XCTAssertEqual(live.session.startTime, t0)
+        XCTAssertEqual(live.session.dataSource, .manual)
+        XCTAssertTrue(LiveSessionClock.isRunningSession(live.session))
+        XCTAssertEqual(LiveSessionClock.elapsed(live.session, now: t0.addingTimeInterval(600)), 600, accuracy: 0.001)
+
+        // Stop and save
+        try CardioWorkoutService.finishLiveWorkout(
+            session: live.session, workoutExercise: live.workoutExercise,
+            durationSeconds: 1_800,
+            distanceMeters: CardioWorkoutService.meters(fromEntered: 3.1, type: .running, useMetric: false),
+            notes: " easy ", into: context, now: t0.addingTimeInterval(1_800)
+        )
+        XCTAssertEqual(live.workout.status, .completed)
+        let session = live.session
         XCTAssertEqual(session.distance ?? 0, 3.1 * 1_609.344, accuracy: 0.01)
         XCTAssertEqual(session.duration, 1_800)
-        XCTAssertEqual(session.dataSource, .manual)
         XCTAssertNil(session.externalID)
         XCTAssertEqual(session.notes, "easy")
         XCTAssertTrue(session.completed)
-        XCTAssertNil(session.startTime, "Manual logs have no real clock times")
+        XCTAssertEqual(session.endTime, t0.addingTimeInterval(1_800), "End time is stamped on completion")
+        XCTAssertFalse(LiveSessionClock.isRunningSession(session))
 
         // A Health import of the same activity kind shares the Exercise (no duplicate names)
         try HealthImportService.importActivities([sampleActivity()], into: context)
@@ -885,6 +920,36 @@ final class LiftrTests: XCTestCase {
         XCTAssertEqual(WorkoutSummaryService.historyMonths(workouts: workouts, kind: .cardio).flatMap { $0.entries }.count, 2)
     }
 
+    @MainActor func testLiveCardioStaleCheckAndTypeLookup() throws {
+        let context = container.mainContext
+        let t0 = Date(timeIntervalSince1970: 4_000_000)
+        let live = try CardioWorkoutService.startLiveWorkout(type: .swimming, customName: "", into: context, now: t0)
+
+        // Cardio logs no sets, so staleness must not depend on logged sets
+        XCTAssertFalse(live.session.hasLoggedSets)
+        XCTAssertFalse(LiveSessionClock.isStale(live.session, now: t0.addingTimeInterval(5 * 3600)))
+        XCTAssertTrue(LiveSessionClock.isStale(live.session, now: t0.addingTimeInterval(7 * 3600)))
+
+        // A paused cardio session is not stale
+        LiveSessionClock.pause(live.session, now: t0.addingTimeInterval(600))
+        XCTAssertFalse(LiveSessionClock.isStale(live.session, now: t0.addingTimeInterval(7 * 3600)))
+
+        // A strength session with no logged sets is still never stale
+        let (_, _, sessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        LiveSessionClock.start(sessions[0], now: t0)
+        XCTAssertFalse(LiveSessionClock.isStale(sessions[0], now: t0.addingTimeInterval(7 * 3600)))
+
+        // The live screen finds the cardio type from the exercise name
+        XCTAssertEqual(CardioWorkoutService.cardioType(forExerciseName: "Running"), .running)
+        XCTAssertEqual(CardioWorkoutService.cardioType(forExerciseName: "swimming"), .swimming)
+        XCTAssertEqual(CardioWorkoutService.cardioType(forExerciseName: "CrossFit"), .crossfit)
+        XCTAssertEqual(CardioWorkoutService.cardioType(forExerciseName: "Elliptical"), .freeCardio)
+
+        // Strength workouts are not cardio workouts
+        let (strength, _, _) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        XCTAssertFalse(strength.isCardioWorkout)
+    }
+
     @MainActor func testManualCardioNamesAndUnitConversions() throws {
         XCTAssertEqual(CardioWorkoutService.activityName(for: .swimming, custom: ""), "Swimming")
         XCTAssertEqual(CardioWorkoutService.activityName(for: .crossfit, custom: ""), "CrossFit")
@@ -897,15 +962,13 @@ final class LiftrTests: XCTestCase {
         XCTAssertEqual(CardioWorkoutService.meters(fromEntered: 400, type: .swimming, useMetric: true), 400)
         XCTAssertNil(CardioWorkoutService.meters(fromEntered: 10, type: .crossfit, useMetric: true), "No distance field outside running and swimming")
 
-        // No distance is stored for a type without a distance field, even if text was typed
+        // A type without a distance field stores no distance and an empty note stays nil
         let context = container.mainContext
-        let workout = try CardioWorkoutService.logManualActivity(
-            type: .calisthenics, customName: "", durationMinutes: 20, distanceEntered: 9,
-            notes: "", useMetric: false, into: context
-        )
+        let workout = try runLiveCardio(type: .calisthenics, minutes: 20, distanceEntered: 9, notes: "", useMetric: false, in: context)
         let session = try XCTUnwrap(workout.days.first?.exercises.first?.sessions.first)
         XCTAssertNil(session.distance)
         XCTAssertNil(session.notes)
+        XCTAssertEqual(session.duration, 1_200)
     }
 
     @MainActor func testCompletionSummaryLinesForStrengthAndCardio() throws {
@@ -920,10 +983,7 @@ final class LiftrTests: XCTestCase {
         XCTAssertEqual(WorkoutSummaryService.completionLines(for: sessions[0], useMetric: true),
                        ["2 sets · 8 reps", "Heaviest set: 232.5 kg", "Performance: 100% · Week 1"])
 
-        let run = try CardioWorkoutService.logManualActivity(
-            type: .running, customName: "", durationMinutes: 30, distanceEntered: 3.1,
-            notes: "", useMetric: false, into: context
-        )
+        let run = try runLiveCardio(type: .running, minutes: 30, distanceEntered: 3.1, notes: "", useMetric: false, in: context)
         let runSession = try XCTUnwrap(run.days.first?.exercises.first?.sessions.first)
         XCTAssertEqual(WorkoutSummaryService.completionLines(for: runSession, useMetric: false), ["3.1 mi · 30 min"])
     }

@@ -70,9 +70,11 @@ enum LiveSessionClock {
         }
     }
 
-    /// Possibly abandoned: running (not paused), has logged sets, and active time passed the limit.
+    /// Possibly abandoned: running (not paused), active time passed the limit, and the owner
+    /// did something in it: logged a set (strength) or, for cardio, which logs no sets, started it.
     static func isStale(_ session: ExerciseSession, now: Date = Date()) -> Bool {
-        guard isRunningSession(session), session.pausedAt == nil, session.hasLoggedSets else { return false }
+        let isCardio: Bool = session.workoutExercise?.isCardio ?? false
+        guard isRunningSession(session), session.pausedAt == nil, session.hasLoggedSets || isCardio else { return false }
         return elapsed(session, now: now) > staleAfterSeconds
     }
 
