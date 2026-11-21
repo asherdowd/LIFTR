@@ -178,6 +178,9 @@ class ExerciseSession {
     var duration: TimeInterval?
     var elevationGain: Double?
     var elevationLoss: Double?
+    /// Recorded GPS route (V5, unreleased): compressed points, see RouteCodec. Optional, so
+    /// existing rows need no repair. Deleted with the session.
+    @Attribute(.externalStorage) var routeData: Data?
     var maxSpeed: Double?
     var avgHeartRate: Double?
     var maxHeartRate: Double?

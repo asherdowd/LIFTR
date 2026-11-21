@@ -313,6 +313,12 @@ struct EditSessionView: View {
                     labeledField("Max speed (\(useMetric ? "km/h" : "mph"))", value: scaled(\.maxSpeed, by: metersPerSecondPerSpeedUnit))
                 }
                 .disabled(readOnly)
+
+                if let routeData = session.routeData {
+                    Section("Route") {
+                        RouteMapView(routeData: routeData)
+                    }
+                }
             }
 
             Section {

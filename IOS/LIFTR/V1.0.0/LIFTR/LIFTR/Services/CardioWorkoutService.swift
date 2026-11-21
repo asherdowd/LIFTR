@@ -154,6 +154,9 @@ enum CardioWorkoutService {
         workoutExercise: WorkoutExercise,
         durationSeconds: TimeInterval,
         distanceMeters: Double?,
+        elevationGain: Double? = nil,
+        elevationLoss: Double? = nil,
+        routeData: Data? = nil,
         notes: String,
         into context: ModelContext,
         now: Date = Date()
@@ -162,6 +165,9 @@ enum CardioWorkoutService {
 
         session.duration = max(0, durationSeconds)
         session.distance = distanceMeters
+        session.elevationGain = elevationGain
+        session.elevationLoss = elevationLoss
+        session.routeData = routeData
         session.notes = trimmedNotes.isEmpty ? nil : trimmedNotes
         session.completed = true
         session.completedDate = now
@@ -196,15 +202,15 @@ enum CardioWorkoutService {
         }
     }
 
-    /// Distance as typed in the form, converted to meters. Only running (km or miles) and
-    /// swimming (meters or yards) have a distance field.
+    /// Distance as typed in the form, converted to meters. Running and free cardio (km or miles)
+    /// and swimming (meters or yards) have a distance field.
     static func meters(fromEntered value: Double, type: CardioType, useMetric: Bool) -> Double? {
         switch type {
-        case .running:
+        case .running, .freeCardio:
             return useMetric ? value * 1_000 : value * 1_609.344
         case .swimming:
             return useMetric ? value : value * 0.9144
-        case .calisthenics, .crossfit, .freeCardio:
+        case .calisthenics, .crossfit:
             return nil
         }
     }

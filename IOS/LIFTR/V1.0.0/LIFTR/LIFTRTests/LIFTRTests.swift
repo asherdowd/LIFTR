@@ -1288,4 +1288,110 @@ final class LiftrTests: XCTestCase {
         XCTAssertEqual(RestTimerAttributes.strengthType, "Strength")
         XCTAssertEqual(RestTimerAttributes.cardioType, "Cardio")
     }
+
+    // MARK: - Step 6: GPS route, elevation, storage
+
+    func testRouteAccumulatorFiltersAndMeasures() {
+        var route = RouteAccumulator()
+        XCTAssertFalse(route.add(lat: 0, lon: 0, time: 0, accuracy: 80), "Inaccurate reading is ignored")
+        XCTAssertTrue(route.add(lat: 0, lon: 0, time: 1, accuracy: 5))
+        XCTAssertFalse(route.add(lat: 0.00001, lon: 0, time: 5, accuracy: 5), "About 1 m of wander is ignored")
+        XCTAssertTrue(route.add(lat: 0.001, lon: 0, time: 20, accuracy: 5))
+        XCTAssertEqual(route.distance, 111.2, accuracy: 1.0)
+        XCTAssertFalse(route.add(lat: 0.01, lon: 0, time: 21, accuracy: 5), "A jump faster than 25 m/s is ignored")
+        XCTAssertFalse(route.add(lat: 0.002, lon: 0, time: 20, accuracy: 5), "Not newer than the last point")
+        XCTAssertEqual(route.points.count, 2)
+
+        // After a break the next point starts a new segment and the jump is not counted.
+        let before = route.distance
+        route.breakSegment()
+        XCTAssertTrue(route.add(lat: 0.01, lon: 0, time: 400, accuracy: 5))
+        XCTAssertEqual(route.distance, before, accuracy: 0.001)
+        XCTAssertTrue(route.add(lat: 0.011, lon: 0, time: 420, accuracy: 5))
+        XCTAssertEqual(route.distance, before + 111.2, accuracy: 1.5)
+    }
+
+    func testElevationAccumulatorHysteresisAndRebase() {
+        var elevation = ElevationAccumulator()
+        elevation.add(altitude: 0)
+        elevation.add(altitude: 0.5)
+        XCTAssertEqual(elevation.gain, 0, accuracy: 0.001, "Under 1 m is noise")
+        elevation.add(altitude: 3)
+        XCTAssertEqual(elevation.gain, 3, accuracy: 0.001)
+        elevation.add(altitude: 1)
+        XCTAssertEqual(elevation.loss, 2, accuracy: 0.001)
+
+        // After a pause the barometer restarts from zero: no fake loss or gain.
+        elevation.rebase()
+        elevation.add(altitude: 0)
+        elevation.add(altitude: 2)
+        XCTAssertEqual(elevation.gain, 5, accuracy: 0.001)
+        XCTAssertEqual(elevation.loss, 2, accuracy: 0.001)
+    }
+
+    func testRouteCodecRoundTripAndThinning() throws {
+        var route = RouteAccumulator()
+        for i in 0..<300 {
+            route.add(lat: Double(i) * 0.001, lon: 0, time: Double(i) * 20, accuracy: 5)
+        }
+        XCTAssertEqual(route.points.count, 300)
+
+        let thin = route.thinned(maxPoints: 50)
+        XCTAssertLessThanOrEqual(thin.count, 51)
+        XCTAssertEqual(thin.first, route.points.first)
+        XCTAssertEqual(thin.last, route.points.last)
+
+        let data = try XCTUnwrap(RouteCodec.encode(thin))
+        XCTAssertEqual(RouteCodec.decode(data), thin)
+        XCTAssertNil(RouteCodec.encode([RoutePoint(lat: 1, lon: 1, time: 0)]), "One point is not a route")
+        XCTAssertEqual(RouteCodec.decode(Data([1, 2, 3])), [])
+    }
+
+    func testRouteStoreCheckpointRoundTripAndFormat() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("route-test-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let id = UUID()
+        XCTAssertNil(RouteStore.load(for: id, in: dir))
+
+        var snapshot = RouteSnapshot()
+        snapshot.route.add(lat: 0, lon: 0, time: 1, accuracy: 5)
+        snapshot.route.add(lat: 0.001, lon: 0, time: 20, accuracy: 5)
+        snapshot.elevation.add(altitude: 0)
+        snapshot.elevation.add(altitude: 4)
+        snapshot.hasElevation = true
+        RouteStore.save(snapshot, for: id, in: dir)
+        XCTAssertEqual(RouteStore.load(for: id, in: dir), snapshot)
+        RouteStore.remove(for: id, in: dir)
+        XCTAssertNil(RouteStore.load(for: id, in: dir))
+
+        XCTAssertEqual(RouteFormat.distance(1609.344, useMetric: false), "1.00 mi")
+        XCTAssertEqual(RouteFormat.distance(5020, useMetric: true), "5.02 km")
+        XCTAssertEqual(RouteFormat.distanceNumber(3218.688, useMetric: false), "2.00")
+        XCTAssertEqual(RouteFormat.elevation(10, useMetric: true), "10 m")
+        XCTAssertEqual(RouteFormat.elevation(10, useMetric: false), "33 ft")
+    }
+
+    @MainActor func testFinishLiveCardioStoresRouteElevationAndFreeCardioDistance() throws {
+        let context = container.mainContext
+        let t0 = Date(timeIntervalSince1970: 5_000_000)
+        var route = RouteAccumulator()
+        route.add(lat: 0, lon: 0, time: 1, accuracy: 5)
+        route.add(lat: 0.001, lon: 0, time: 20, accuracy: 5)
+        let routeData = try XCTUnwrap(RouteCodec.encode(route.points))
+
+        let live = try CardioWorkoutService.startLiveWorkout(type: .freeCardio, customName: "Hike", into: context, now: t0)
+        try CardioWorkoutService.finishLiveWorkout(
+            session: live.session, workoutExercise: live.workoutExercise,
+            durationSeconds: 1_800, distanceMeters: 111.2, elevationGain: 12, elevationLoss: 5,
+            routeData: routeData, notes: "", into: context, now: t0.addingTimeInterval(1_800)
+        )
+        XCTAssertEqual(live.session.distance ?? 0, 111.2, accuracy: 0.001)
+        XCTAssertEqual(live.session.elevationGain, 12)
+        XCTAssertEqual(live.session.elevationLoss, 5)
+        XCTAssertEqual(RouteCodec.decode(try XCTUnwrap(live.session.routeData)).count, 2)
+
+        // Free Cardio distance is entered in km or miles, like running.
+        XCTAssertEqual(CardioWorkoutService.meters(fromEntered: 2, type: .freeCardio, useMetric: true) ?? 0, 2_000, accuracy: 0.001)
+        XCTAssertEqual(CardioWorkoutService.meters(fromEntered: 1, type: .freeCardio, useMetric: false) ?? 0, 1_609.344, accuracy: 0.001)
+    }
 }

@@ -274,6 +274,7 @@ This document describes the complete SwiftData model structure for LIFTR.
 | `duration` | TimeInterval? | nil | Seconds ⚠️ V5 |
 | `elevationGain` | Double? | nil | Meters ⚠️ V5 |
 | `elevationLoss` | Double? | nil | Meters descended ⚠️ V5 |
+| `routeData` | Data? (external storage) | nil | Recorded GPS route, lzfse-compressed JSON `[[lat, lon, time], ...]`, at most 2000 points (see `RouteCodec`). Deleted with the session. ⚠️ V5 |
 | `maxSpeed` | Double? | nil | Meters per second ⚠️ V5 |
 | `avgHeartRate` / `maxHeartRate` | Double? | nil | bpm ⚠️ V5 |
 | `caloriesBurned` | Double? | nil | kcal ⚠️ V5 |
@@ -565,7 +566,7 @@ ExerciseProgressionSettings (independent, 0:many)
 ### V5 (cardio in the shared Workout model, Health import) ⚠️ CURRENT
 **Date:** 2026-10-14
 **Changes (all on the new Workout model, UnifiedWorkoutModels.swift):**
-- `ExerciseSession`: added optional `startTime`, `endTime`, `pausedSeconds`, `pausedAt`, `distance` (m), `duration` (s), `elevationGain` (m), `elevationLoss` (m), `maxSpeed` (m/s), `avgHeartRate`, `maxHeartRate` (bpm), `caloriesBurned` (kcal), `dataSource: ActivitySource?`, `externalID: String?`, `plannedDistance` (m), `plannedDuration` (s).
+- `ExerciseSession`: added optional `startTime`, `endTime`, `pausedSeconds`, `pausedAt`, `distance` (m), `duration` (s), `elevationGain` (m), `elevationLoss` (m), `routeData` (Data), `maxSpeed` (m/s), `avgHeartRate`, `maxHeartRate` (bpm), `caloriesBurned` (kcal), `dataSource: ActivitySource?`, `externalID: String?`, `plannedDistance` (m), `plannedDuration` (s).
 - `WorkoutExercise`: added `kindStored: ExerciseKind?` (optional, nil = strength) with a computed non-optional `kind` that screens use. A required enum with an inline default failed to load existing rows on device ("Could not cast Optional<Any> to ExerciseKind"), so it is stored as an optional.
 - New enums `ExerciseKind` (strength, cardio) and `ActivitySource` (manual, healthKit). No new `@Model`, so `LIFTRApp.swift` registration is unchanged.
 

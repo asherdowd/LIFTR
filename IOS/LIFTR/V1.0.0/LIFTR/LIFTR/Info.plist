@@ -2,10 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>LIFTR uses your location during a run or cardio workout to record distance, route and elevation.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>LIFTR uses the barometer during a run or cardio workout to measure elevation gain and loss.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
 		<string>fetch</string>
+		<string>location</string>
 	</array>
 </dict>
 </plist>

@@ -196,6 +196,17 @@ struct WorkoutCardView: View {
         // Mark as deleting so the card stops reading children while SwiftUI updates.
         isDeleting = true
 
+        // Drop any GPS checkpoint or live recording that belongs to this workout's sessions.
+        var sessionIDs: [UUID] = []
+        for day in workout.days {
+            for exercise in day.exercises {
+                for session in exercise.sessions {
+                    sessionIDs.append(session.id)
+                }
+            }
+        }
+        LiveRouteRecorder.shared.discard(sessionIDs: sessionIDs)
+
         withAnimation {
             context.delete(workout)
         }

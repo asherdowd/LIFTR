@@ -439,3 +439,14 @@ Test page refreshed 2026-11-21 for build c23a604: new section I (cardio live tim
 Step 5 (cardio live timer): I1-I15 PASS. I16 (stale after 6 h), I17 (program cardio unchanged), I18 (Health import unchanged) skipped by the owner. LIFTRTests: 52 passed (as expected). H1 and H2 were also marked skip on this page (not re-run; they passed on 99312d0).
 Not verified on device: stale prompt for cardio, planned program cardio still opening the editor, Health import after the CardioWorkoutService change (unit tests cover createFinishedWorkout paths).
 Next: step 6 (GPS distance, stored route, live map, live elevation). Places list and elevation-source decision to be confirmed with the owner before code.
+
+## Step 6 built 2026-11-21: GPS distance, route, live map, elevation (awaiting build, tests, outdoor checks)
+- Scope per owner (A, with live map, live distance and elevation). Applies to Running and Free Cardio. Swimming, calisthenics, CrossFit unchanged.
+- New: `Services/RouteTracking.swift` (pure logic, unit tested), `Services/LiveRouteRecorder.swift` (app-wide CLLocationManager + CMAltimeter, 30 s checkpoint files, 12 h safety stop), `Views/Shared/RouteMapView.swift`.
+- Model: `ExerciseSession.routeData: Data?` (external storage, optional): no MigrationService repair, no container change. Docs/DATABASE_SCHEMA.md updated.
+- `LiveCardioView`: live map, distance and climb, Stop form pre-filled from GPS (still editable; untouched value keeps exact meters). Free Cardio gets an optional distance field (km/miles).
+- `Info.plist`: added `location` background mode, `NSLocationWhenInUseUsageDescription`, `NSMotionUsageDescription`.
+- `WorkoutCardView.deleteWorkout` also discards any GPS checkpoint for the workout's sessions.
+- Behavior to confirm: recording is app-wide, so GPS keeps recording if the live screen is left (Lock Screen activity ends, as before). Route Section on the finished-workout detail screen.
+- Expected unit tests: 57. Cloud cannot compile or test GPS: owner to paste first build error and run outdoor checks (section J of the test page).
+- Open: App Store privacy answers (precise location, stored on device, not linked/tracked).
