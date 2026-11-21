@@ -387,3 +387,7 @@ Not yet recorded this round: F8, F14, F4, E5 re-checks (page still shows the 202
 Update 2026-11-21 (owner message 09:16): F8, F14, F10, F11 PASS on the page (navigation fix 25303d0 confirmed on device). Owner reported "all pass" for E5 and F4 by message; the page still showed E5 Fail (2026-11-17) and the old F4 note when read, so these two are recorded as owner-reported, page not updated. Still open: LIFTRTests count (expect 49), UI tests, build warnings.
 
 Update 2026-11-21 (owner 09:17): LIFTRTests 49 passed, build has no warnings. Step 3 closed pending UI test run result. Next: step 4 (Live Activity mirrors the session).
+
+## Decisions 2026-11-21 (owner, 09:20)
+- Remove the leftover Xcode example widget ("My Widget": shows time and a smiley, registered in the widget bundle). Done: `RestTimerWidget.swift` deleted and unregistered from `RestTimerWidgetBundle`; the project uses a synchronized folder so no project file edit was needed. Needs a build to confirm.
+- Step 4 is NOT deferred: the owner wants the Live Activity on the Lock Screen for the whole session (session mirror: clock between sets plus the rest countdown during rests). Design questions for step 4 still open before code. Step 5 (cardio live timer) start-flow question also still open.
