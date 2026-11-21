@@ -3,7 +3,7 @@ import Combine
 import ActivityKit
 import AVFoundation
 import UIKit
-import UserNotifications
+@preconcurrency import UserNotifications
 
 // MARK: - Rest Timer Controller
 // One rest timer per live workout screen. The screen owns it, the pinned header shows it.
@@ -167,16 +167,18 @@ final class RestTimerController: ObservableObject {
         let seconds = max(1, clock.remaining(at: Date()))
 
         center.getNotificationSettings { settings in
+            // Fetch the shared center inside the closure instead of capturing it (Sendable warning).
+            let current = UNUserNotificationCenter.current()
             switch settings.authorizationStatus {
             case .notDetermined:
                 // iOS asks once; schedule after the answer.
-                center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+                current.requestAuthorization(options: [.alert, .sound]) { granted, _ in
                     if granted {
-                        RestTimerController.add(center: center, identifier: identifier, title: title, body: body, withSound: withSound, seconds: seconds)
+                        RestTimerController.add(center: UNUserNotificationCenter.current(), identifier: identifier, title: title, body: body, withSound: withSound, seconds: seconds)
                     }
                 }
             case .authorized, .provisional, .ephemeral:
-                RestTimerController.add(center: center, identifier: identifier, title: title, body: body, withSound: withSound, seconds: seconds)
+                RestTimerController.add(center: current, identifier: identifier, title: title, body: body, withSound: withSound, seconds: seconds)
             default:
                 break
             }
