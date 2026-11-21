@@ -481,3 +481,6 @@ Next: step 6 (GPS distance, stored route, live map, live elevation). Places list
 - `MainView` (Home): Recent section removed; Upcoming split Strength/Cardio (new-model cardio days now under Cardio via `UpcomingWorkoutDay.isCardio`); in progress and overdue always shown, scheduled limited to `WorkoutSummaryService.scheduledPerCategory` (1) per category via `limitScheduled`, legacy sessions share the same limit; always-visible large Start Workout button (existing `onStartWorkout` tab switch); empty-state button removed (no duplicate).
 - Recent rows moved to `Views/Shared/RecentWorkoutRows.swift` with new `RecentWorkoutsSection(isCardio:)`, shown at the bottom of the Strength and Cardio segments in `WorkoutsView`.
 - No model change, no new setting. Expected unit tests: 59 (57 + 2).
+
+## Build 40 (2026-11-21, 11:45)
+- Unit tests 59 executed, owner reports everything looks good on the Home declutter. Build number bumped to 40 on both targets (39 was already uploaded) for the next TestFlight archive.
