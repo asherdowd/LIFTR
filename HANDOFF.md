@@ -455,3 +455,6 @@ Next: step 6 (GPS distance, stored route, live map, live elevation). Places list
 - Step 6 build e3ef6fe: unit tests 57, no failures. Outdoor checks (test page section J) deferred until the owner can walk around.
 - To-do later (not scheduled, not launch-blocking unless re-opened): swipe left to delete on the workout lists, to clear old data. Needs a places list and confirmation before coding. GitHub issue to be created at the end-of-session sweep.
 - Owner wants to distribute via TestFlight and start the Iron Pilled rename and new logos now. Pending: build number check in App Store Connect (pbxproj still has 38 on the app target) and rename scope (visible name only vs bundle ID too), which decides whether to upload before or after the rename.
+
+## Decision 2026-11-21 (owner, 10:56): TestFlight build
+- App Store Connect shows 1.2.1 build 38 (expired) as the highest. Build number bumped to 39 on the app target and RestTimerWidgetExtension (both configurations). Display name is Iron Pilled; bundle ID unchanged. Waiting on the new app icon file before archiving.
