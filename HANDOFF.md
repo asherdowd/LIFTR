@@ -379,3 +379,7 @@ Compile risks to watch: `@StateObject` with a @MainActor controller; notificatio
 
 ## Manual test page refresh per build (owner decision 2026-11-21)
 With every pull command for a build to test, Claude also refreshes the "LIFTR Test Run" page: updated checks and UPDATED_FOR, all results cleared, run/meta set to the new commit and date, link given in the same message. Previous round outcomes are written to HANDOFF.md before clearing. Round 2026-11-21 (build 3737ace): in progress, results not yet recorded; stale checks D2 and A5 removed, D1/D3/D4 reworded.
+
+## Round 2026-11-21 results, build 3737ace (iPhone 13 Pro)
+Step 3 (rest timer in the header): G1-G11 PASS, G12 skipped (legacy Progression screen has no rest timer, known, goes away at step 9). Read from the test page, not pasted. Rest sheet bugs #23 and #34 no longer reproduce (G10); comment on them, close at merge.
+Not yet recorded this round: F8, F14, F4, E5 re-checks (page still shows the 2026-11-17 results for them), LIFTRTests count (expect 49), UI tests, build warnings (two Sendable warnings fixed in 3737ace).
