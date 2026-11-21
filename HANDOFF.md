@@ -433,3 +433,4 @@ Built:
 - `WorkoutsView`: Cardio segment shows active cardio workouts (`Workout.isCardioWorkout`), Strength segment excludes them; empty-state checks updated. `WorkoutDayView`: a started, unfinished cardio session opens `LiveCardioView`; other (planned) cardio still opens `EditSessionView`.
 Decisions NOT built (fewer features): no Discard button on the live screen (the Workouts card has Delete), no auto-distance yet (step 6).
 Tests: 52 expected (cardio manual-log tests moved to the live start/finish functions; new stale/type-lookup test). No schema change.
+Test page refreshed 2026-11-21 for build c23a604: new section I (cardio live timer, I1-I18), all results cleared, run info updated. Round 99312d0 results were recorded above before clearing.
