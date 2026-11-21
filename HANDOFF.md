@@ -411,3 +411,9 @@ Built:
 Behavior notes: the activity ends when you leave the live screen (the in-app clock keeps running, as before). Countdown color thresholds (blue/orange/red) were dropped: they were computed at render time and could not update on the Lock Screen. If a rest ends while the app is suspended, the Lock Screen keeps showing the countdown at 0:00 until the app is next active (the notification alerts you).
 Tests: 2 new (activity clock start equals elapsed; content state flags), expected total 51. No schema change. CHANGELOG still has no merge entries (release blocker, to do before release).
 Test page refreshed 2026-11-21 for build 99312d0: new section H (Lock Screen activity), all results cleared, run info updated. Round 3737ace results were recorded above before clearing. Note: the iPhone 13 Pro has no Dynamic Island, so H13 needs a Simulator (iPhone 14 Pro or newer).
+
+## Round 2026-11-21 results, build 99312d0 (iPhone 13 Pro), read from the test page
+Step 4 (Lock Screen activity): H1-H12 PASS, H13 (Dynamic Island) skipped (no Dynamic Island on the device).
+Also PASS: G1, G3, G5-G10, F7-F11, F14. Owner chose to SKIP the rest this round (no regression re-run): F1-F6, F12, F13, E1-E5, G2, G4, G11, G12. Not re-run since 2026-11-17 and the page is cleared; E5 and F4 were owner-reported passes on 2026-11-21 earlier.
+Not yet reported: whether the build compiled cleanly, LIFTRTests count (expect 51).
+Open decision 2026-11-21: app rename to "Iron Pilled" (owner bought the domain; new logo possibly). Question open: visible name only (A) or full rename including bundle ID, App Group, targets, project (B). Places list given to the owner.
