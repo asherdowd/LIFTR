@@ -484,3 +484,8 @@ Next: step 6 (GPS distance, stored route, live map, live elevation). Places list
 
 ## Build 40 (2026-11-21, 11:45)
 - Unit tests 59 executed, owner reports everything looks good on the Home declutter. Build number bumped to 40 on both targets (39 was already uploaded) for the next TestFlight archive.
+
+## Future enhancement ideas (owner, 2026-11-21 13:37): NOT scheduled, after launch, nothing decided
+- Selectable avatars for the live GPS position marker (the blue dot), for example silly avatars like Waze. Built on step 6: `LiveCardioView` currently uses MapKit `UserAnnotation()`; an avatar would be a custom annotation at the recorder's latest coordinate plus a picker in Settings.
+- Fun animated trail effects along the route while running, for example little flames left behind. Would draw from the recorded route points on the live map. Needs a design pass (performance on long routes, battery, whether it also shows on the finished-workout map, how it is chosen).
+- Both need: places list and owner confirmation before any code; all artwork must be original (no existing brand characters); GitHub issue at the end-of-session sweep (initiative label to be chosen).
