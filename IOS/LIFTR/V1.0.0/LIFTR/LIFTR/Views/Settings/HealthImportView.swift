@@ -17,7 +17,7 @@ struct HealthImportView: View {
     var body: some View {
         Form {
             Section {
-                Text("LIFTR can read runs, walks, hikes, rides and similar workouts from Apple Health, including those written by your Garmin or Apple Watch. LIFTR does not change anything in Health.")
+                Text("Iron Pilled can read runs, walks, hikes, rides and similar workouts from Apple Health, including those written by your Garmin or Apple Watch. Iron Pilled does not change anything in Health.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -38,7 +38,7 @@ struct HealthImportView: View {
                 }
                 .disabled(isWorking)
             } footer: {
-                Text("The first time, iOS asks which data LIFTR may read. Anything already imported is skipped.")
+                Text("The first time, iOS asks which data Iron Pilled may read. Anything already imported is skipped.")
             }
 
             if let message {
@@ -74,10 +74,10 @@ struct HealthImportView: View {
 
                 await MainActor.run {
                     if activities.isEmpty {
-                        message = "No workouts found. If you expected some, check Settings > Health > Data Access & Devices > LIFTR and allow Workouts, Heart Rate, Distance and Active Energy."
+                        message = "No workouts found. If you expected some, check Settings > Health > Data Access & Devices > Iron Pilled and allow Workouts, Heart Rate, Distance and Active Energy."
                     } else {
                         let skipped = activities.count - created
-                        message = "Imported \(created) new activit\(created == 1 ? "y" : "ies")" + (skipped > 0 ? " (\(skipped) already in LIFTR)." : ".")
+                        message = "Imported \(created) new activit\(created == 1 ? "y" : "ies")" + (skipped > 0 ? " (\(skipped) already in Iron Pilled)." : ".")
                     }
                     isWorking = false
                 }

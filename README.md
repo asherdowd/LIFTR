@@ -1,5 +1,7 @@
 # LIFTR - Strength Training Tracker
 
+> The app is shown to users as **Iron Pilled** (renamed 2026-11-21). The repository, Xcode project, targets and bundle ID keep the name LIFTR.
+
 Progressive overload tracking app for iOS with intelligent progression algorithms and automated workout planning.
 
 ## ⚠️ CRITICAL: Data Migration

@@ -423,7 +423,7 @@
 				DEVELOPMENT_TEAM = LR4W9AN5JB;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RestTimerWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = RestTimerWidget;
+				INFOPLIST_KEY_CFBundleDisplayName = "Iron Pilled";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -457,7 +457,7 @@
 				DEVELOPMENT_TEAM = LR4W9AN5JB;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RestTimerWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = RestTimerWidget;
+				INFOPLIST_KEY_CFBundleDisplayName = "Iron Pilled";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -610,10 +610,10 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LIFTR/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "LIFTЯ";
+				INFOPLIST_KEY_CFBundleDisplayName = "Iron Pilled";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "LIFTR would like to read your health data to provide workout insights and tracking.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "LIFTR uses HealthKit to sync your workout data and track your fitness progress.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Iron Pilled would like to read your health data to provide workout insights and tracking.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Iron Pilled uses HealthKit to sync your workout data and track your fitness progress.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -657,10 +657,10 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LIFTR/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "LIFTЯ";
+				INFOPLIST_KEY_CFBundleDisplayName = "Iron Pilled";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "LIFTR would like to read your health data to provide workout insights and tracking.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "LIFTR uses HealthKit to sync your workout data and track your fitness progress.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Iron Pilled would like to read your health data to provide workout insights and tracking.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Iron Pilled uses HealthKit to sync your workout data and track your fitness progress.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;

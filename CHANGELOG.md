@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (2026-11-21)
+- App name shown to users is now **Iron Pilled** (home-screen name, permission texts, Health import screen). Bundle ID, App Group, project and target names are unchanged. New app icon pending.
+
 ### In Progress
 - Settings redesign: wiring up per-exercise deload overrides, which currently exist in the
   UI/model but are never read by the actual deload logic (tracked as issue #8)
