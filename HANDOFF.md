@@ -385,3 +385,5 @@ Step 3 (rest timer in the header): G1-G11 PASS, G12 skipped (legacy Progression 
 Not yet recorded this round: F8, F14, F4, E5 re-checks (page still shows the 2026-11-17 results for them), LIFTRTests count (expect 49), UI tests, build warnings (two Sendable warnings fixed in 3737ace).
 
 Update 2026-11-21 (owner message 09:16): F8, F14, F10, F11 PASS on the page (navigation fix 25303d0 confirmed on device). Owner reported "all pass" for E5 and F4 by message; the page still showed E5 Fail (2026-11-17) and the old F4 note when read, so these two are recorded as owner-reported, page not updated. Still open: LIFTRTests count (expect 49), UI tests, build warnings.
+
+Update 2026-11-21 (owner 09:17): LIFTRTests 49 passed, build has no warnings. Step 3 closed pending UI test run result. Next: step 4 (Live Activity mirrors the session).
