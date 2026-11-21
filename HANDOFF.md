@@ -434,3 +434,8 @@ Built:
 Decisions NOT built (fewer features): no Discard button on the live screen (the Workouts card has Delete), no auto-distance yet (step 6).
 Tests: 52 expected (cardio manual-log tests moved to the live start/finish functions; new stale/type-lookup test). No schema change.
 Test page refreshed 2026-11-21 for build c23a604: new section I (cardio live timer, I1-I18), all results cleared, run info updated. Round 99312d0 results were recorded above before clearing.
+
+## Round 2026-11-21 results, build c23a604 (iPhone 13 Pro), read from the test page
+Step 5 (cardio live timer): I1-I15 PASS. I16 (stale after 6 h), I17 (program cardio unchanged), I18 (Health import unchanged) skipped by the owner. LIFTRTests: 52 passed (as expected). H1 and H2 were also marked skip on this page (not re-run; they passed on 99312d0).
+Not verified on device: stale prompt for cardio, planned program cardio still opening the editor, Health import after the CardioWorkoutService change (unit tests cover createFinishedWorkout paths).
+Next: step 6 (GPS distance, stored route, live map, live elevation). Places list and elevation-source decision to be confirmed with the owner before code.
