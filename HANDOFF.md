@@ -457,4 +457,4 @@ Next: step 6 (GPS distance, stored route, live map, live elevation). Places list
 - Owner wants to distribute via TestFlight and start the Iron Pilled rename and new logos now. Pending: build number check in App Store Connect (pbxproj still has 38 on the app target) and rename scope (visible name only vs bundle ID too), which decides whether to upload before or after the rename.
 
 ## Decision 2026-11-21 (owner, 10:56): TestFlight build
-- App Store Connect shows 1.2.1 build 38 (expired) as the highest. Build number bumped to 39 on the app target and RestTimerWidgetExtension (both configurations). Display name is Iron Pilled; bundle ID unchanged. Waiting on the new app icon file before archiving.
+- App Store Connect shows 1.2.1 build 38 (expired) as the highest. Build number bumped to 39 on the app target and RestTimerWidgetExtension (both configurations). Display name is Iron Pilled; bundle ID unchanged. App icon: the existing brain image (AppIcon.appiconset, flat, dark and tinted) stays for now; no icon change needed. Ready to archive.
