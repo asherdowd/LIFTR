@@ -27,27 +27,6 @@ struct MainView: View {
     }
 
 
-    /// New Workout sessions (any status) and legacy sessions mixed, newest first.
-    var recentStrengthEntries: [RecentStrengthEntry] {
-        WorkoutSummaryService.recentEntries(
-            workouts: allWorkouts,
-            legacySessions: activeProgressions.flatMap { $0.sessions },
-            limit: 5,
-            useMetric: currentSettings.useMetric
-        )
-    }
-
-    /// Cardio exercises from new Workouts (for example imported from Apple Health).
-    var recentCardioEntries: [RecentStrengthEntry] {
-        WorkoutSummaryService.recentEntries(
-            workouts: allWorkouts,
-            legacySessions: [],
-            limit: 5,
-            cardio: true,
-            useMetric: currentSettings.useMetric
-        )
-    }
-
     var upcomingWorkoutDays: [UpcomingWorkoutDay] {
         WorkoutSummaryService.upcomingDays(
             in: allWorkouts,
@@ -55,13 +34,43 @@ struct MainView: View {
         )
     }
 
-    var recentCardioSessions: [CardioSession] {
-        let allSessions = activeCardioProgressions.flatMap { $0.sessions }
-        return allSessions
-            .filter { $0.completed }
-            .sorted { $0.completedDate ?? $0.date > $1.completedDate ?? $1.date }
-            .prefix(5)
-            .map { $0 }
+    /// Strength days: in progress, overdue, and the next scheduled one.
+    var upcomingStrengthDays: [UpcomingWorkoutDay] {
+        var strength: [UpcomingWorkoutDay] = []
+        for item in upcomingWorkoutDays where !item.isCardio {
+            strength.append(item)
+        }
+        return WorkoutSummaryService.limitScheduled(strength, limit: WorkoutSummaryService.scheduledPerCategory)
+    }
+
+    /// Cardio days from the new model: in progress, overdue, and the next scheduled one.
+    var upcomingCardioDays: [UpcomingWorkoutDay] {
+        var cardio: [UpcomingWorkoutDay] = []
+        for item in upcomingWorkoutDays where item.isCardio {
+            cardio.append(item)
+        }
+        return WorkoutSummaryService.limitScheduled(cardio, limit: WorkoutSummaryService.scheduledPerCategory)
+    }
+
+    /// How many scheduled slots a category has left after its new-model scheduled days
+    /// (legacy sessions share the same limit).
+    private func scheduledSlotsLeft(_ days: [UpcomingWorkoutDay]) -> Int {
+        var used: Int = 0
+        for item in days where item.status == .scheduled {
+            used += 1
+        }
+        let left: Int = WorkoutSummaryService.scheduledPerCategory - used
+        return left > 0 ? left : 0
+    }
+
+    /// Legacy strength sessions, limited together with the new-model scheduled days.
+    var shownLegacyStrengthSessions: [WorkoutSession] {
+        return Array(upcomingStrengthSessions.prefix(scheduledSlotsLeft(upcomingStrengthDays)))
+    }
+
+    /// Legacy cardio sessions, limited together with the new-model scheduled days.
+    var shownLegacyCardioSessions: [CardioSession] {
+        return Array(upcomingCardioSessions.prefix(scheduledSlotsLeft(upcomingCardioDays)))
     }
 
     var upcomingStrengthSessions: [WorkoutSession] {
@@ -168,7 +177,7 @@ struct MainView: View {
                     .padding(.horizontal)
 
                     // Strength subsection
-                    if !upcomingStrengthSessions.isEmpty || !upcomingWorkoutDays.isEmpty {
+                    if !upcomingStrengthDays.isEmpty || !shownLegacyStrengthSessions.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Image(systemName: "dumbbell.fill")
@@ -180,19 +189,18 @@ struct MainView: View {
                             }
                             .padding(.horizontal)
 
-                            ForEach(upcomingWorkoutDays) { item in
+                            ForEach(upcomingStrengthDays) { item in
                                 UpcomingWorkoutDayRow(item: item)
                             }
 
-                            ForEach(upcomingStrengthSessions, id: \.id) { session in
+                            ForEach(shownLegacyStrengthSessions, id: \.id) { session in
                                 UpcomingStrengthSessionRow(session: session)
                             }
                         }
                     }
 
-  
                     // Cardio subsection
-                    if !upcomingCardioSessions.isEmpty {
+                    if !upcomingCardioDays.isEmpty || !shownLegacyCardioSessions.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Image(systemName: "figure.run")
@@ -203,33 +211,27 @@ struct MainView: View {
                                     .foregroundColor(.secondary)
                             }
                             .padding(.horizontal)
-                            .padding(.top, (upcomingStrengthSessions.isEmpty && upcomingWorkoutDays.isEmpty) ? 0 : 8)
+                            .padding(.top, (upcomingStrengthDays.isEmpty && shownLegacyStrengthSessions.isEmpty) ? 0 : 8)
 
-                            ForEach(upcomingCardioSessions, id: \.id) { session in
+                            ForEach(upcomingCardioDays) { item in
+                                UpcomingWorkoutDayRow(item: item)
+                            }
+
+                            ForEach(shownLegacyCardioSessions, id: \.id) { session in
                                 UpcomingCardioSessionRow(session: session)
                             }
                         }
                     }
 
-                    // Empty state
-                    if upcomingStrengthSessions.isEmpty && upcomingWorkoutDays.isEmpty && upcomingCardioSessions.isEmpty {
+                    // Empty state (the Start Workout button below is always shown)
+                    if upcomingStrengthDays.isEmpty && shownLegacyStrengthSessions.isEmpty
+                        && upcomingCardioDays.isEmpty && shownLegacyCardioSessions.isEmpty {
                         VStack(spacing: 12) {
                             Image(systemName: "calendar")
                                 .font(.system(size: 40))
                                 .foregroundColor(.secondary)
                             Text("No upcoming workouts scheduled")
                                 .foregroundColor(.secondary)
-
-                            Button(action: { onStartWorkout?() }) {
-                                Text("Start a Workout")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                            }
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 30)
@@ -237,77 +239,22 @@ struct MainView: View {
                 }
                 .padding(.vertical)
 
-                Divider()
-                    .padding(.horizontal)
-
-                // MARK: Recent Workouts Section
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Image(systemName: "clock.fill")
-                            .foregroundColor(.blue)
-                        Text("Recent Workouts")
-                            .font(.title2)
+                // MARK: Start Workout button (opens the Workouts tab)
+                Button(action: { onStartWorkout?() }) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title)
+                        Text("Start Workout")
+                            .font(.title3)
                             .fontWeight(.bold)
                     }
-                    .padding(.horizontal)
-
-                    // Strength subsection
-                    if !recentStrengthEntries.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "dumbbell.fill")
-                                    .font(.caption)
-                                    .foregroundColor(.orange)
-                                Text("Strength")
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.horizontal)
-
-                            ForEach(recentStrengthEntries) { entry in
-                                RecentStrengthSessionRow(entry: entry)
-                            }
-                        }
-                    }
-
-                    // Cardio subsection
-                    if !recentCardioSessions.isEmpty || !recentCardioEntries.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "figure.run")
-                                    .font(.caption)
-                                    .foregroundColor(.green)
-                                Text("Cardio")
-                                    .font(.headline)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-
-                            ForEach(recentCardioEntries) { entry in
-                                RecentStrengthSessionRow(entry: entry)
-                            }
-
-                            ForEach(recentCardioSessions, id: \.id) { session in
-                                RecentCardioSessionRow(session: session)
-                            }
-                        }
-                    }
-
-                    // Empty state
-                    if recentStrengthEntries.isEmpty && recentCardioSessions.isEmpty && recentCardioEntries.isEmpty {
-                        VStack(spacing: 12) {
-                            Image(systemName: "calendar.badge.clock")
-                                .font(.system(size: 40))
-                                .foregroundColor(.secondary)
-                            Text("No recent workouts")
-                                .foregroundColor(.secondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 30)
-                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(14)
                 }
-                .padding(.vertical)
+                .padding(.horizontal)
 
                 Spacer(minLength: 20)
             }
@@ -344,161 +291,6 @@ struct PRRow: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-    }
-}
-
-// MARK: - Recent Session Rows
-
-struct RecentStrengthSessionRow: View {
-    let entry: RecentStrengthEntry
-    @State private var showDetail = false
-
-    var body: some View {
-        if let session = entry.session {
-            Button(action: { showDetail = true }) { rowContent(showChevron: true) }
-                .buttonStyle(.plain)
-                .sheet(isPresented: $showDetail) {
-                    RecentSessionDetailSheet(session: session)
-                }
-        } else {
-            rowContent(showChevron: false)
-        }
-    }
-
-    private func rowContent(showChevron: Bool) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
-                .font(.title3)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(entry.name)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-
-                HStack(spacing: 8) {
-                    Text(entry.detail)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-
-                    if let percentage = entry.percentage {
-                        Text("•")
-                            .foregroundColor(.secondary)
-
-                        Text("\(Int(percentage))% complete")
-                            .font(.caption)
-                            .foregroundColor(performanceColor(percentage))
-                    }
-                }
-            }
-
-            Spacer()
-
-            Text(entry.date.formatted(date: .abbreviated, time: .omitted))
-                .font(.caption2)
-                .foregroundColor(.secondary)
-
-            if showChevron {
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
-        .padding(.horizontal)
-    }
-
-    private func performanceColor(_ percentage: Double) -> Color {
-        if percentage >= 90 { return .green }
-        else if percentage >= 75 { return .orange }
-        else { return .red }
-    }
-}
-
-/// View-only detail for a finished session opened from Home Recent. Sheet with its own
-/// NavigationStack. Program sessions also link to the day screen for the whole day.
-struct RecentSessionDetailSheet: View {
-    let session: ExerciseSession
-    @Environment(\.dismiss) private var dismiss
-
-    private var day: WorkoutDay? { session.workoutExercise?.day }
-    private var workout: Workout? { day?.workout }
-    private var isProgramSession: Bool {
-        guard let exercise = session.workoutExercise else { return false }
-        return !exercise.isFreeform && !exercise.isCardio
-    }
-
-    var body: some View {
-        NavigationStack {
-            EditSessionView(session: session, readOnly: true)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Close") { dismiss() }
-                    }
-                    if isProgramSession, let day, let workout {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            NavigationLink("Whole day") {
-                                WorkoutDayView(workout: workout, day: day, week: session.weekNumber)
-                            }
-                        }
-                    }
-                }
-        }
-    }
-}
-
-struct RecentCardioSessionRow: View {
-    let session: CardioSession
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
-                .font(.title3)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(session.progression?.name ?? "Unknown Cardio")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-
-                HStack(spacing: 8) {
-                    if let distance = session.actualDistance {
-                        Text(String(format: "%.1f mi", distance))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-
-                    if let duration = session.duration {
-                        if session.actualDistance != nil {
-                            Text("•")
-                                .foregroundColor(.secondary)
-                        }
-                        Text(formatDuration(duration))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-
-            Spacer()
-
-            if let date = session.completedDate {
-                Text(date.formatted(date: .abbreviated, time: .omitted))
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
-        .padding(.horizontal)
-    }
-
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let minutes = Int(duration) / 60
-        return "\(minutes) min"
     }
 }
 

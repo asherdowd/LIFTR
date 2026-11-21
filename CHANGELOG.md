@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed (2026-11-21)
+- Home: Recent workouts moved to the Strength and Cardio screens (Workouts tab). Home shows only Upcoming: in progress and overdue workouts, plus the next scheduled workout per category (Strength, Cardio), and a large Start Workout button that opens the Workouts tab. Planned cardio days now list under Cardio.
 - App name shown to users is now **Iron Pilled** (home-screen name, permission texts, Health import screen). Bundle ID, App Group, project and target names are unchanged. New app icon pending.
 
 ### In Progress

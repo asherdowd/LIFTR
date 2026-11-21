@@ -1394,4 +1394,52 @@ final class LiftrTests: XCTestCase {
         XCTAssertEqual(CardioWorkoutService.meters(fromEntered: 2, type: .freeCardio, useMetric: true) ?? 0, 2_000, accuracy: 0.001)
         XCTAssertEqual(CardioWorkoutService.meters(fromEntered: 1, type: .freeCardio, useMetric: false) ?? 0, 1_609.344, accuracy: 0.001)
     }
+
+    // MARK: - Home: Upcoming limit and Strength/Cardio split
+
+    @MainActor func testHomeUpcomingKeepsInProgressAndOverdueAndLimitsScheduled() throws {
+        let context = container.mainContext
+        let now = Date()
+        let cal = Calendar.current
+        let twoDaysAgo = cal.date(byAdding: .day, value: -2, to: cal.startOfDay(for: now))!
+
+        let (started, _, startedSessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        startedSessions[0].date = twoDaysAgo
+        addSet(to: startedSessions[0], number: 1, reps: 5, weight: 100, in: context)
+        let (late, _, lateSessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        lateSessions[0].date = twoDaysAgo
+        let (soon, _, soonSessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        soonSessions[0].date = now
+        let (later, _, laterSessions) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        laterSessions[0].date = cal.date(byAdding: .day, value: 2, to: now)!
+
+        let all = WorkoutSummaryService.upcomingDays(in: [later, soon, late, started], now: now, withinDays: 7)
+        XCTAssertEqual(all.map { $0.status }, [.inProgress, .overdue, .scheduled, .scheduled])
+
+        let limited = WorkoutSummaryService.limitScheduled(all, limit: WorkoutSummaryService.scheduledPerCategory)
+        XCTAssertEqual(WorkoutSummaryService.scheduledPerCategory, 1)
+        XCTAssertEqual(limited.map { $0.status }, [.inProgress, .overdue, .scheduled])
+        XCTAssertEqual(limited.last?.workout.id, soon.id, "The soonest scheduled day is the one kept")
+        XCTAssertEqual(WorkoutSummaryService.limitScheduled(all, limit: 0).map { $0.status }, [.inProgress, .overdue])
+        XCTAssertEqual(WorkoutSummaryService.limitScheduled(all, limit: 5).count, 4)
+    }
+
+    @MainActor func testUpcomingDayIsCardioOnlyWhenEveryExerciseIsCardio() throws {
+        let context = container.mainContext
+        let now = Date()
+
+        let (strength, _, _) = makeWorkout(in: context, totalWeeks: 1, sessionCount: 1)
+        let strengthDay = try XCTUnwrap(strength.days.first)
+        let strengthItem = UpcomingWorkoutDay(workout: strength, day: strengthDay, week: 1, date: now, pendingCount: 1, status: .scheduled)
+        XCTAssertFalse(strengthItem.isCardio)
+
+        let live = try CardioWorkoutService.startLiveWorkout(type: .running, customName: "", into: context, now: now)
+        let cardioDay = try XCTUnwrap(live.workout.days.first)
+        let cardioItem = UpcomingWorkoutDay(workout: live.workout, day: cardioDay, week: 1, date: now, pendingCount: 1, status: .inProgress)
+        XCTAssertTrue(cardioItem.isCardio)
+
+        let emptyDay = WorkoutDay(name: "Empty", dayNumber: 9)
+        let emptyItem = UpcomingWorkoutDay(workout: strength, day: emptyDay, week: 1, date: now, pendingCount: 0, status: .scheduled)
+        XCTAssertFalse(emptyItem.isCardio)
+    }
 }

@@ -108,6 +108,9 @@ struct WorkoutsView: View {
                                 .cornerRadius(12)
                             }
                             .padding(.horizontal)
+
+                            RecentWorkoutsSection(isCardio: selectedCategory == .cardio)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .padding(.vertical)
                     }

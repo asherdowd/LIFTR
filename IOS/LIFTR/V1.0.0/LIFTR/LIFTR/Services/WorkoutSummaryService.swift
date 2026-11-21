@@ -24,6 +24,15 @@ struct UpcomingWorkoutDay: Identifiable {
     let status: Status
 
     var id: String { "\(workout.id.uuidString)-\(day.id.uuidString)-\(week)" }
+
+    /// Every exercise of the day is cardio: listed under Cardio on Home instead of Strength.
+    var isCardio: Bool {
+        if day.exercises.isEmpty { return false }
+        for exercise in day.exercises {
+            if !exercise.isCardio { return false }
+        }
+        return true
+    }
 }
 
 /// One row in "Recent Workouts" (Strength). Built from either the new or the legacy model.
@@ -137,6 +146,25 @@ enum WorkoutSummaryService {
             if $0.week != $1.week { return $0.week < $1.week }
             return $0.day.dayNumber < $1.day.dayNumber
         }
+    }
+
+    /// Home shows this many scheduled workouts per category (Strength, Cardio). In progress and
+    /// overdue workouts are always shown on top of it.
+    static let scheduledPerCategory: Int = 1
+
+    /// Keeps every in progress and overdue day, and only the first `limit` scheduled days.
+    /// `days` must already be sorted as `upcomingDays` returns them (soonest first).
+    static func limitScheduled(_ days: [UpcomingWorkoutDay], limit: Int) -> [UpcomingWorkoutDay] {
+        var result: [UpcomingWorkoutDay] = []
+        var scheduledKept: Int = 0
+        for item in days {
+            if item.status == .scheduled {
+                if scheduledKept >= limit { continue }
+                scheduledKept += 1
+            }
+            result.append(item)
+        }
+        return result
     }
 
     // MARK: Recent
